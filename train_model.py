@@ -108,11 +108,13 @@ else:
     decoder_hidden_size = hidden_size*2 if opt.bidirectional else hidden_size
     encoder = EncoderRNN(len(src.vocab), max_len, hidden_size,
                          opt.embedding_size,
+                         dropout_p=opt.dropout_p,
                          bidirectional=opt.bidirectional,
                          rnn_cell=opt.rnn_cell,
                          variable_lengths=True)
     decoder = DecoderRNN(len(tgt.vocab), max_len, decoder_hidden_size,
-                         dropout_p=opt.dropout_p, use_attention=opt.attention,
+                         dropout_p=opt.dropout_p,
+                         use_attention=opt.attention,
                          bidirectional=opt.bidirectional,
                          rnn_cell=opt.rnn_cell,
                          eos_id=tgt.eos_id, sos_id=tgt.sos_id)
