@@ -9,7 +9,7 @@ import torchtext
 import seq2seq
 from seq2seq.trainer import SupervisedTrainer
 from seq2seq.models import EncoderRNN, DecoderRNN, Seq2seq
-from seq2seq.loss import Perplexity
+from seq2seq.loss import Perplexity, NLLLoss
 from seq2seq.optim import Optimizer
 from seq2seq.dataset import SourceField, TargetField
 from seq2seq.evaluator import Predictor, Evaluator
@@ -23,9 +23,11 @@ except NameError:
 parser = argparse.ArgumentParser()
 parser.add_argument('--train', help='Training data')
 parser.add_argument('--dev', help='Development data')
-parser.add_argument('--output_dir', default='../models', help='Path to model directory. If load_checkpoint is True, then path to checkpoint directory has to be provided')
+parser.add_argument('--output_dir', default='../models',
+                    help='Path to model directory. If load_checkpoint is True, then path to checkpoint directory has to be provided')
 parser.add_argument('--epochs', type=int, help='Number of epochs', default=6)
-parser.add_argument('--optim', type=str, help='Choose optimizer', choices=['adam', 'adadelta', 'adagrad', 'adamax', 'rmsprop', 'sgd'])
+parser.add_argument('--optim', type=str, help='Choose optimizer',
+                    choices=['adam', 'adadelta', 'adagrad', 'adamax', 'rmsprop', 'sgd'])
 parser.add_argument('--max_len', type=int, help='Maximum sequence length', default=50)
 parser.add_argument('--rnn_cell', help="Chose type of rnn cell", default='lstm')
 parser.add_argument('--bidirectional', action='store_true', help="Flag for bidirectional encoder")
@@ -33,16 +35,22 @@ parser.add_argument('--embedding_size', type=int, help='Embedding size', default
 parser.add_argument('--hidden_size', type=int, help='Hidden layer size', default=128)
 parser.add_argument('--src_vocab', type=int, help='source vocabulary size', default=50000)
 parser.add_argument('--tgt_vocab', type=int, help='target vocabulary size', default=50000)
-parser.add_argument('--dropout_p', type=float, help='Dropout probability', default=0.2)
-parser.add_argument('--teacher_forcing_ratio', type=float, help='Teacher forcing ratio', default=0.2)
+parser.add_argument('--dropout_p', type=float, help='Dropout probability', default=0.1)
+parser.add_argument('--teacher_forcing_ratio', type=float,
+                    help='Teacher forcing ratio', default=0.2)
 parser.add_argument('--attention', action='store_true')
 parser.add_argument('--batch_size', type=int, help='Batch size', default=32)
-parser.add_argument('--lr', type=float, help='Learning rate, recommended settings.\nrecommended settings: adam=0.001 adadelta=1.0 adamax=0.002 rmsprop=0.01 sgd=0.1', default=0.001)
+parser.add_argument('--lr', type=float,
+                    help='Learning rate, recommended settings.\nrecommended settings: adam=0.001 adadelta=1.0 adamax=0.002 rmsprop=0.01 sgd=0.1', default=0.001)
 
-parser.add_argument('--load_checkpoint', help='The name of the checkpoint to load, usually an encoded time string')
-parser.add_argument('--save_every', type=int, help='Every how many batches the model should be saved', default=100)
-parser.add_argument('--print_every', type=int, help='Every how many batches to print results', default=100)
-parser.add_argument('--resume', action='store_true', help='Indicates if training has to be resumed from the latest checkpoint')
+parser.add_argument('--load_checkpoint',
+                    help='The name of the checkpoint to load, usually an encoded time string')
+parser.add_argument('--save_every', type=int,
+                    help='Every how many batches the model should be saved', default=100)
+parser.add_argument('--print_every', type=int,
+                    help='Every how many batches to print results', default=100)
+parser.add_argument('--resume', action='store_true',
+                    help='Indicates if training has to be resumed from the latest checkpoint')
 parser.add_argument('--log-level', default='info', help='Logging level.')
 parser.add_argument('--cuda_device', default=0, type=int, help='set cuda device to use')
 
@@ -56,14 +64,15 @@ logging.basicConfig(format=LOG_FORMAT, level=getattr(logging, opt.log_level.uppe
 logging.info(opt)
 
 if torch.cuda.is_available():
-        print("Cuda device set to %i" % opt.cuda_device)
-        torch.cuda.set_device(opt.cuda_device)
+    print("Cuda device set to %i" % opt.cuda_device)
+    torch.cuda.set_device(opt.cuda_device)
 
 ############################################################################
 # Prepare dataset
 src = SourceField()
 tgt = TargetField()
 max_len = opt.max_len
+
 
 def len_filter(example):
     return len(example.src) <= max_len and len(example.tgt) <= max_len
@@ -88,7 +97,8 @@ else:
 # prepare model
 
 if opt.load_checkpoint is not None:
-    logging.info("loading checkpoint from {}".format(os.path.join(opt.output_dir, opt.load_checkpoint)))
+    logging.info("loading checkpoint from {}".format(
+        os.path.join(opt.output_dir, opt.load_checkpoint)))
     checkpoint_path = os.path.join(opt.output_dir, opt.load_checkpoint)
     checkpoint = Checkpoint.load(checkpoint_path)
     seq2seq = checkpoint.model
@@ -105,9 +115,10 @@ else:
 
     # Initialize model
     hidden_size = opt.hidden_size
-    decoder_hidden_size = hidden_size*2 if opt.bidirectional else hidden_size
+    decoder_hidden_size = hidden_size * 2 if opt.bidirectional else hidden_size
     encoder = EncoderRNN(len(src.vocab), max_len, hidden_size,
                          opt.embedding_size,
+                         dropout_p=opt.dropout_p,
                          bidirectional=opt.bidirectional,
                          rnn_cell=opt.rnn_cell,
                          variable_lengths=True)
@@ -129,7 +140,8 @@ else:
 # Prepare loss
 weight = torch.ones(len(output_vocab))
 pad = output_vocab.stoi[tgt.pad_token]
-loss = Perplexity(weight, pad)
+# loss = Perplexity(weight, pad)
+loss = NLLLoss(weight, pad)
 if torch.cuda.is_available():
     loss.cuda()
 
