@@ -4,6 +4,7 @@ import torch
 import torchtext
 import torch.autograd as autograd
 
+import os
 import matplotlib.pyplot as plt
 
 import seq2seq
@@ -24,7 +25,7 @@ class EmbeddingVisualizer(object):
         for source_token in all_source_tokens:
             idx = string_to_idx[source_token]
             idx_tensor = autograd.Variable(torch.LongTensor([idx]))
-            embedding = model.encoder.return_embeddings(idx_tensor)
+            embedding = model.encoder.get_embeddings(idx_tensor)
 
             if source_token in ['jump', 'run', 'walk', 'look']:
                 color = 'green'
@@ -45,13 +46,12 @@ class EmbeddingVisualizer(object):
             else:
                 print(source_token)
 
-            x, y = embed.data.cpu().numpy()[0]
-            print("MOET 2 ZIJN")
+            x, y = embedding.data.cpu().numpy()[0]
 
             plt.scatter(x, y, marker='x', color=color, s=20)
             plt.text(x, y, source_token, color=color)
 
-        plt.savefig('{}_{}'.format(self.save_dir, self.fig_index))
+        plt.savefig(os.path.join(self.save_dir, 'fig_{}'.format(self.fig_index)))
         plt.clf()
 
         self.fig_index += 1

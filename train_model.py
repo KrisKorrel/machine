@@ -50,8 +50,9 @@ parser.add_argument('--save_every', type=int,
                     help='Every how many batches the model should be saved', default=100)
 parser.add_argument('--print_every', type=int,
                     help='Every how many batches to print results', default=100)
-parser.add_argument('--resume', action='store_true',
-                    help='Indicates if training has to be resumed from the latest checkpoint')
+parser.add_argument('--plot_every', type=int, help='Every how many batches to plot the encoder embeddings. Set to -1 to never plot', default=-1)
+parser.add_argument('--plot_dir', type=str, help='Directory to save the figures of encoder embeddings', default='embed_plots')
+parser.add_argument('--resume', action='store_true', help='Indicates if training has to be resumed from the latest checkpoint')
 parser.add_argument('--log-level', default='info', help='Logging level.')
 parser.add_argument('--cuda_device', default=0, type=int, help='set cuda device to use')
 
@@ -152,7 +153,10 @@ if torch.cuda.is_available():
 # create trainer
 t = SupervisedTrainer(loss=loss, batch_size=opt.batch_size,
                       checkpoint_every=opt.save_every,
-                      print_every=opt.print_every, expt_dir=opt.output_dir)
+                      print_every=opt.print_every,
+                      plot_every=opt.plot_every,
+                      plot_dir=opt.plot_dir,
+                      expt_dir=opt.output_dir)
 
 checkpoint_path = os.path.join(opt.output_dir, opt.load_checkpoint) if opt.resume else None
 

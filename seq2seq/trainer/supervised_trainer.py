@@ -11,6 +11,7 @@ from torch import optim
 
 import seq2seq
 from seq2seq.evaluator import Evaluator
+from seq2seq.evaluator import EmbeddingVisualizer
 from seq2seq.loss import NLLLoss
 from seq2seq.optim import Optimizer
 from seq2seq.util.checkpoint import Checkpoint
@@ -28,7 +29,7 @@ class SupervisedTrainer(object):
     """
     def __init__(self, expt_dir='experiment', loss=NLLLoss(), batch_size=64,
                  random_seed=None,
-                 checkpoint_every=100, print_every=100):
+                 checkpoint_every=100, print_every=100, plot_every=10, plot_dir='embed_plots'):
         self._trainer = "Simple Trainer"
         self.random_seed = random_seed
         if random_seed is not None:
@@ -39,6 +40,15 @@ class SupervisedTrainer(object):
         self.optimizer = None
         self.checkpoint_every = checkpoint_every
         self.print_every = print_every
+        self.plot_every = plot_every
+
+        if not os.path.isabs(plot_dir):
+            plot_dir = os.path.join(os.getcwd(), plot_dir)
+        self.plot_dir = plot_dir
+        if not os.path.exists(self.plot_dir):
+            os.makedirs(self.plot_dir)
+
+        self.embedding_visualizer = EmbeddingVisualizer(self.plot_dir)
 
         if not os.path.isabs(expt_dir):
             expt_dir = os.path.join(os.getcwd(), expt_dir)
@@ -133,6 +143,9 @@ class SupervisedTrainer(object):
                         self.loss.name,
                         print_loss_avg)
                     log.info(log_msg)
+
+                if step % self.plot_every == 0 and self.plot_every > 0:
+                    self.embedding_visualizer.plot(model, data)
 
                 # check if new model should be saved
                 if step % self.checkpoint_every == 0 or step == total_steps:
