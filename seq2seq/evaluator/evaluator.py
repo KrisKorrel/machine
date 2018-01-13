@@ -17,7 +17,6 @@ class Evaluator(object):
     def __init__(self, loss=NLLLoss(), batch_size=64):
         self.loss = loss
         self.batch_size = batch_size
-        self.fig_index = 0
 
     def evaluate(self, model, data):
         """ Evaluate a model on given dataset and return performance.
@@ -43,40 +42,6 @@ class Evaluator(object):
             device=device, train=False)
         tgt_vocab = data.fields[seq2seq.tgt_field_name].vocab
         pad = tgt_vocab.stoi[data.fields[seq2seq.tgt_field_name].pad_token]
-
-        import torch.autograd as autograd
-        import matplotlib.pyplot as plt
-
-        for src_tok in data.fields[seq2seq.src_field_name].vocab.freqs:
-            idx = [data.fields[seq2seq.src_field_name].vocab.stoi[src_tok]]
-            idx_t = autograd.Variable(torch.LongTensor(idx))
-            embed = model.encoder.ret_embed(idx_t)
-
-            if src_tok in ['jump', 'run', 'walk', 'look']:
-                c = 'green'
-            elif src_tok in ['left', 'right']:
-                c = 'blue'
-            elif src_tok in ['after']:
-                c = 'red'
-            elif src_tok in ['and']:
-                c = 'orange'
-            elif src_tok in ['twice', 'thrice']:
-                c = 'black'
-            elif src_tok in ['around']:
-                c = 'grey'
-            elif src_tok in ['turn']:
-                c = 'purple'
-            elif src_tok in ['opposite']:
-                c = 'brown'
-            else:
-                print(src_tok)
-
-            plt.scatter(embed.data.cpu().numpy()[0][0], embed.data.cpu().numpy()[0][1], marker='x', color=c, s=20)
-            plt.text(embed.data.cpu().numpy()[0][0], embed.data.cpu().numpy()[0][1], src_tok, color=c)
-        plt.savefig('../pics/test{}'.format(self.fig_index))
-        plt.clf()
-        self.fig_index += 1
-
 
         for batch in batch_iterator:
             input_variables, input_lengths  = getattr(batch, seq2seq.src_field_name)

@@ -67,5 +67,5 @@ class EncoderRNN(BaseRNN):
             output, _ = nn.utils.rnn.pad_packed_sequence(output, batch_first=True)
         return output, hidden
 
-    def ret_embed(self, idx):
-        return self.embedding(idx)
+    def get_embeddings(self, idxs):
+        return self.embedding(idxs)
