@@ -127,8 +127,8 @@ if __name__ == '__main__':
 
     create_split(split_on='output', included=range(23), split_name='experiment2a_output_short_to_long')
     create_split(split_on='output', included=range(7, 49), split_name='experiment2b_output_long_to_short')
-    create_split(split_on='output', included=list(range(1,18)) + list(range(28,49)), split_name='experiment2c_output_short_and_long_to_medium')
+    create_split(split_on='output', included=list(range(1, 9)) + list(range(11,19)) + list(range(21, 29)), split_name='experiment2c_output_interleaved_short_to_long')
 
     create_split(split_on='input', included=range(9), split_name='experiment2d_input_short_to_long')
     create_split(split_on='input', included=range(7, 10), split_name='experiment2e_input_long_to_short')
-    create_split(split_on='input', included=list(range(1, 8)) + [9], split_name='experiment2f_input_short_and_long_to_medium')
+    create_split(split_on='input', included=[1, 2, 3, 6, 7, 8], split_name='experiment2f_input_interleaved_short_to_long')
