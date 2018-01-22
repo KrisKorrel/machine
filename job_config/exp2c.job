@@ -1,0 +1,23 @@
+#!/bin/bash
+#SBATCH -N 1
+#SBATCH -p gpu
+#SBATCH -t 1-00:00:00
+#SBATCH -J exp2c
+#SBATCH -n 2
+#SBATCH -o exp2c_out
+
+echo start of job
+
+module load python
+module load mkl
+module load cuda/8.0.44
+
+. ~/virtual_env_machine/bin/activate
+
+cd ~/machine
+
+time srun --multi-prog -l job_config/exp2c.conf
+
+deactivate
+
+echo end of job
