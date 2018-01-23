@@ -20,7 +20,7 @@ TF=0.5
 BATCH_SIZE=128
 BIDIRECTIONAL=false
 PRINT_EVERY=20
-SAVE_EVERY=131 #Batches per epoch (print steps_per_epoch in supervised_trainer.py to find out)
+SAVE_EVERY=139 #Batches per epoch (print steps_per_epoch in supervised_trainer.py to find out)
 
 # Start training
 echo "Train model on example data"
