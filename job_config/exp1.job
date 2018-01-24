@@ -4,7 +4,7 @@
 #SBATCH -t 0-01:00:00
 #SBATCH -J exp1
 #SBATCH -n 2
-#SBATCH -o exp1_out
+#SBATCH -o exp1
 
 echo start of job
 
