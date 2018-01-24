@@ -1,0 +1,14 @@
+Max sequence accuracy exp1-without_attention: 1.0000
+Max sequence accuracy exp1-with_attention: 0.9981
+Max sequence accuracy exp2a-without_attention: 0.1837
+Max sequence accuracy exp2a-with_attention: 0.1712
+Max sequence accuracy exp2b-without_attention: 0.9028
+Max sequence accuracy exp2b-with_attention: 0.9564
+Max sequence accuracy exp2c-without_attention: 0.8857
+Max sequence accuracy exp2c-with_attention: 0.9170
+Max sequence accuracy exp2d-without_attention: 0.7294
+Max sequence accuracy exp2d-with_attention: 0.5853
+Max sequence accuracy exp2e-without_attention: 0.7031
+Max sequence accuracy exp2e-with_attention: 0.7323
+Max sequence accuracy exp2f-without_attention: 0.7544
+Max sequence accuracy exp2f-with_attention: 0.6744
