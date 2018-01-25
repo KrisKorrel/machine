@@ -66,13 +66,13 @@ do
 
     echo 'Test on length > 22'
     DEV_PATH=data/CLEANED-SCAN/length_split/tasks_test_length.txt
-    python evaluate.py --checkpoint_path "$EXPT_DIR"/$(ls -t "$EXPT_DIR"/ | head -1) --test_data "$DEV_PATH"
+    python evaluate.py --checkpoint_path "$EXPT_DIR"/$(ls -t "$EXPT_DIR"/ | head -1) --test_data "$DEV_PATH" --cuda_device $CUDA
 
     for test_length in 24 25 26 27 28 30 32 33 36 40 48
     do
         echo 'Test on length '$test_length
         DEV_PATH=data/CLEANED-SCAN/length_split/exp_2_test_$test_length/tasks_train.txt
-        python evaluate.py --checkpoint_path "$EXPT_DIR"/$(ls -t "$EXPT_DIR"/ | head -1) --test_data "$DEV_PATH"
+        python evaluate.py --checkpoint_path "$EXPT_DIR"/$(ls -t "$EXPT_DIR"/ | head -1) --test_data "$DEV_PATH" --cuda_device $CUDA
     done
 
     echo ''
