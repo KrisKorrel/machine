@@ -4,7 +4,7 @@ ATTENTION=true
 CUDA=$1
 
 # set values
-EPOCHS=1
+EPOCHS=50
 OPTIMIZER='adam'
 LR=0.001
 RNN_CELL='lstm'
