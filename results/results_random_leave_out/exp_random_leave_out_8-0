@@ -1,0 +1,662 @@
+start of job
+Included lengths in training set (61.65%): [1, 3, 4, 6, 7, 8, 9, 10, 11, 14, 15, 18, 19, 20, 21, 22]
+Results are in 'length_split/12 13 17 16 16 2 5 16'
+
+Train model with leave out 12 13 17 16 16 2 5 16
+2018-01-26 16:01:58,951 root         INFO     Namespace(attention=False, batch_size=128, bidirectional=False, cuda_device=0, dev='data/CLEANED-SCAN/length_split/tasks_test_length.txt', dropout_p_decoder=0.5, dropout_p_encoder=0.5, embedding_size=200, epochs=100, hidden_size=200, load_checkpoint=None, log_level='info', lr=0.001, max_len=50, n_layers=2, optim='adam', output_dir='checkpoints_experiment_random_leave_out/12 13 17 16 16 2 5 16', print_every=20, resume=False, rnn_cell='lstm', save_every=131, src_vocab=50000, teacher_forcing_ratio=0.5, tgt_vocab=50000, train='data/CLEANED-SCAN/length_split/12 13 17 16 16 2 5 16/tasks_train.txt')
+2018-01-26 16:02:03,137 seq2seq.trainer.supervised_trainer INFO     Optimizer: <torch.optim.adam.Adam object at 0x2b9f277b5790>, Scheduler: None
+Cuda device set to 0
+2018-01-26 16:02:08,659 seq2seq.trainer.supervised_trainer INFO     Progress: 0%, Train Perplexity: 13.4388
+2018-01-26 16:02:10,031 seq2seq.trainer.supervised_trainer INFO     Progress: 0%, Train Perplexity: 5.4355
+2018-01-26 16:02:11,554 seq2seq.trainer.supervised_trainer INFO     Progress: 0%, Train Perplexity: 4.8217
+2018-01-26 16:02:12,858 seq2seq.trainer.supervised_trainer INFO     Progress: 0%, Train Perplexity: 4.7839
+2018-01-26 16:02:14,970 seq2seq.trainer.supervised_trainer INFO     Finished epoch 1: Train Perplexity: 5.6834, Dev Perplexity: 7.2585, Accuracy: 0.2518, Sequence Accuracy: 0.0000
+2018-01-26 16:02:15,965 seq2seq.trainer.supervised_trainer INFO     Progress: 1%, Train Perplexity: 4.4729
+2018-01-26 16:02:19,649 seq2seq.trainer.supervised_trainer INFO     Progress: 1%, Train Perplexity: 4.3897
+2018-01-26 16:02:20,986 seq2seq.trainer.supervised_trainer INFO     Progress: 1%, Train Perplexity: 4.0946
+2018-01-26 16:02:22,241 seq2seq.trainer.supervised_trainer INFO     Progress: 1%, Train Perplexity: 3.7612
+2018-01-26 16:02:23,755 seq2seq.trainer.supervised_trainer INFO     Progress: 1%, Train Perplexity: 3.6552
+2018-01-26 16:02:25,910 seq2seq.trainer.supervised_trainer INFO     Finished epoch 2: Train Perplexity: 4.0534, Dev Perplexity: 4.3333, Accuracy: 0.4146, Sequence Accuracy: 0.0000
+2018-01-26 16:02:27,138 seq2seq.trainer.supervised_trainer INFO     Progress: 2%, Train Perplexity: 3.7301
+2018-01-26 16:02:28,618 seq2seq.trainer.supervised_trainer INFO     Progress: 2%, Train Perplexity: 4.0893
+2018-01-26 16:02:29,737 seq2seq.trainer.supervised_trainer INFO     Progress: 2%, Train Perplexity: 3.2566
+2018-01-26 16:02:33,352 seq2seq.trainer.supervised_trainer INFO     Progress: 2%, Train Perplexity: 3.1924
+2018-01-26 16:02:34,457 seq2seq.trainer.supervised_trainer INFO     Progress: 2%, Train Perplexity: 2.8104
+2018-01-26 16:02:36,704 seq2seq.trainer.supervised_trainer INFO     Finished epoch 3: Train Perplexity: 3.3984, Dev Perplexity: 3.8689, Accuracy: 0.5334, Sequence Accuracy: 0.0046
+2018-01-26 16:02:37,880 seq2seq.trainer.supervised_trainer INFO     Progress: 3%, Train Perplexity: 2.6129
+2018-01-26 16:02:39,019 seq2seq.trainer.supervised_trainer INFO     Progress: 3%, Train Perplexity: 2.5269
+2018-01-26 16:02:40,362 seq2seq.trainer.supervised_trainer INFO     Progress: 3%, Train Perplexity: 2.4669
+2018-01-26 16:02:41,598 seq2seq.trainer.supervised_trainer INFO     Progress: 3%, Train Perplexity: 2.4817
+2018-01-26 16:02:45,004 seq2seq.trainer.supervised_trainer INFO     Progress: 3%, Train Perplexity: 2.2201
+2018-01-26 16:02:47,382 seq2seq.trainer.supervised_trainer INFO     Finished epoch 4: Train Perplexity: 2.4469, Dev Perplexity: 3.8498, Accuracy: 0.5825, Sequence Accuracy: 0.0059
+2018-01-26 16:02:48,515 seq2seq.trainer.supervised_trainer INFO     Progress: 4%, Train Perplexity: 2.1549
+2018-01-26 16:02:49,989 seq2seq.trainer.supervised_trainer INFO     Progress: 4%, Train Perplexity: 2.1695
+2018-01-26 16:02:51,550 seq2seq.trainer.supervised_trainer INFO     Progress: 4%, Train Perplexity: 2.2360
+2018-01-26 16:02:52,922 seq2seq.trainer.supervised_trainer INFO     Progress: 4%, Train Perplexity: 2.1409
+2018-01-26 16:02:54,523 seq2seq.trainer.supervised_trainer INFO     Progress: 4%, Train Perplexity: 2.0810
+2018-01-26 16:02:56,877 seq2seq.trainer.supervised_trainer INFO     Finished epoch 5: Train Perplexity: 2.1356, Dev Perplexity: 3.6284, Accuracy: 0.5891, Sequence Accuracy: 0.0043
+2018-01-26 16:02:57,876 seq2seq.trainer.supervised_trainer INFO     Progress: 5%, Train Perplexity: 1.8007
+2018-01-26 16:03:01,659 seq2seq.trainer.supervised_trainer INFO     Progress: 5%, Train Perplexity: 1.8270
+2018-01-26 16:03:02,973 seq2seq.trainer.supervised_trainer INFO     Progress: 5%, Train Perplexity: 1.5945
+2018-01-26 16:03:04,299 seq2seq.trainer.supervised_trainer INFO     Progress: 5%, Train Perplexity: 1.5883
+2018-01-26 16:03:05,633 seq2seq.trainer.supervised_trainer INFO     Progress: 5%, Train Perplexity: 1.5208
+2018-01-26 16:03:08,120 seq2seq.trainer.supervised_trainer INFO     Finished epoch 6: Train Perplexity: 1.6459, Dev Perplexity: 4.1465, Accuracy: 0.6511, Sequence Accuracy: 0.0186
+2018-01-26 16:03:09,111 seq2seq.trainer.supervised_trainer INFO     Progress: 6%, Train Perplexity: 1.5035
+2018-01-26 16:03:10,485 seq2seq.trainer.supervised_trainer INFO     Progress: 6%, Train Perplexity: 1.4679
+2018-01-26 16:03:14,098 seq2seq.trainer.supervised_trainer INFO     Progress: 6%, Train Perplexity: 1.4756
+2018-01-26 16:03:15,421 seq2seq.trainer.supervised_trainer INFO     Progress: 6%, Train Perplexity: 1.3875
+2018-01-26 16:03:16,693 seq2seq.trainer.supervised_trainer INFO     Progress: 6%, Train Perplexity: 1.3987
+2018-01-26 16:03:19,265 seq2seq.trainer.supervised_trainer INFO     Finished epoch 7: Train Perplexity: 1.4402, Dev Perplexity: 3.7265, Accuracy: 0.6589, Sequence Accuracy: 0.0158
+2018-01-26 16:03:20,261 seq2seq.trainer.supervised_trainer INFO     Progress: 7%, Train Perplexity: 1.3845
+2018-01-26 16:03:21,456 seq2seq.trainer.supervised_trainer INFO     Progress: 7%, Train Perplexity: 1.3320
+2018-01-26 16:03:22,853 seq2seq.trainer.supervised_trainer INFO     Progress: 7%, Train Perplexity: 1.3569
+2018-01-26 16:03:24,377 seq2seq.trainer.supervised_trainer INFO     Progress: 7%, Train Perplexity: 1.2835
+2018-01-26 16:03:27,797 seq2seq.trainer.supervised_trainer INFO     Progress: 7%, Train Perplexity: 1.2597
+2018-01-26 16:03:30,485 seq2seq.trainer.supervised_trainer INFO     Finished epoch 8: Train Perplexity: 1.3138, Dev Perplexity: 5.3347, Accuracy: 0.6417, Sequence Accuracy: 0.0043
+2018-01-26 16:03:31,347 seq2seq.trainer.supervised_trainer INFO     Progress: 8%, Train Perplexity: 1.2386
+2018-01-26 16:03:32,647 seq2seq.trainer.supervised_trainer INFO     Progress: 8%, Train Perplexity: 1.2136
+2018-01-26 16:03:33,931 seq2seq.trainer.supervised_trainer INFO     Progress: 8%, Train Perplexity: 1.2423
+2018-01-26 16:03:35,320 seq2seq.trainer.supervised_trainer INFO     Progress: 8%, Train Perplexity: 1.2033
+2018-01-26 16:03:36,541 seq2seq.trainer.supervised_trainer INFO     Progress: 8%, Train Perplexity: 1.1816
+2018-01-26 16:03:39,224 seq2seq.trainer.supervised_trainer INFO     Finished epoch 9: Train Perplexity: 1.2107, Dev Perplexity: 4.0040, Accuracy: 0.6987, Sequence Accuracy: 0.0327
+2018-01-26 16:03:42,024 seq2seq.trainer.supervised_trainer INFO     Progress: 9%, Train Perplexity: 1.2115
+2018-01-26 16:03:43,212 seq2seq.trainer.supervised_trainer INFO     Progress: 9%, Train Perplexity: 1.1447
+2018-01-26 16:03:44,530 seq2seq.trainer.supervised_trainer INFO     Progress: 9%, Train Perplexity: 1.1511
+2018-01-26 16:03:45,846 seq2seq.trainer.supervised_trainer INFO     Progress: 9%, Train Perplexity: 1.0700
+2018-01-26 16:03:47,192 seq2seq.trainer.supervised_trainer INFO     Progress: 9%, Train Perplexity: 1.1330
+2018-01-26 16:03:50,086 seq2seq.trainer.supervised_trainer INFO     Finished epoch 10: Train Perplexity: 1.1442, Dev Perplexity: 4.1722, Accuracy: 0.7115, Sequence Accuracy: 0.0446
+2018-01-26 16:03:50,911 seq2seq.trainer.supervised_trainer INFO     Progress: 10%, Train Perplexity: 1.1660
+2018-01-26 16:03:52,217 seq2seq.trainer.supervised_trainer INFO     Progress: 10%, Train Perplexity: 1.1230
+2018-01-26 16:03:55,778 seq2seq.trainer.supervised_trainer INFO     Progress: 10%, Train Perplexity: 1.1625
+2018-01-26 16:03:57,039 seq2seq.trainer.supervised_trainer INFO     Progress: 10%, Train Perplexity: 1.0845
+2018-01-26 16:03:58,285 seq2seq.trainer.supervised_trainer INFO     Progress: 10%, Train Perplexity: 1.1101
+2018-01-26 16:04:01,181 seq2seq.trainer.supervised_trainer INFO     Finished epoch 11: Train Perplexity: 1.1181, Dev Perplexity: 5.1704, Accuracy: 0.6866, Sequence Accuracy: 0.0089
+2018-01-26 16:04:01,767 seq2seq.trainer.supervised_trainer INFO     Progress: 11%, Train Perplexity: 1.0926
+2018-01-26 16:04:03,203 seq2seq.trainer.supervised_trainer INFO     Progress: 11%, Train Perplexity: 1.1381
+2018-01-26 16:04:04,559 seq2seq.trainer.supervised_trainer INFO     Progress: 11%, Train Perplexity: 1.1254
+2018-01-26 16:04:08,162 seq2seq.trainer.supervised_trainer INFO     Progress: 11%, Train Perplexity: 1.1187
+2018-01-26 16:04:09,405 seq2seq.trainer.supervised_trainer INFO     Progress: 11%, Train Perplexity: 1.0657
+2018-01-26 16:04:12,269 seq2seq.trainer.supervised_trainer INFO     Finished epoch 12: Train Perplexity: 1.1037, Dev Perplexity: 4.7183, Accuracy: 0.7215, Sequence Accuracy: 0.0620
+2018-01-26 16:04:12,740 seq2seq.trainer.supervised_trainer INFO     Progress: 12%, Train Perplexity: 1.0553
+2018-01-26 16:04:14,099 seq2seq.trainer.supervised_trainer INFO     Progress: 12%, Train Perplexity: 1.2032
+2018-01-26 16:04:15,569 seq2seq.trainer.supervised_trainer INFO     Progress: 12%, Train Perplexity: 1.0875
+2018-01-26 16:04:16,932 seq2seq.trainer.supervised_trainer INFO     Progress: 12%, Train Perplexity: 1.0803
+2018-01-26 16:04:18,405 seq2seq.trainer.supervised_trainer INFO     Progress: 12%, Train Perplexity: 1.1021
+2018-01-26 16:04:23,382 seq2seq.trainer.supervised_trainer INFO     Finished epoch 13: Train Perplexity: 1.1077, Dev Perplexity: 5.8239, Accuracy: 0.6885, Sequence Accuracy: 0.0304
+2018-01-26 16:04:23,801 seq2seq.trainer.supervised_trainer INFO     Progress: 13%, Train Perplexity: 1.1163
+2018-01-26 16:04:25,100 seq2seq.trainer.supervised_trainer INFO     Progress: 13%, Train Perplexity: 1.1355
+2018-01-26 16:04:26,582 seq2seq.trainer.supervised_trainer INFO     Progress: 13%, Train Perplexity: 1.0713
+2018-01-26 16:04:28,008 seq2seq.trainer.supervised_trainer INFO     Progress: 13%, Train Perplexity: 1.0943
+2018-01-26 16:04:29,283 seq2seq.trainer.supervised_trainer INFO     Progress: 13%, Train Perplexity: 1.1124
+2018-01-26 16:04:32,281 seq2seq.trainer.supervised_trainer INFO     Finished epoch 14: Train Perplexity: 1.1063, Dev Perplexity: 5.1513, Accuracy: 0.7080, Sequence Accuracy: 0.0620
+2018-01-26 16:04:32,662 seq2seq.trainer.supervised_trainer INFO     Progress: 14%, Train Perplexity: 1.0564
+2018-01-26 16:04:33,961 seq2seq.trainer.supervised_trainer INFO     Progress: 14%, Train Perplexity: 1.0746
+2018-01-26 16:04:37,204 seq2seq.trainer.supervised_trainer INFO     Progress: 14%, Train Perplexity: 1.0392
+2018-01-26 16:04:38,641 seq2seq.trainer.supervised_trainer INFO     Progress: 14%, Train Perplexity: 1.0450
+2018-01-26 16:04:40,040 seq2seq.trainer.supervised_trainer INFO     Progress: 14%, Train Perplexity: 1.0966
+2018-01-26 16:04:43,206 seq2seq.trainer.supervised_trainer INFO     Finished epoch 15: Train Perplexity: 1.0702, Dev Perplexity: 4.6030, Accuracy: 0.7211, Sequence Accuracy: 0.0526
+2018-01-26 16:04:43,617 seq2seq.trainer.supervised_trainer INFO     Progress: 15%, Train Perplexity: 1.1226
+2018-01-26 16:04:44,847 seq2seq.trainer.supervised_trainer INFO     Progress: 15%, Train Perplexity: 1.0417
+2018-01-26 16:04:46,105 seq2seq.trainer.supervised_trainer INFO     Progress: 15%, Train Perplexity: 1.0705
+2018-01-26 16:04:49,658 seq2seq.trainer.supervised_trainer INFO     Progress: 15%, Train Perplexity: 1.0599
+2018-01-26 16:04:51,090 seq2seq.trainer.supervised_trainer INFO     Progress: 15%, Train Perplexity: 1.0465
+2018-01-26 16:04:54,312 seq2seq.trainer.supervised_trainer INFO     Finished epoch 16: Train Perplexity: 1.0546, Dev Perplexity: 6.3237, Accuracy: 0.6966, Sequence Accuracy: 0.0316
+2018-01-26 16:04:54,643 seq2seq.trainer.supervised_trainer INFO     Progress: 16%, Train Perplexity: 1.0337
+2018-01-26 16:04:55,951 seq2seq.trainer.supervised_trainer INFO     Progress: 16%, Train Perplexity: 1.0815
+2018-01-26 16:04:57,421 seq2seq.trainer.supervised_trainer INFO     Progress: 16%, Train Perplexity: 1.0910
+2018-01-26 16:04:58,817 seq2seq.trainer.supervised_trainer INFO     Progress: 16%, Train Perplexity: 1.0790
+2018-01-26 16:05:00,245 seq2seq.trainer.supervised_trainer INFO     Progress: 16%, Train Perplexity: 1.1183
+2018-01-26 16:05:05,236 seq2seq.trainer.supervised_trainer INFO     Finished epoch 17: Train Perplexity: 1.0809, Dev Perplexity: 8.5501, Accuracy: 0.6298, Sequence Accuracy: 0.0000
+2018-01-26 16:05:05,479 seq2seq.trainer.supervised_trainer INFO     Progress: 17%, Train Perplexity: 1.0830
+2018-01-26 16:05:06,765 seq2seq.trainer.supervised_trainer INFO     Progress: 17%, Train Perplexity: 1.0699
+2018-01-26 16:05:08,210 seq2seq.trainer.supervised_trainer INFO     Progress: 17%, Train Perplexity: 1.0480
+2018-01-26 16:05:09,581 seq2seq.trainer.supervised_trainer INFO     Progress: 17%, Train Perplexity: 1.0442
+2018-01-26 16:05:11,173 seq2seq.trainer.supervised_trainer INFO     Progress: 17%, Train Perplexity: 1.0799
+2018-01-26 16:05:14,241 seq2seq.trainer.supervised_trainer INFO     Finished epoch 18: Train Perplexity: 1.0704, Dev Perplexity: 4.3260, Accuracy: 0.7301, Sequence Accuracy: 0.0796
+2018-01-26 16:05:14,391 seq2seq.trainer.supervised_trainer INFO     Progress: 18%, Train Perplexity: 1.0624
+2018-01-26 16:05:18,087 seq2seq.trainer.supervised_trainer INFO     Progress: 18%, Train Perplexity: 1.0484
+2018-01-26 16:05:19,338 seq2seq.trainer.supervised_trainer INFO     Progress: 18%, Train Perplexity: 1.0170
+2018-01-26 16:05:20,659 seq2seq.trainer.supervised_trainer INFO     Progress: 18%, Train Perplexity: 1.0417
+2018-01-26 16:05:21,596 seq2seq.trainer.supervised_trainer INFO     Progress: 18%, Train Perplexity: 1.0174
+2018-01-26 16:05:25,024 seq2seq.trainer.supervised_trainer INFO     Finished epoch 19: Train Perplexity: 1.0287, Dev Perplexity: 8.3013, Accuracy: 0.6741, Sequence Accuracy: 0.0344
+2018-01-26 16:05:25,114 seq2seq.trainer.supervised_trainer INFO     Progress: 19%, Train Perplexity: 1.0230
+2018-01-26 16:05:26,640 seq2seq.trainer.supervised_trainer INFO     Progress: 19%, Train Perplexity: 1.1014
+2018-01-26 16:05:27,914 seq2seq.trainer.supervised_trainer INFO     Progress: 19%, Train Perplexity: 1.0464
+2018-01-26 16:05:31,491 seq2seq.trainer.supervised_trainer INFO     Progress: 19%, Train Perplexity: 1.0714
+2018-01-26 16:05:32,586 seq2seq.trainer.supervised_trainer INFO     Progress: 19%, Train Perplexity: 1.0256
+2018-01-26 16:05:33,983 seq2seq.trainer.supervised_trainer INFO     Progress: 20%, Train Perplexity: 1.0581
+2018-01-26 16:05:36,045 seq2seq.trainer.supervised_trainer INFO     Finished epoch 20: Train Perplexity: 1.0607, Dev Perplexity: 5.1261, Accuracy: 0.7198, Sequence Accuracy: 0.0676
+2018-01-26 16:05:37,353 seq2seq.trainer.supervised_trainer INFO     Progress: 20%, Train Perplexity: 1.0354
+2018-01-26 16:05:38,553 seq2seq.trainer.supervised_trainer INFO     Progress: 20%, Train Perplexity: 1.0343
+2018-01-26 16:05:40,121 seq2seq.trainer.supervised_trainer INFO     Progress: 20%, Train Perplexity: 1.0721
+2018-01-26 16:05:43,870 seq2seq.trainer.supervised_trainer INFO     Progress: 20%, Train Perplexity: 1.0942
+2018-01-26 16:05:45,128 seq2seq.trainer.supervised_trainer INFO     Progress: 20%, Train Perplexity: 1.0235
+2018-01-26 16:05:47,303 seq2seq.trainer.supervised_trainer INFO     Finished epoch 21: Train Perplexity: 1.0519, Dev Perplexity: 5.6494, Accuracy: 0.7084, Sequence Accuracy: 0.0551
+2018-01-26 16:05:48,759 seq2seq.trainer.supervised_trainer INFO     Progress: 21%, Train Perplexity: 1.0563
+2018-01-26 16:05:50,143 seq2seq.trainer.supervised_trainer INFO     Progress: 21%, Train Perplexity: 1.0625
+2018-01-26 16:05:51,448 seq2seq.trainer.supervised_trainer INFO     Progress: 21%, Train Perplexity: 1.0318
+2018-01-26 16:05:52,558 seq2seq.trainer.supervised_trainer INFO     Progress: 21%, Train Perplexity: 1.0266
+2018-01-26 16:05:53,793 seq2seq.trainer.supervised_trainer INFO     Progress: 21%, Train Perplexity: 1.0391
+2018-01-26 16:05:56,015 seq2seq.trainer.supervised_trainer INFO     Finished epoch 22: Train Perplexity: 1.0434, Dev Perplexity: 6.8398, Accuracy: 0.6883, Sequence Accuracy: 0.0763
+2018-01-26 16:05:59,283 seq2seq.trainer.supervised_trainer INFO     Progress: 22%, Train Perplexity: 1.0240
+2018-01-26 16:06:00,395 seq2seq.trainer.supervised_trainer INFO     Progress: 22%, Train Perplexity: 1.0124
+2018-01-26 16:06:01,658 seq2seq.trainer.supervised_trainer INFO     Progress: 22%, Train Perplexity: 1.0279
+2018-01-26 16:06:03,025 seq2seq.trainer.supervised_trainer INFO     Progress: 22%, Train Perplexity: 1.0410
+2018-01-26 16:06:04,328 seq2seq.trainer.supervised_trainer INFO     Progress: 22%, Train Perplexity: 1.0267
+2018-01-26 16:06:06,602 seq2seq.trainer.supervised_trainer INFO     Finished epoch 23: Train Perplexity: 1.0252, Dev Perplexity: 7.3312, Accuracy: 0.6704, Sequence Accuracy: 0.0202
+2018-01-26 16:06:07,713 seq2seq.trainer.supervised_trainer INFO     Progress: 23%, Train Perplexity: 1.0200
+2018-01-26 16:06:11,336 seq2seq.trainer.supervised_trainer INFO     Progress: 23%, Train Perplexity: 1.0372
+2018-01-26 16:06:12,725 seq2seq.trainer.supervised_trainer INFO     Progress: 23%, Train Perplexity: 1.0327
+2018-01-26 16:06:13,915 seq2seq.trainer.supervised_trainer INFO     Progress: 23%, Train Perplexity: 1.0143
+2018-01-26 16:06:15,224 seq2seq.trainer.supervised_trainer INFO     Progress: 23%, Train Perplexity: 1.0353
+2018-01-26 16:06:17,591 seq2seq.trainer.supervised_trainer INFO     Finished epoch 24: Train Perplexity: 1.0278, Dev Perplexity: 6.2649, Accuracy: 0.7009, Sequence Accuracy: 0.0921
+2018-01-26 16:06:18,623 seq2seq.trainer.supervised_trainer INFO     Progress: 24%, Train Perplexity: 1.0225
+2018-01-26 16:06:19,954 seq2seq.trainer.supervised_trainer INFO     Progress: 24%, Train Perplexity: 1.0289
+2018-01-26 16:06:21,405 seq2seq.trainer.supervised_trainer INFO     Progress: 24%, Train Perplexity: 1.0226
+2018-01-26 16:06:24,916 seq2seq.trainer.supervised_trainer INFO     Progress: 24%, Train Perplexity: 1.0504
+2018-01-26 16:06:26,024 seq2seq.trainer.supervised_trainer INFO     Progress: 24%, Train Perplexity: 1.0089
+2018-01-26 16:06:28,396 seq2seq.trainer.supervised_trainer INFO     Finished epoch 25: Train Perplexity: 1.0271, Dev Perplexity: 8.7873, Accuracy: 0.6859, Sequence Accuracy: 0.0842
+2018-01-26 16:06:29,465 seq2seq.trainer.supervised_trainer INFO     Progress: 25%, Train Perplexity: 1.0291
+2018-01-26 16:06:30,905 seq2seq.trainer.supervised_trainer INFO     Progress: 25%, Train Perplexity: 1.0406
+2018-01-26 16:06:32,269 seq2seq.trainer.supervised_trainer INFO     Progress: 25%, Train Perplexity: 1.0380
+2018-01-26 16:06:33,679 seq2seq.trainer.supervised_trainer INFO     Progress: 25%, Train Perplexity: 1.0266
+2018-01-26 16:06:35,036 seq2seq.trainer.supervised_trainer INFO     Progress: 25%, Train Perplexity: 1.0336
+2018-01-26 16:06:39,503 seq2seq.trainer.supervised_trainer INFO     Finished epoch 26: Train Perplexity: 1.0338, Dev Perplexity: 7.1216, Accuracy: 0.6833, Sequence Accuracy: 0.0801
+2018-01-26 16:06:40,491 seq2seq.trainer.supervised_trainer INFO     Progress: 26%, Train Perplexity: 1.0297
+2018-01-26 16:06:41,907 seq2seq.trainer.supervised_trainer INFO     Progress: 26%, Train Perplexity: 1.0222
+2018-01-26 16:06:43,334 seq2seq.trainer.supervised_trainer INFO     Progress: 26%, Train Perplexity: 1.0518
+2018-01-26 16:06:44,553 seq2seq.trainer.supervised_trainer INFO     Progress: 26%, Train Perplexity: 1.0103
+2018-01-26 16:06:46,042 seq2seq.trainer.supervised_trainer INFO     Progress: 26%, Train Perplexity: 1.0305
+2018-01-26 16:06:48,586 seq2seq.trainer.supervised_trainer INFO     Finished epoch 27: Train Perplexity: 1.0280, Dev Perplexity: 7.6434, Accuracy: 0.7010, Sequence Accuracy: 0.0918
+2018-01-26 16:06:49,378 seq2seq.trainer.supervised_trainer INFO     Progress: 27%, Train Perplexity: 1.0156
+2018-01-26 16:06:52,790 seq2seq.trainer.supervised_trainer INFO     Progress: 27%, Train Perplexity: 1.0221
+2018-01-26 16:06:54,180 seq2seq.trainer.supervised_trainer INFO     Progress: 27%, Train Perplexity: 1.0125
+2018-01-26 16:06:55,432 seq2seq.trainer.supervised_trainer INFO     Progress: 27%, Train Perplexity: 1.0139
+2018-01-26 16:06:56,693 seq2seq.trainer.supervised_trainer INFO     Progress: 27%, Train Perplexity: 1.0099
+2018-01-26 16:06:59,453 seq2seq.trainer.supervised_trainer INFO     Finished epoch 28: Train Perplexity: 1.0148, Dev Perplexity: 7.0908, Accuracy: 0.7255, Sequence Accuracy: 0.1077
+2018-01-26 16:07:00,231 seq2seq.trainer.supervised_trainer INFO     Progress: 28%, Train Perplexity: 1.0148
+2018-01-26 16:07:01,595 seq2seq.trainer.supervised_trainer INFO     Progress: 28%, Train Perplexity: 1.0221
+2018-01-26 16:07:02,896 seq2seq.trainer.supervised_trainer INFO     Progress: 28%, Train Perplexity: 1.0184
+2018-01-26 16:07:06,031 seq2seq.trainer.supervised_trainer INFO     Progress: 28%, Train Perplexity: 1.0142
+2018-01-26 16:07:07,331 seq2seq.trainer.supervised_trainer INFO     Progress: 28%, Train Perplexity: 1.0170
+2018-01-26 16:07:09,846 seq2seq.trainer.supervised_trainer INFO     Finished epoch 29: Train Perplexity: 1.0161, Dev Perplexity: 7.7075, Accuracy: 0.7139, Sequence Accuracy: 0.1199
+2018-01-26 16:07:10,617 seq2seq.trainer.supervised_trainer INFO     Progress: 29%, Train Perplexity: 1.0056
+2018-01-26 16:07:12,068 seq2seq.trainer.supervised_trainer INFO     Progress: 29%, Train Perplexity: 1.0177
+2018-01-26 16:07:13,439 seq2seq.trainer.supervised_trainer INFO     Progress: 29%, Train Perplexity: 1.0101
+2018-01-26 16:07:14,576 seq2seq.trainer.supervised_trainer INFO     Progress: 29%, Train Perplexity: 1.0080
+2018-01-26 16:07:18,035 seq2seq.trainer.supervised_trainer INFO     Progress: 29%, Train Perplexity: 1.0158
+2018-01-26 16:07:20,765 seq2seq.trainer.supervised_trainer INFO     Finished epoch 30: Train Perplexity: 1.0161, Dev Perplexity: 6.7288, Accuracy: 0.7349, Sequence Accuracy: 0.0755
+2018-01-26 16:07:21,408 seq2seq.trainer.supervised_trainer INFO     Progress: 30%, Train Perplexity: 1.0343
+2018-01-26 16:07:22,740 seq2seq.trainer.supervised_trainer INFO     Progress: 30%, Train Perplexity: 1.0414
+2018-01-26 16:07:24,016 seq2seq.trainer.supervised_trainer INFO     Progress: 30%, Train Perplexity: 1.0208
+2018-01-26 16:07:25,264 seq2seq.trainer.supervised_trainer INFO     Progress: 30%, Train Perplexity: 1.0125
+2018-01-26 16:07:26,470 seq2seq.trainer.supervised_trainer INFO     Progress: 30%, Train Perplexity: 1.0274
+2018-01-26 16:07:29,251 seq2seq.trainer.supervised_trainer INFO     Finished epoch 31: Train Perplexity: 1.0256, Dev Perplexity: 5.9564, Accuracy: 0.7439, Sequence Accuracy: 0.1176
+2018-01-26 16:07:30,024 seq2seq.trainer.supervised_trainer INFO     Progress: 31%, Train Perplexity: 1.0341
+2018-01-26 16:07:33,302 seq2seq.trainer.supervised_trainer INFO     Progress: 31%, Train Perplexity: 1.0050
+2018-01-26 16:07:34,655 seq2seq.trainer.supervised_trainer INFO     Progress: 31%, Train Perplexity: 1.0163
+2018-01-26 16:07:35,892 seq2seq.trainer.supervised_trainer INFO     Progress: 31%, Train Perplexity: 1.0073
+2018-01-26 16:07:37,134 seq2seq.trainer.supervised_trainer INFO     Progress: 31%, Train Perplexity: 1.0076
+2018-01-26 16:07:40,086 seq2seq.trainer.supervised_trainer INFO     Finished epoch 32: Train Perplexity: 1.0114, Dev Perplexity: 8.1447, Accuracy: 0.7120, Sequence Accuracy: 0.1217
+2018-01-26 16:07:40,641 seq2seq.trainer.supervised_trainer INFO     Progress: 32%, Train Perplexity: 1.0097
+2018-01-26 16:07:42,104 seq2seq.trainer.supervised_trainer INFO     Progress: 32%, Train Perplexity: 1.0366
+2018-01-26 16:07:45,562 seq2seq.trainer.supervised_trainer INFO     Progress: 32%, Train Perplexity: 1.0199
+2018-01-26 16:07:46,861 seq2seq.trainer.supervised_trainer INFO     Progress: 32%, Train Perplexity: 1.0025
+2018-01-26 16:07:48,325 seq2seq.trainer.supervised_trainer INFO     Progress: 32%, Train Perplexity: 1.0125
+2018-01-26 16:07:51,170 seq2seq.trainer.supervised_trainer INFO     Finished epoch 33: Train Perplexity: 1.0175, Dev Perplexity: 8.1212, Accuracy: 0.7181, Sequence Accuracy: 0.1168
+2018-01-26 16:07:51,701 seq2seq.trainer.supervised_trainer INFO     Progress: 33%, Train Perplexity: 1.0204
+2018-01-26 16:07:52,869 seq2seq.trainer.supervised_trainer INFO     Progress: 33%, Train Perplexity: 1.0174
+2018-01-26 16:07:54,198 seq2seq.trainer.supervised_trainer INFO     Progress: 33%, Train Perplexity: 1.0076
+2018-01-26 16:07:55,506 seq2seq.trainer.supervised_trainer INFO     Progress: 33%, Train Perplexity: 1.0085
+2018-01-26 16:07:58,756 seq2seq.trainer.supervised_trainer INFO     Progress: 33%, Train Perplexity: 1.0083
+2018-01-26 16:08:01,773 seq2seq.trainer.supervised_trainer INFO     Finished epoch 34: Train Perplexity: 1.0106, Dev Perplexity: 8.0809, Accuracy: 0.7146, Sequence Accuracy: 0.1224
+2018-01-26 16:08:02,219 seq2seq.trainer.supervised_trainer INFO     Progress: 34%, Train Perplexity: 1.0060
+2018-01-26 16:08:03,542 seq2seq.trainer.supervised_trainer INFO     Progress: 34%, Train Perplexity: 1.0109
+2018-01-26 16:08:04,715 seq2seq.trainer.supervised_trainer INFO     Progress: 34%, Train Perplexity: 1.0113
+2018-01-26 16:08:05,914 seq2seq.trainer.supervised_trainer INFO     Progress: 34%, Train Perplexity: 1.0191
+2018-01-26 16:08:07,174 seq2seq.trainer.supervised_trainer INFO     Progress: 34%, Train Perplexity: 1.0110
+2018-01-26 16:08:10,239 seq2seq.trainer.supervised_trainer INFO     Finished epoch 35: Train Perplexity: 1.0143, Dev Perplexity: 7.7968, Accuracy: 0.7006, Sequence Accuracy: 0.1130
+2018-01-26 16:08:12,647 seq2seq.trainer.supervised_trainer INFO     Progress: 35%, Train Perplexity: 1.0213
+2018-01-26 16:08:13,804 seq2seq.trainer.supervised_trainer INFO     Progress: 35%, Train Perplexity: 1.0043
+2018-01-26 16:08:15,257 seq2seq.trainer.supervised_trainer INFO     Progress: 35%, Train Perplexity: 1.0089
+2018-01-26 16:08:16,579 seq2seq.trainer.supervised_trainer INFO     Progress: 35%, Train Perplexity: 1.0138
+2018-01-26 16:08:18,074 seq2seq.trainer.supervised_trainer INFO     Progress: 35%, Train Perplexity: 1.0105
+2018-01-26 16:08:21,208 seq2seq.trainer.supervised_trainer INFO     Finished epoch 36: Train Perplexity: 1.0093, Dev Perplexity: 7.8605, Accuracy: 0.7018, Sequence Accuracy: 0.1125
+2018-01-26 16:08:21,568 seq2seq.trainer.supervised_trainer INFO     Progress: 36%, Train Perplexity: 1.0078
+2018-01-26 16:08:23,002 seq2seq.trainer.supervised_trainer INFO     Progress: 36%, Train Perplexity: 1.0092
+2018-01-26 16:08:26,503 seq2seq.trainer.supervised_trainer INFO     Progress: 36%, Train Perplexity: 1.0045
+2018-01-26 16:08:27,667 seq2seq.trainer.supervised_trainer INFO     Progress: 36%, Train Perplexity: 1.0046
+2018-01-26 16:08:29,173 seq2seq.trainer.supervised_trainer INFO     Progress: 36%, Train Perplexity: 1.0062
+2018-01-26 16:08:32,423 seq2seq.trainer.supervised_trainer INFO     Finished epoch 37: Train Perplexity: 1.0109, Dev Perplexity: 6.4725, Accuracy: 0.7370, Sequence Accuracy: 0.1227
+2018-01-26 16:08:32,751 seq2seq.trainer.supervised_trainer INFO     Progress: 37%, Train Perplexity: 1.0344
+2018-01-26 16:08:34,120 seq2seq.trainer.supervised_trainer INFO     Progress: 37%, Train Perplexity: 1.0194
+2018-01-26 16:08:35,439 seq2seq.trainer.supervised_trainer INFO     Progress: 37%, Train Perplexity: 1.0082
+2018-01-26 16:08:38,825 seq2seq.trainer.supervised_trainer INFO     Progress: 37%, Train Perplexity: 1.0025
+2018-01-26 16:08:39,986 seq2seq.trainer.supervised_trainer INFO     Progress: 37%, Train Perplexity: 1.0082
+2018-01-26 16:08:43,362 seq2seq.trainer.supervised_trainer INFO     Finished epoch 38: Train Perplexity: 1.0090, Dev Perplexity: 7.8918, Accuracy: 0.7152, Sequence Accuracy: 0.1321
+2018-01-26 16:08:43,559 seq2seq.trainer.supervised_trainer INFO     Progress: 38%, Train Perplexity: 1.0017
+2018-01-26 16:08:44,808 seq2seq.trainer.supervised_trainer INFO     Progress: 38%, Train Perplexity: 1.0042
+2018-01-26 16:08:46,203 seq2seq.trainer.supervised_trainer INFO     Progress: 38%, Train Perplexity: 1.0034
+2018-01-26 16:08:47,437 seq2seq.trainer.supervised_trainer INFO     Progress: 38%, Train Perplexity: 1.0108
+2018-01-26 16:08:48,694 seq2seq.trainer.supervised_trainer INFO     Progress: 38%, Train Perplexity: 1.0151
+2018-01-26 16:08:54,384 seq2seq.trainer.supervised_trainer INFO     Finished epoch 39: Train Perplexity: 1.0088, Dev Perplexity: 7.9278, Accuracy: 0.7133, Sequence Accuracy: 0.1092
+2018-01-26 16:08:54,470 seq2seq.trainer.supervised_trainer INFO     Progress: 39%, Train Perplexity: 1.0108
+2018-01-26 16:08:55,812 seq2seq.trainer.supervised_trainer INFO     Progress: 39%, Train Perplexity: 1.0076
+2018-01-26 16:08:57,229 seq2seq.trainer.supervised_trainer INFO     Progress: 39%, Train Perplexity: 1.0021
+2018-01-26 16:08:58,520 seq2seq.trainer.supervised_trainer INFO     Progress: 39%, Train Perplexity: 1.0065
+2018-01-26 16:08:59,791 seq2seq.trainer.supervised_trainer INFO     Progress: 39%, Train Perplexity: 1.0053
+2018-01-26 16:09:00,859 seq2seq.trainer.supervised_trainer INFO     Progress: 40%, Train Perplexity: 1.0122
+2018-01-26 16:09:02,922 seq2seq.trainer.supervised_trainer INFO     Finished epoch 40: Train Perplexity: 1.0067, Dev Perplexity: 8.2214, Accuracy: 0.7140, Sequence Accuracy: 0.1194
+2018-01-26 16:09:04,441 seq2seq.trainer.supervised_trainer INFO     Progress: 40%, Train Perplexity: 1.0046
+2018-01-26 16:09:07,645 seq2seq.trainer.supervised_trainer INFO     Progress: 40%, Train Perplexity: 1.0009
+2018-01-26 16:09:08,768 seq2seq.trainer.supervised_trainer INFO     Progress: 40%, Train Perplexity: 1.0017
+2018-01-26 16:09:10,297 seq2seq.trainer.supervised_trainer INFO     Progress: 40%, Train Perplexity: 1.0065
+2018-01-26 16:09:11,609 seq2seq.trainer.supervised_trainer INFO     Progress: 40%, Train Perplexity: 1.0089
+2018-01-26 16:09:13,721 seq2seq.trainer.supervised_trainer INFO     Finished epoch 41: Train Perplexity: 1.0045, Dev Perplexity: 8.9249, Accuracy: 0.7126, Sequence Accuracy: 0.1304
+2018-01-26 16:09:14,866 seq2seq.trainer.supervised_trainer INFO     Progress: 41%, Train Perplexity: 1.0037
+2018-01-26 16:09:16,381 seq2seq.trainer.supervised_trainer INFO     Progress: 41%, Train Perplexity: 1.0113
+2018-01-26 16:09:19,709 seq2seq.trainer.supervised_trainer INFO     Progress: 41%, Train Perplexity: 1.0011
+2018-01-26 16:09:21,131 seq2seq.trainer.supervised_trainer INFO     Progress: 41%, Train Perplexity: 1.0017
+2018-01-26 16:09:22,436 seq2seq.trainer.supervised_trainer INFO     Progress: 41%, Train Perplexity: 1.0013
+2018-01-26 16:09:24,609 seq2seq.trainer.supervised_trainer INFO     Finished epoch 42: Train Perplexity: 1.0038, Dev Perplexity: 10.8904, Accuracy: 0.6944, Sequence Accuracy: 0.0758
+2018-01-26 16:09:25,786 seq2seq.trainer.supervised_trainer INFO     Progress: 42%, Train Perplexity: 1.0083
+2018-01-26 16:09:27,091 seq2seq.trainer.supervised_trainer INFO     Progress: 42%, Train Perplexity: 1.0045
+2018-01-26 16:09:28,396 seq2seq.trainer.supervised_trainer INFO     Progress: 42%, Train Perplexity: 1.0041
+2018-01-26 16:09:29,941 seq2seq.trainer.supervised_trainer INFO     Progress: 42%, Train Perplexity: 1.0016
+2018-01-26 16:09:33,573 seq2seq.trainer.supervised_trainer INFO     Progress: 42%, Train Perplexity: 1.0083
+2018-01-26 16:09:35,818 seq2seq.trainer.supervised_trainer INFO     Finished epoch 43: Train Perplexity: 1.0053, Dev Perplexity: 7.2514, Accuracy: 0.7028, Sequence Accuracy: 0.0760
+2018-01-26 16:09:36,939 seq2seq.trainer.supervised_trainer INFO     Progress: 43%, Train Perplexity: 1.0139
+2018-01-26 16:09:38,253 seq2seq.trainer.supervised_trainer INFO     Progress: 43%, Train Perplexity: 1.0152
+2018-01-26 16:09:39,768 seq2seq.trainer.supervised_trainer INFO     Progress: 43%, Train Perplexity: 1.0067
+2018-01-26 16:09:41,166 seq2seq.trainer.supervised_trainer INFO     Progress: 43%, Train Perplexity: 1.0085
+2018-01-26 16:09:42,193 seq2seq.trainer.supervised_trainer INFO     Progress: 43%, Train Perplexity: 1.0025
+2018-01-26 16:09:44,615 seq2seq.trainer.supervised_trainer INFO     Finished epoch 44: Train Perplexity: 1.0093, Dev Perplexity: 6.3226, Accuracy: 0.7148, Sequence Accuracy: 0.1296
+2018-01-26 16:09:47,680 seq2seq.trainer.supervised_trainer INFO     Progress: 44%, Train Perplexity: 1.0115
+2018-01-26 16:09:49,066 seq2seq.trainer.supervised_trainer INFO     Progress: 44%, Train Perplexity: 1.0070
+2018-01-26 16:09:50,219 seq2seq.trainer.supervised_trainer INFO     Progress: 44%, Train Perplexity: 1.0010
+2018-01-26 16:09:51,593 seq2seq.trainer.supervised_trainer INFO     Progress: 44%, Train Perplexity: 1.0060
+2018-01-26 16:09:53,095 seq2seq.trainer.supervised_trainer INFO     Progress: 44%, Train Perplexity: 1.0085
+2018-01-26 16:09:55,433 seq2seq.trainer.supervised_trainer INFO     Finished epoch 45: Train Perplexity: 1.0067, Dev Perplexity: 7.0115, Accuracy: 0.7151, Sequence Accuracy: 0.1398
+2018-01-26 16:09:56,743 seq2seq.trainer.supervised_trainer INFO     Progress: 45%, Train Perplexity: 1.0041
+2018-01-26 16:09:58,359 seq2seq.trainer.supervised_trainer INFO     Progress: 45%, Train Perplexity: 1.0012
+2018-01-26 16:10:01,860 seq2seq.trainer.supervised_trainer INFO     Progress: 45%, Train Perplexity: 1.0087
+2018-01-26 16:10:03,069 seq2seq.trainer.supervised_trainer INFO     Progress: 45%, Train Perplexity: 1.0001
+2018-01-26 16:10:04,289 seq2seq.trainer.supervised_trainer INFO     Progress: 45%, Train Perplexity: 1.0020
+2018-01-26 16:10:06,796 seq2seq.trainer.supervised_trainer INFO     Finished epoch 46: Train Perplexity: 1.0032, Dev Perplexity: 8.3657, Accuracy: 0.7105, Sequence Accuracy: 0.1349
+2018-01-26 16:10:07,856 seq2seq.trainer.supervised_trainer INFO     Progress: 46%, Train Perplexity: 1.0014
+2018-01-26 16:10:09,052 seq2seq.trainer.supervised_trainer INFO     Progress: 46%, Train Perplexity: 1.0023
+2018-01-26 16:10:10,285 seq2seq.trainer.supervised_trainer INFO     Progress: 46%, Train Perplexity: 1.0014
+2018-01-26 16:10:13,757 seq2seq.trainer.supervised_trainer INFO     Progress: 46%, Train Perplexity: 1.0062
+2018-01-26 16:10:15,087 seq2seq.trainer.supervised_trainer INFO     Progress: 46%, Train Perplexity: 1.0019
+2018-01-26 16:10:17,591 seq2seq.trainer.supervised_trainer INFO     Finished epoch 47: Train Perplexity: 1.0025, Dev Perplexity: 7.4254, Accuracy: 0.7173, Sequence Accuracy: 0.1212
+2018-01-26 16:10:18,396 seq2seq.trainer.supervised_trainer INFO     Progress: 47%, Train Perplexity: 1.0065
+2018-01-26 16:10:19,585 seq2seq.trainer.supervised_trainer INFO     Progress: 47%, Train Perplexity: 1.0020
+2018-01-26 16:10:20,976 seq2seq.trainer.supervised_trainer INFO     Progress: 47%, Train Perplexity: 1.0030
+2018-01-26 16:10:22,366 seq2seq.trainer.supervised_trainer INFO     Progress: 47%, Train Perplexity: 1.0041
+2018-01-26 16:10:23,558 seq2seq.trainer.supervised_trainer INFO     Progress: 47%, Train Perplexity: 1.0022
+2018-01-26 16:10:28,279 seq2seq.trainer.supervised_trainer INFO     Finished epoch 48: Train Perplexity: 1.0042, Dev Perplexity: 7.2858, Accuracy: 0.7145, Sequence Accuracy: 0.1395
+2018-01-26 16:10:29,228 seq2seq.trainer.supervised_trainer INFO     Progress: 48%, Train Perplexity: 1.0059
+2018-01-26 16:10:30,679 seq2seq.trainer.supervised_trainer INFO     Progress: 48%, Train Perplexity: 1.0076
+2018-01-26 16:10:32,041 seq2seq.trainer.supervised_trainer INFO     Progress: 48%, Train Perplexity: 1.0028
+2018-01-26 16:10:33,448 seq2seq.trainer.supervised_trainer INFO     Progress: 48%, Train Perplexity: 1.0035
+2018-01-26 16:10:34,877 seq2seq.trainer.supervised_trainer INFO     Progress: 48%, Train Perplexity: 1.0116
+2018-01-26 16:10:37,624 seq2seq.trainer.supervised_trainer INFO     Finished epoch 49: Train Perplexity: 1.0064, Dev Perplexity: 5.6995, Accuracy: 0.7104, Sequence Accuracy: 0.1202
+2018-01-26 16:10:38,566 seq2seq.trainer.supervised_trainer INFO     Progress: 49%, Train Perplexity: 1.0063
+2018-01-26 16:10:41,851 seq2seq.trainer.supervised_trainer INFO     Progress: 49%, Train Perplexity: 1.0072
+2018-01-26 16:10:43,142 seq2seq.trainer.supervised_trainer INFO     Progress: 49%, Train Perplexity: 1.0075
+2018-01-26 16:10:44,349 seq2seq.trainer.supervised_trainer INFO     Progress: 49%, Train Perplexity: 1.0011
+2018-01-26 16:10:45,578 seq2seq.trainer.supervised_trainer INFO     Progress: 49%, Train Perplexity: 1.0010
+2018-01-26 16:10:48,281 seq2seq.trainer.supervised_trainer INFO     Finished epoch 50: Train Perplexity: 1.0038, Dev Perplexity: 6.0333, Accuracy: 0.7139, Sequence Accuracy: 0.1168
+2018-01-26 16:10:49,086 seq2seq.trainer.supervised_trainer INFO     Progress: 50%, Train Perplexity: 1.0046
+2018-01-26 16:10:50,310 seq2seq.trainer.supervised_trainer INFO     Progress: 50%, Train Perplexity: 1.0011
+2018-01-26 16:10:51,974 seq2seq.trainer.supervised_trainer INFO     Progress: 50%, Train Perplexity: 1.0022
+2018-01-26 16:10:55,365 seq2seq.trainer.supervised_trainer INFO     Progress: 50%, Train Perplexity: 1.0013
+2018-01-26 16:10:56,423 seq2seq.trainer.supervised_trainer INFO     Progress: 50%, Train Perplexity: 1.0014
+2018-01-26 16:10:59,304 seq2seq.trainer.supervised_trainer INFO     Finished epoch 51: Train Perplexity: 1.0028, Dev Perplexity: 6.7762, Accuracy: 0.7066, Sequence Accuracy: 0.1240
+2018-01-26 16:10:59,923 seq2seq.trainer.supervised_trainer INFO     Progress: 51%, Train Perplexity: 1.0070
+2018-01-26 16:11:01,177 seq2seq.trainer.supervised_trainer INFO     Progress: 51%, Train Perplexity: 1.0014
+2018-01-26 16:11:02,465 seq2seq.trainer.supervised_trainer INFO     Progress: 51%, Train Perplexity: 1.0064
+2018-01-26 16:11:03,778 seq2seq.trainer.supervised_trainer INFO     Progress: 51%, Train Perplexity: 1.0054
+2018-01-26 16:11:05,118 seq2seq.trainer.supervised_trainer INFO     Progress: 51%, Train Perplexity: 1.0027
+2018-01-26 16:11:10,121 seq2seq.trainer.supervised_trainer INFO     Finished epoch 52: Train Perplexity: 1.0042, Dev Perplexity: 6.8618, Accuracy: 0.7110, Sequence Accuracy: 0.1015
+2018-01-26 16:11:10,573 seq2seq.trainer.supervised_trainer INFO     Progress: 52%, Train Perplexity: 1.0047
+2018-01-26 16:11:12,034 seq2seq.trainer.supervised_trainer INFO     Progress: 52%, Train Perplexity: 1.0027
+2018-01-26 16:11:13,278 seq2seq.trainer.supervised_trainer INFO     Progress: 52%, Train Perplexity: 1.0005
+2018-01-26 16:11:14,869 seq2seq.trainer.supervised_trainer INFO     Progress: 52%, Train Perplexity: 1.0018
+2018-01-26 16:11:16,098 seq2seq.trainer.supervised_trainer INFO     Progress: 52%, Train Perplexity: 1.0003
+2018-01-26 16:11:19,220 seq2seq.trainer.supervised_trainer INFO     Finished epoch 53: Train Perplexity: 1.0016, Dev Perplexity: 10.5188, Accuracy: 0.6913, Sequence Accuracy: 0.1265
+2018-01-26 16:11:19,756 seq2seq.trainer.supervised_trainer INFO     Progress: 53%, Train Perplexity: 1.0008
+2018-01-26 16:11:23,218 seq2seq.trainer.supervised_trainer INFO     Progress: 53%, Train Perplexity: 1.0007
+2018-01-26 16:11:24,465 seq2seq.trainer.supervised_trainer INFO     Progress: 53%, Train Perplexity: 1.0006
+2018-01-26 16:11:25,825 seq2seq.trainer.supervised_trainer INFO     Progress: 53%, Train Perplexity: 1.0002
+2018-01-26 16:11:27,116 seq2seq.trainer.supervised_trainer INFO     Progress: 53%, Train Perplexity: 1.0004
+2018-01-26 16:11:30,075 seq2seq.trainer.supervised_trainer INFO     Finished epoch 54: Train Perplexity: 1.0004, Dev Perplexity: 10.0400, Accuracy: 0.6958, Sequence Accuracy: 0.1347
+2018-01-26 16:11:30,489 seq2seq.trainer.supervised_trainer INFO     Progress: 54%, Train Perplexity: 1.0002
+2018-01-26 16:11:31,811 seq2seq.trainer.supervised_trainer INFO     Progress: 54%, Train Perplexity: 1.0015
+2018-01-26 16:11:33,348 seq2seq.trainer.supervised_trainer INFO     Progress: 54%, Train Perplexity: 1.0032
+2018-01-26 16:11:36,938 seq2seq.trainer.supervised_trainer INFO     Progress: 54%, Train Perplexity: 1.0012
+2018-01-26 16:11:38,064 seq2seq.trainer.supervised_trainer INFO     Progress: 54%, Train Perplexity: 1.0000
+2018-01-26 16:11:41,198 seq2seq.trainer.supervised_trainer INFO     Finished epoch 55: Train Perplexity: 1.0019, Dev Perplexity: 8.1559, Accuracy: 0.7048, Sequence Accuracy: 0.1319
+2018-01-26 16:11:41,644 seq2seq.trainer.supervised_trainer INFO     Progress: 55%, Train Perplexity: 1.0038
+2018-01-26 16:11:42,989 seq2seq.trainer.supervised_trainer INFO     Progress: 55%, Train Perplexity: 1.0003
+2018-01-26 16:11:44,287 seq2seq.trainer.supervised_trainer INFO     Progress: 55%, Train Perplexity: 1.0011
+2018-01-26 16:11:45,359 seq2seq.trainer.supervised_trainer INFO     Progress: 55%, Train Perplexity: 1.0023
+2018-01-26 16:11:48,714 seq2seq.trainer.supervised_trainer INFO     Progress: 55%, Train Perplexity: 1.0007
+2018-01-26 16:11:51,882 seq2seq.trainer.supervised_trainer INFO     Finished epoch 56: Train Perplexity: 1.0010, Dev Perplexity: 10.5372, Accuracy: 0.7063, Sequence Accuracy: 0.1365
+2018-01-26 16:11:52,242 seq2seq.trainer.supervised_trainer INFO     Progress: 56%, Train Perplexity: 1.0036
+2018-01-26 16:11:53,564 seq2seq.trainer.supervised_trainer INFO     Progress: 56%, Train Perplexity: 1.0044
+2018-01-26 16:11:54,963 seq2seq.trainer.supervised_trainer INFO     Progress: 56%, Train Perplexity: 1.0017
+2018-01-26 16:11:56,484 seq2seq.trainer.supervised_trainer INFO     Progress: 56%, Train Perplexity: 1.0017
+2018-01-26 16:11:57,836 seq2seq.trainer.supervised_trainer INFO     Progress: 56%, Train Perplexity: 1.0047
+2018-01-26 16:12:01,018 seq2seq.trainer.supervised_trainer INFO     Finished epoch 57: Train Perplexity: 1.0032, Dev Perplexity: 10.8826, Accuracy: 0.7029, Sequence Accuracy: 0.1406
+2018-01-26 16:12:01,279 seq2seq.trainer.supervised_trainer INFO     Progress: 57%, Train Perplexity: 1.0011
+2018-01-26 16:12:04,454 seq2seq.trainer.supervised_trainer INFO     Progress: 57%, Train Perplexity: 1.0025
+2018-01-26 16:12:05,496 seq2seq.trainer.supervised_trainer INFO     Progress: 57%, Train Perplexity: 1.0003
+2018-01-26 16:12:06,834 seq2seq.trainer.supervised_trainer INFO     Progress: 57%, Train Perplexity: 1.0012
+2018-01-26 16:12:07,937 seq2seq.trainer.supervised_trainer INFO     Progress: 57%, Train Perplexity: 1.0008
+2018-01-26 16:12:11,147 seq2seq.trainer.supervised_trainer INFO     Finished epoch 58: Train Perplexity: 1.0009, Dev Perplexity: 10.8709, Accuracy: 0.7029, Sequence Accuracy: 0.1385
+2018-01-26 16:12:11,333 seq2seq.trainer.supervised_trainer INFO     Progress: 58%, Train Perplexity: 1.0000
+2018-01-26 16:12:12,608 seq2seq.trainer.supervised_trainer INFO     Progress: 58%, Train Perplexity: 1.0003
+2018-01-26 16:12:16,211 seq2seq.trainer.supervised_trainer INFO     Progress: 58%, Train Perplexity: 1.0025
+2018-01-26 16:12:17,556 seq2seq.trainer.supervised_trainer INFO     Progress: 58%, Train Perplexity: 1.0021
+2018-01-26 16:12:18,670 seq2seq.trainer.supervised_trainer INFO     Progress: 58%, Train Perplexity: 1.0010
+2018-01-26 16:12:22,071 seq2seq.trainer.supervised_trainer INFO     Finished epoch 59: Train Perplexity: 1.0012, Dev Perplexity: 11.2612, Accuracy: 0.7097, Sequence Accuracy: 0.1273
+2018-01-26 16:12:22,177 seq2seq.trainer.supervised_trainer INFO     Progress: 59%, Train Perplexity: 1.0004
+2018-01-26 16:12:23,349 seq2seq.trainer.supervised_trainer INFO     Progress: 59%, Train Perplexity: 1.0011
+2018-01-26 16:12:24,559 seq2seq.trainer.supervised_trainer INFO     Progress: 59%, Train Perplexity: 1.0036
+2018-01-26 16:12:26,184 seq2seq.trainer.supervised_trainer INFO     Progress: 59%, Train Perplexity: 1.0022
+2018-01-26 16:12:29,481 seq2seq.trainer.supervised_trainer INFO     Progress: 59%, Train Perplexity: 1.0008
+2018-01-26 16:12:30,524 seq2seq.trainer.supervised_trainer INFO     Progress: 60%, Train Perplexity: 1.0010
+2018-01-26 16:12:32,591 seq2seq.trainer.supervised_trainer INFO     Finished epoch 60: Train Perplexity: 1.0017, Dev Perplexity: 13.2150, Accuracy: 0.6941, Sequence Accuracy: 0.1288
+2018-01-26 16:12:33,767 seq2seq.trainer.supervised_trainer INFO     Progress: 60%, Train Perplexity: 1.0017
+2018-01-26 16:12:35,381 seq2seq.trainer.supervised_trainer INFO     Progress: 60%, Train Perplexity: 1.0004
+2018-01-26 16:12:36,626 seq2seq.trainer.supervised_trainer INFO     Progress: 60%, Train Perplexity: 1.0018
+2018-01-26 16:12:38,065 seq2seq.trainer.supervised_trainer INFO     Progress: 60%, Train Perplexity: 1.0023
+2018-01-26 16:12:41,442 seq2seq.trainer.supervised_trainer INFO     Progress: 60%, Train Perplexity: 1.0007
+2018-01-26 16:12:43,549 seq2seq.trainer.supervised_trainer INFO     Finished epoch 61: Train Perplexity: 1.0014, Dev Perplexity: 12.8559, Accuracy: 0.6984, Sequence Accuracy: 0.1286
+2018-01-26 16:12:44,957 seq2seq.trainer.supervised_trainer INFO     Progress: 61%, Train Perplexity: 1.0017
+2018-01-26 16:12:46,346 seq2seq.trainer.supervised_trainer INFO     Progress: 61%, Train Perplexity: 1.0021
+2018-01-26 16:12:47,745 seq2seq.trainer.supervised_trainer INFO     Progress: 61%, Train Perplexity: 1.0009
+2018-01-26 16:12:49,264 seq2seq.trainer.supervised_trainer INFO     Progress: 61%, Train Perplexity: 1.0012
+2018-01-26 16:12:50,850 seq2seq.trainer.supervised_trainer INFO     Progress: 61%, Train Perplexity: 1.0008
+2018-01-26 16:12:53,060 seq2seq.trainer.supervised_trainer INFO     Finished epoch 62: Train Perplexity: 1.0013, Dev Perplexity: 14.0400, Accuracy: 0.6930, Sequence Accuracy: 0.1347
+2018-01-26 16:12:54,215 seq2seq.trainer.supervised_trainer INFO     Progress: 62%, Train Perplexity: 1.0010
+2018-01-26 16:12:57,481 seq2seq.trainer.supervised_trainer INFO     Progress: 62%, Train Perplexity: 1.0008
+2018-01-26 16:12:58,721 seq2seq.trainer.supervised_trainer INFO     Progress: 62%, Train Perplexity: 1.0000
+2018-01-26 16:13:00,038 seq2seq.trainer.supervised_trainer INFO     Progress: 62%, Train Perplexity: 1.0000
+2018-01-26 16:13:01,315 seq2seq.trainer.supervised_trainer INFO     Progress: 62%, Train Perplexity: 1.0004
+2018-01-26 16:13:03,567 seq2seq.trainer.supervised_trainer INFO     Finished epoch 63: Train Perplexity: 1.0004, Dev Perplexity: 14.3258, Accuracy: 0.6958, Sequence Accuracy: 0.1411
+2018-01-26 16:13:04,690 seq2seq.trainer.supervised_trainer INFO     Progress: 63%, Train Perplexity: 1.0001
+2018-01-26 16:13:06,328 seq2seq.trainer.supervised_trainer INFO     Progress: 63%, Train Perplexity: 1.0020
+2018-01-26 16:13:09,634 seq2seq.trainer.supervised_trainer INFO     Progress: 63%, Train Perplexity: 1.0009
+2018-01-26 16:13:10,944 seq2seq.trainer.supervised_trainer INFO     Progress: 63%, Train Perplexity: 1.0032
+2018-01-26 16:13:11,833 seq2seq.trainer.supervised_trainer INFO     Progress: 63%, Train Perplexity: 1.0008
+2018-01-26 16:13:14,213 seq2seq.trainer.supervised_trainer INFO     Finished epoch 64: Train Perplexity: 1.0014, Dev Perplexity: 14.0176, Accuracy: 0.6966, Sequence Accuracy: 0.1355
+2018-01-26 16:13:15,402 seq2seq.trainer.supervised_trainer INFO     Progress: 64%, Train Perplexity: 1.0002
+2018-01-26 16:13:16,637 seq2seq.trainer.supervised_trainer INFO     Progress: 64%, Train Perplexity: 1.0059
+2018-01-26 16:13:18,018 seq2seq.trainer.supervised_trainer INFO     Progress: 64%, Train Perplexity: 1.0025
+2018-01-26 16:13:19,447 seq2seq.trainer.supervised_trainer INFO     Progress: 64%, Train Perplexity: 1.0068
+2018-01-26 16:13:22,766 seq2seq.trainer.supervised_trainer INFO     Progress: 64%, Train Perplexity: 1.0018
+2018-01-26 16:13:25,046 seq2seq.trainer.supervised_trainer INFO     Finished epoch 65: Train Perplexity: 1.0035, Dev Perplexity: 13.5724, Accuracy: 0.6982, Sequence Accuracy: 0.1452
+2018-01-26 16:13:26,063 seq2seq.trainer.supervised_trainer INFO     Progress: 65%, Train Perplexity: 1.0006
+2018-01-26 16:13:27,298 seq2seq.trainer.supervised_trainer INFO     Progress: 65%, Train Perplexity: 1.0029
+2018-01-26 16:13:28,690 seq2seq.trainer.supervised_trainer INFO     Progress: 65%, Train Perplexity: 1.0044
+2018-01-26 16:13:29,999 seq2seq.trainer.supervised_trainer INFO     Progress: 65%, Train Perplexity: 1.0007
+2018-01-26 16:13:31,411 seq2seq.trainer.supervised_trainer INFO     Progress: 65%, Train Perplexity: 1.0063
+2018-01-26 16:13:34,074 seq2seq.trainer.supervised_trainer INFO     Finished epoch 66: Train Perplexity: 1.0033, Dev Perplexity: 8.1939, Accuracy: 0.7110, Sequence Accuracy: 0.1423
+2018-01-26 16:13:34,880 seq2seq.trainer.supervised_trainer INFO     Progress: 66%, Train Perplexity: 1.0054
+2018-01-26 16:13:38,610 seq2seq.trainer.supervised_trainer INFO     Progress: 66%, Train Perplexity: 1.0018
+2018-01-26 16:13:39,995 seq2seq.trainer.supervised_trainer INFO     Progress: 66%, Train Perplexity: 1.0002
+2018-01-26 16:13:41,343 seq2seq.trainer.supervised_trainer INFO     Progress: 66%, Train Perplexity: 1.0001
+2018-01-26 16:13:42,560 seq2seq.trainer.supervised_trainer INFO     Progress: 66%, Train Perplexity: 1.0000
+2018-01-26 16:13:45,263 seq2seq.trainer.supervised_trainer INFO     Finished epoch 67: Train Perplexity: 1.0011, Dev Perplexity: 9.7096, Accuracy: 0.7122, Sequence Accuracy: 0.1401
+2018-01-26 16:13:46,286 seq2seq.trainer.supervised_trainer INFO     Progress: 67%, Train Perplexity: 1.0003
+2018-01-26 16:13:47,663 seq2seq.trainer.supervised_trainer INFO     Progress: 67%, Train Perplexity: 1.0012
+2018-01-26 16:13:51,030 seq2seq.trainer.supervised_trainer INFO     Progress: 67%, Train Perplexity: 1.0022
+2018-01-26 16:13:52,343 seq2seq.trainer.supervised_trainer INFO     Progress: 67%, Train Perplexity: 1.0009
+2018-01-26 16:13:53,590 seq2seq.trainer.supervised_trainer INFO     Progress: 67%, Train Perplexity: 1.0010
+2018-01-26 16:13:56,294 seq2seq.trainer.supervised_trainer INFO     Finished epoch 68: Train Perplexity: 1.0012, Dev Perplexity: 10.8405, Accuracy: 0.7072, Sequence Accuracy: 0.1306
+2018-01-26 16:13:57,172 seq2seq.trainer.supervised_trainer INFO     Progress: 68%, Train Perplexity: 1.0040
+2018-01-26 16:13:58,432 seq2seq.trainer.supervised_trainer INFO     Progress: 68%, Train Perplexity: 1.0014
+2018-01-26 16:13:59,757 seq2seq.trainer.supervised_trainer INFO     Progress: 68%, Train Perplexity: 1.0009
+2018-01-26 16:14:01,468 seq2seq.trainer.supervised_trainer INFO     Progress: 68%, Train Perplexity: 1.0016
+2018-01-26 16:14:04,974 seq2seq.trainer.supervised_trainer INFO     Progress: 68%, Train Perplexity: 1.0009
+2018-01-26 16:14:07,542 seq2seq.trainer.supervised_trainer INFO     Finished epoch 69: Train Perplexity: 1.0019, Dev Perplexity: 11.8568, Accuracy: 0.6992, Sequence Accuracy: 0.1408
+2018-01-26 16:14:08,452 seq2seq.trainer.supervised_trainer INFO     Progress: 69%, Train Perplexity: 1.0068
+2018-01-26 16:14:09,764 seq2seq.trainer.supervised_trainer INFO     Progress: 69%, Train Perplexity: 1.0008
+2018-01-26 16:14:11,210 seq2seq.trainer.supervised_trainer INFO     Progress: 69%, Train Perplexity: 1.0064
+2018-01-26 16:14:12,355 seq2seq.trainer.supervised_trainer INFO     Progress: 69%, Train Perplexity: 1.0005
+2018-01-26 16:14:13,691 seq2seq.trainer.supervised_trainer INFO     Progress: 69%, Train Perplexity: 1.0033
+2018-01-26 16:14:16,424 seq2seq.trainer.supervised_trainer INFO     Finished epoch 70: Train Perplexity: 1.0033, Dev Perplexity: 12.7479, Accuracy: 0.6985, Sequence Accuracy: 0.1395
+2018-01-26 16:14:19,242 seq2seq.trainer.supervised_trainer INFO     Progress: 70%, Train Perplexity: 1.0024
+2018-01-26 16:14:20,646 seq2seq.trainer.supervised_trainer INFO     Progress: 70%, Train Perplexity: 1.0014
+2018-01-26 16:14:21,956 seq2seq.trainer.supervised_trainer INFO     Progress: 70%, Train Perplexity: 1.0031
+2018-01-26 16:14:23,269 seq2seq.trainer.supervised_trainer INFO     Progress: 70%, Train Perplexity: 1.0003
+2018-01-26 16:14:24,387 seq2seq.trainer.supervised_trainer INFO     Progress: 70%, Train Perplexity: 1.0018
+2018-01-26 16:14:27,315 seq2seq.trainer.supervised_trainer INFO     Finished epoch 71: Train Perplexity: 1.0021, Dev Perplexity: 10.2374, Accuracy: 0.7053, Sequence Accuracy: 0.1265
+2018-01-26 16:14:27,997 seq2seq.trainer.supervised_trainer INFO     Progress: 71%, Train Perplexity: 1.0017
+2018-01-26 16:14:29,202 seq2seq.trainer.supervised_trainer INFO     Progress: 71%, Train Perplexity: 1.0009
+2018-01-26 16:14:32,849 seq2seq.trainer.supervised_trainer INFO     Progress: 71%, Train Perplexity: 1.0006
+2018-01-26 16:14:33,967 seq2seq.trainer.supervised_trainer INFO     Progress: 71%, Train Perplexity: 1.0002
+2018-01-26 16:14:35,487 seq2seq.trainer.supervised_trainer INFO     Progress: 71%, Train Perplexity: 1.0004
+2018-01-26 16:14:38,344 seq2seq.trainer.supervised_trainer INFO     Finished epoch 72: Train Perplexity: 1.0006, Dev Perplexity: 13.7774, Accuracy: 0.6925, Sequence Accuracy: 0.1431
+2018-01-26 16:14:38,954 seq2seq.trainer.supervised_trainer INFO     Progress: 72%, Train Perplexity: 1.0010
+2018-01-26 16:14:40,496 seq2seq.trainer.supervised_trainer INFO     Progress: 72%, Train Perplexity: 1.0023
+2018-01-26 16:14:41,783 seq2seq.trainer.supervised_trainer INFO     Progress: 72%, Train Perplexity: 1.0022
+2018-01-26 16:14:45,167 seq2seq.trainer.supervised_trainer INFO     Progress: 72%, Train Perplexity: 1.0005
+2018-01-26 16:14:46,581 seq2seq.trainer.supervised_trainer INFO     Progress: 72%, Train Perplexity: 1.0022
+2018-01-26 16:14:49,367 seq2seq.trainer.supervised_trainer INFO     Finished epoch 73: Train Perplexity: 1.0015, Dev Perplexity: 11.8490, Accuracy: 0.7051, Sequence Accuracy: 0.1441
+2018-01-26 16:14:49,847 seq2seq.trainer.supervised_trainer INFO     Progress: 73%, Train Perplexity: 1.0002
+2018-01-26 16:14:51,292 seq2seq.trainer.supervised_trainer INFO     Progress: 73%, Train Perplexity: 1.0014
+2018-01-26 16:14:52,724 seq2seq.trainer.supervised_trainer INFO     Progress: 73%, Train Perplexity: 1.0013
+2018-01-26 16:14:53,869 seq2seq.trainer.supervised_trainer INFO     Progress: 73%, Train Perplexity: 1.0004
+2018-01-26 16:14:55,050 seq2seq.trainer.supervised_trainer INFO     Progress: 73%, Train Perplexity: 1.0004
+2018-01-26 16:15:00,149 seq2seq.trainer.supervised_trainer INFO     Finished epoch 74: Train Perplexity: 1.0007, Dev Perplexity: 14.2805, Accuracy: 0.6997, Sequence Accuracy: 0.1421
+2018-01-26 16:15:00,510 seq2seq.trainer.supervised_trainer INFO     Progress: 74%, Train Perplexity: 1.0000
+2018-01-26 16:15:01,789 seq2seq.trainer.supervised_trainer INFO     Progress: 74%, Train Perplexity: 1.0006
+2018-01-26 16:15:03,255 seq2seq.trainer.supervised_trainer INFO     Progress: 74%, Train Perplexity: 1.0017
+2018-01-26 16:15:04,579 seq2seq.trainer.supervised_trainer INFO     Progress: 74%, Train Perplexity: 1.0003
+2018-01-26 16:15:05,787 seq2seq.trainer.supervised_trainer INFO     Progress: 74%, Train Perplexity: 1.0011
+2018-01-26 16:15:08,824 seq2seq.trainer.supervised_trainer INFO     Finished epoch 75: Train Perplexity: 1.0008, Dev Perplexity: 17.9973, Accuracy: 0.6772, Sequence Accuracy: 0.0730
+2018-01-26 16:15:09,321 seq2seq.trainer.supervised_trainer INFO     Progress: 75%, Train Perplexity: 1.0014
+2018-01-26 16:15:12,692 seq2seq.trainer.supervised_trainer INFO     Progress: 75%, Train Perplexity: 1.0005
+2018-01-26 16:15:14,012 seq2seq.trainer.supervised_trainer INFO     Progress: 75%, Train Perplexity: 1.0017
+2018-01-26 16:15:15,383 seq2seq.trainer.supervised_trainer INFO     Progress: 75%, Train Perplexity: 1.0000
+2018-01-26 16:15:16,416 seq2seq.trainer.supervised_trainer INFO     Progress: 75%, Train Perplexity: 1.0003
+2018-01-26 16:15:19,708 seq2seq.trainer.supervised_trainer INFO     Finished epoch 76: Train Perplexity: 1.0007, Dev Perplexity: 12.2748, Accuracy: 0.7097, Sequence Accuracy: 0.1462
+2018-01-26 16:15:19,911 seq2seq.trainer.supervised_trainer INFO     Progress: 76%, Train Perplexity: 1.0005
+2018-01-26 16:15:20,983 seq2seq.trainer.supervised_trainer INFO     Progress: 76%, Train Perplexity: 1.0001
+2018-01-26 16:15:22,228 seq2seq.trainer.supervised_trainer INFO     Progress: 76%, Train Perplexity: 1.0001
+2018-01-26 16:15:25,748 seq2seq.trainer.supervised_trainer INFO     Progress: 76%, Train Perplexity: 1.0002
+2018-01-26 16:15:26,979 seq2seq.trainer.supervised_trainer INFO     Progress: 76%, Train Perplexity: 1.0009
+2018-01-26 16:15:30,134 seq2seq.trainer.supervised_trainer INFO     Finished epoch 77: Train Perplexity: 1.0004, Dev Perplexity: 15.4969, Accuracy: 0.6988, Sequence Accuracy: 0.1344
+2018-01-26 16:15:30,381 seq2seq.trainer.supervised_trainer INFO     Progress: 77%, Train Perplexity: 1.0004
+2018-01-26 16:15:31,709 seq2seq.trainer.supervised_trainer INFO     Progress: 77%, Train Perplexity: 1.0030
+2018-01-26 16:15:32,778 seq2seq.trainer.supervised_trainer INFO     Progress: 77%, Train Perplexity: 1.0017
+2018-01-26 16:15:34,133 seq2seq.trainer.supervised_trainer INFO     Progress: 77%, Train Perplexity: 1.0027
+2018-01-26 16:15:35,501 seq2seq.trainer.supervised_trainer INFO     Progress: 77%, Train Perplexity: 1.0001
+2018-01-26 16:15:40,883 seq2seq.trainer.supervised_trainer INFO     Finished epoch 78: Train Perplexity: 1.0015, Dev Perplexity: 13.6211, Accuracy: 0.6984, Sequence Accuracy: 0.1439
+2018-01-26 16:15:41,038 seq2seq.trainer.supervised_trainer INFO     Progress: 78%, Train Perplexity: 1.0001
+2018-01-26 16:15:42,309 seq2seq.trainer.supervised_trainer INFO     Progress: 78%, Train Perplexity: 1.0043
+2018-01-26 16:15:43,681 seq2seq.trainer.supervised_trainer INFO     Progress: 78%, Train Perplexity: 1.0009
+2018-01-26 16:15:45,174 seq2seq.trainer.supervised_trainer INFO     Progress: 78%, Train Perplexity: 1.0030
+2018-01-26 16:15:46,541 seq2seq.trainer.supervised_trainer INFO     Progress: 78%, Train Perplexity: 1.0012
+2018-01-26 16:15:50,063 seq2seq.trainer.supervised_trainer INFO     Finished epoch 79: Train Perplexity: 1.0046, Dev Perplexity: 6.0162, Accuracy: 0.7775, Sequence Accuracy: 0.1327
+2018-01-26 16:15:50,148 seq2seq.trainer.supervised_trainer INFO     Progress: 79%, Train Perplexity: 1.0142
+2018-01-26 16:15:53,537 seq2seq.trainer.supervised_trainer INFO     Progress: 79%, Train Perplexity: 1.0072
+2018-01-26 16:15:54,560 seq2seq.trainer.supervised_trainer INFO     Progress: 79%, Train Perplexity: 1.0029
+2018-01-26 16:15:55,964 seq2seq.trainer.supervised_trainer INFO     Progress: 79%, Train Perplexity: 1.0023
+2018-01-26 16:15:57,294 seq2seq.trainer.supervised_trainer INFO     Progress: 79%, Train Perplexity: 1.0010
+2018-01-26 16:15:58,827 seq2seq.trainer.supervised_trainer INFO     Progress: 80%, Train Perplexity: 1.0030
+2018-01-26 16:16:00,894 seq2seq.trainer.supervised_trainer INFO     Finished epoch 80: Train Perplexity: 1.0033, Dev Perplexity: 10.2688, Accuracy: 0.7770, Sequence Accuracy: 0.1355
+2018-01-26 16:16:02,230 seq2seq.trainer.supervised_trainer INFO     Progress: 80%, Train Perplexity: 1.0123
+2018-01-26 16:16:03,819 seq2seq.trainer.supervised_trainer INFO     Progress: 80%, Train Perplexity: 1.0012
+2018-01-26 16:16:07,289 seq2seq.trainer.supervised_trainer INFO     Progress: 80%, Train Perplexity: 1.0008
+2018-01-26 16:16:08,586 seq2seq.trainer.supervised_trainer INFO     Progress: 80%, Train Perplexity: 1.0007
+2018-01-26 16:16:10,206 seq2seq.trainer.supervised_trainer INFO     Progress: 80%, Train Perplexity: 1.0009
+2018-01-26 16:16:12,316 seq2seq.trainer.supervised_trainer INFO     Finished epoch 81: Train Perplexity: 1.0031, Dev Perplexity: 8.1847, Accuracy: 0.7839, Sequence Accuracy: 0.1462
+2018-01-26 16:16:13,648 seq2seq.trainer.supervised_trainer INFO     Progress: 81%, Train Perplexity: 1.0001
+2018-01-26 16:16:15,246 seq2seq.trainer.supervised_trainer INFO     Progress: 81%, Train Perplexity: 1.0001
+2018-01-26 16:16:16,350 seq2seq.trainer.supervised_trainer INFO     Progress: 81%, Train Perplexity: 1.0003
+2018-01-26 16:16:19,671 seq2seq.trainer.supervised_trainer INFO     Progress: 81%, Train Perplexity: 1.0001
+2018-01-26 16:16:21,067 seq2seq.trainer.supervised_trainer INFO     Progress: 81%, Train Perplexity: 1.0000
+2018-01-26 16:16:23,207 seq2seq.trainer.supervised_trainer INFO     Finished epoch 82: Train Perplexity: 1.0001, Dev Perplexity: 9.9199, Accuracy: 0.7693, Sequence Accuracy: 0.1390
+2018-01-26 16:16:24,370 seq2seq.trainer.supervised_trainer INFO     Progress: 82%, Train Perplexity: 1.0017
+2018-01-26 16:16:25,548 seq2seq.trainer.supervised_trainer INFO     Progress: 82%, Train Perplexity: 1.0005
+2018-01-26 16:16:26,920 seq2seq.trainer.supervised_trainer INFO     Progress: 82%, Train Perplexity: 1.0021
+2018-01-26 16:16:28,238 seq2seq.trainer.supervised_trainer INFO     Progress: 82%, Train Perplexity: 1.0008
+2018-01-26 16:16:29,600 seq2seq.trainer.supervised_trainer INFO     Progress: 82%, Train Perplexity: 1.0006
+2018-01-26 16:16:31,870 seq2seq.trainer.supervised_trainer INFO     Finished epoch 83: Train Perplexity: 1.0011, Dev Perplexity: 9.1938, Accuracy: 0.7706, Sequence Accuracy: 0.1395
+2018-01-26 16:16:35,133 seq2seq.trainer.supervised_trainer INFO     Progress: 83%, Train Perplexity: 1.0004
+2018-01-26 16:16:36,457 seq2seq.trainer.supervised_trainer INFO     Progress: 83%, Train Perplexity: 1.0005
+2018-01-26 16:16:37,780 seq2seq.trainer.supervised_trainer INFO     Progress: 83%, Train Perplexity: 1.0003
+2018-01-26 16:16:39,138 seq2seq.trainer.supervised_trainer INFO     Progress: 83%, Train Perplexity: 1.0002
+2018-01-26 16:16:40,342 seq2seq.trainer.supervised_trainer INFO     Progress: 83%, Train Perplexity: 1.0000
+2018-01-26 16:16:42,730 seq2seq.trainer.supervised_trainer INFO     Finished epoch 84: Train Perplexity: 1.0003, Dev Perplexity: 9.9874, Accuracy: 0.7664, Sequence Accuracy: 0.1309
+2018-01-26 16:16:43,911 seq2seq.trainer.supervised_trainer INFO     Progress: 84%, Train Perplexity: 1.0001
+2018-01-26 16:16:47,429 seq2seq.trainer.supervised_trainer INFO     Progress: 84%, Train Perplexity: 1.0000
+2018-01-26 16:16:48,767 seq2seq.trainer.supervised_trainer INFO     Progress: 84%, Train Perplexity: 1.0000
+2018-01-26 16:16:50,078 seq2seq.trainer.supervised_trainer INFO     Progress: 84%, Train Perplexity: 1.0011
+2018-01-26 16:16:51,422 seq2seq.trainer.supervised_trainer INFO     Progress: 84%, Train Perplexity: 1.0001
+2018-01-26 16:16:53,747 seq2seq.trainer.supervised_trainer INFO     Finished epoch 85: Train Perplexity: 1.0003, Dev Perplexity: 9.3165, Accuracy: 0.7793, Sequence Accuracy: 0.1398
+2018-01-26 16:16:54,751 seq2seq.trainer.supervised_trainer INFO     Progress: 85%, Train Perplexity: 1.0004
+2018-01-26 16:16:56,218 seq2seq.trainer.supervised_trainer INFO     Progress: 85%, Train Perplexity: 1.0096
+2018-01-26 16:16:57,828 seq2seq.trainer.supervised_trainer INFO     Progress: 85%, Train Perplexity: 1.0060
+2018-01-26 16:17:01,205 seq2seq.trainer.supervised_trainer INFO     Progress: 85%, Train Perplexity: 1.0069
+2018-01-26 16:17:02,627 seq2seq.trainer.supervised_trainer INFO     Progress: 85%, Train Perplexity: 1.0062
+2018-01-26 16:17:05,070 seq2seq.trainer.supervised_trainer INFO     Finished epoch 86: Train Perplexity: 1.0058, Dev Perplexity: 8.0536, Accuracy: 0.7780, Sequence Accuracy: 0.1411
+2018-01-26 16:17:05,984 seq2seq.trainer.supervised_trainer INFO     Progress: 86%, Train Perplexity: 1.0008
+2018-01-26 16:17:07,293 seq2seq.trainer.supervised_trainer INFO     Progress: 86%, Train Perplexity: 1.0003
+2018-01-26 16:17:08,472 seq2seq.trainer.supervised_trainer INFO     Progress: 86%, Train Perplexity: 1.0007
+2018-01-26 16:17:09,967 seq2seq.trainer.supervised_trainer INFO     Progress: 86%, Train Perplexity: 1.0017
+2018-01-26 16:17:13,345 seq2seq.trainer.supervised_trainer INFO     Progress: 86%, Train Perplexity: 1.0007
+2018-01-26 16:17:15,951 seq2seq.trainer.supervised_trainer INFO     Finished epoch 87: Train Perplexity: 1.0009, Dev Perplexity: 9.9264, Accuracy: 0.7760, Sequence Accuracy: 0.1327
+2018-01-26 16:17:16,790 seq2seq.trainer.supervised_trainer INFO     Progress: 87%, Train Perplexity: 1.0007
+2018-01-26 16:17:18,057 seq2seq.trainer.supervised_trainer INFO     Progress: 87%, Train Perplexity: 1.0002
+2018-01-26 16:17:19,208 seq2seq.trainer.supervised_trainer INFO     Progress: 87%, Train Perplexity: 1.0007
+2018-01-26 16:17:20,690 seq2seq.trainer.supervised_trainer INFO     Progress: 87%, Train Perplexity: 1.0012
+2018-01-26 16:17:21,777 seq2seq.trainer.supervised_trainer INFO     Progress: 87%, Train Perplexity: 1.0008
+2018-01-26 16:17:24,444 seq2seq.trainer.supervised_trainer INFO     Finished epoch 88: Train Perplexity: 1.0026, Dev Perplexity: 9.8903, Accuracy: 0.7665, Sequence Accuracy: 0.1441
+2018-01-26 16:17:25,156 seq2seq.trainer.supervised_trainer INFO     Progress: 88%, Train Perplexity: 1.0115
+2018-01-26 16:17:28,491 seq2seq.trainer.supervised_trainer INFO     Progress: 88%, Train Perplexity: 1.0051
+2018-01-26 16:17:29,782 seq2seq.trainer.supervised_trainer INFO     Progress: 88%, Train Perplexity: 1.0000
+2018-01-26 16:17:30,950 seq2seq.trainer.supervised_trainer INFO     Progress: 88%, Train Perplexity: 1.0005
+2018-01-26 16:17:32,140 seq2seq.trainer.supervised_trainer INFO     Progress: 88%, Train Perplexity: 1.0009
+2018-01-26 16:17:34,873 seq2seq.trainer.supervised_trainer INFO     Finished epoch 89: Train Perplexity: 1.0016, Dev Perplexity: 10.3710, Accuracy: 0.7556, Sequence Accuracy: 0.1390
+2018-01-26 16:17:35,706 seq2seq.trainer.supervised_trainer INFO     Progress: 89%, Train Perplexity: 1.0171
+2018-01-26 16:17:36,938 seq2seq.trainer.supervised_trainer INFO     Progress: 89%, Train Perplexity: 1.0050
+2018-01-26 16:17:40,250 seq2seq.trainer.supervised_trainer INFO     Progress: 89%, Train Perplexity: 1.0038
+2018-01-26 16:17:41,640 seq2seq.trainer.supervised_trainer INFO     Progress: 89%, Train Perplexity: 1.0013
+2018-01-26 16:17:43,049 seq2seq.trainer.supervised_trainer INFO     Progress: 89%, Train Perplexity: 1.0005
+2018-01-26 16:17:45,842 seq2seq.trainer.supervised_trainer INFO     Finished epoch 90: Train Perplexity: 1.0058, Dev Perplexity: 11.2065, Accuracy: 0.7380, Sequence Accuracy: 0.0804
+2018-01-26 16:17:46,719 seq2seq.trainer.supervised_trainer INFO     Progress: 90%, Train Perplexity: 1.0018
+2018-01-26 16:17:48,011 seq2seq.trainer.supervised_trainer INFO     Progress: 90%, Train Perplexity: 1.0005
+2018-01-26 16:17:49,263 seq2seq.trainer.supervised_trainer INFO     Progress: 90%, Train Perplexity: 1.0010
+2018-01-26 16:17:50,742 seq2seq.trainer.supervised_trainer INFO     Progress: 90%, Train Perplexity: 1.0005
+2018-01-26 16:17:53,998 seq2seq.trainer.supervised_trainer INFO     Progress: 90%, Train Perplexity: 1.0002
+2018-01-26 16:17:56,904 seq2seq.trainer.supervised_trainer INFO     Finished epoch 91: Train Perplexity: 1.0004, Dev Perplexity: 9.0258, Accuracy: 0.7771, Sequence Accuracy: 0.1383
+2018-01-26 16:17:57,513 seq2seq.trainer.supervised_trainer INFO     Progress: 91%, Train Perplexity: 1.0000
+2018-01-26 16:17:58,740 seq2seq.trainer.supervised_trainer INFO     Progress: 91%, Train Perplexity: 1.0009
+2018-01-26 16:17:59,930 seq2seq.trainer.supervised_trainer INFO     Progress: 91%, Train Perplexity: 1.0063
+2018-01-26 16:18:01,419 seq2seq.trainer.supervised_trainer INFO     Progress: 91%, Train Perplexity: 1.0017
+2018-01-26 16:18:02,913 seq2seq.trainer.supervised_trainer INFO     Progress: 91%, Train Perplexity: 1.0015
+2018-01-26 16:18:05,673 seq2seq.trainer.supervised_trainer INFO     Finished epoch 92: Train Perplexity: 1.0021, Dev Perplexity: 9.9746, Accuracy: 0.7744, Sequence Accuracy: 0.1457
+2018-01-26 16:18:06,335 seq2seq.trainer.supervised_trainer INFO     Progress: 92%, Train Perplexity: 1.0004
+2018-01-26 16:18:09,587 seq2seq.trainer.supervised_trainer INFO     Progress: 92%, Train Perplexity: 1.0028
+2018-01-26 16:18:10,898 seq2seq.trainer.supervised_trainer INFO     Progress: 92%, Train Perplexity: 1.0002
+2018-01-26 16:18:12,261 seq2seq.trainer.supervised_trainer INFO     Progress: 92%, Train Perplexity: 1.0000
+2018-01-26 16:18:13,469 seq2seq.trainer.supervised_trainer INFO     Progress: 92%, Train Perplexity: 1.0000
+2018-01-26 16:18:16,565 seq2seq.trainer.supervised_trainer INFO     Finished epoch 93: Train Perplexity: 1.0007, Dev Perplexity: 10.6677, Accuracy: 0.7610, Sequence Accuracy: 0.1367
+2018-01-26 16:18:17,006 seq2seq.trainer.supervised_trainer INFO     Progress: 93%, Train Perplexity: 1.0000
+2018-01-26 16:18:18,355 seq2seq.trainer.supervised_trainer INFO     Progress: 93%, Train Perplexity: 1.0006
+2018-01-26 16:18:21,925 seq2seq.trainer.supervised_trainer INFO     Progress: 93%, Train Perplexity: 1.0010
+2018-01-26 16:18:23,212 seq2seq.trainer.supervised_trainer INFO     Progress: 93%, Train Perplexity: 1.0013
+2018-01-26 16:18:24,501 seq2seq.trainer.supervised_trainer INFO     Progress: 93%, Train Perplexity: 1.0005
+2018-01-26 16:18:27,485 seq2seq.trainer.supervised_trainer INFO     Finished epoch 94: Train Perplexity: 1.0007, Dev Perplexity: 10.4097, Accuracy: 0.7671, Sequence Accuracy: 0.1355
+2018-01-26 16:18:27,892 seq2seq.trainer.supervised_trainer INFO     Progress: 94%, Train Perplexity: 1.0165
+2018-01-26 16:18:29,083 seq2seq.trainer.supervised_trainer INFO     Progress: 94%, Train Perplexity: 1.0001
+2018-01-26 16:18:30,520 seq2seq.trainer.supervised_trainer INFO     Progress: 94%, Train Perplexity: 1.0004
+2018-01-26 16:18:31,789 seq2seq.trainer.supervised_trainer INFO     Progress: 94%, Train Perplexity: 1.0000
+2018-01-26 16:18:35,161 seq2seq.trainer.supervised_trainer INFO     Progress: 94%, Train Perplexity: 1.0000
+2018-01-26 16:18:38,305 seq2seq.trainer.supervised_trainer INFO     Finished epoch 95: Train Perplexity: 1.0034, Dev Perplexity: 9.5589, Accuracy: 0.7689, Sequence Accuracy: 0.1380
+2018-01-26 16:18:38,666 seq2seq.trainer.supervised_trainer INFO     Progress: 95%, Train Perplexity: 1.0000
+2018-01-26 16:18:40,122 seq2seq.trainer.supervised_trainer INFO     Progress: 95%, Train Perplexity: 1.0000
+2018-01-26 16:18:41,518 seq2seq.trainer.supervised_trainer INFO     Progress: 95%, Train Perplexity: 1.0001
+2018-01-26 16:18:42,649 seq2seq.trainer.supervised_trainer INFO     Progress: 95%, Train Perplexity: 1.0046
+2018-01-26 16:18:44,110 seq2seq.trainer.supervised_trainer INFO     Progress: 95%, Train Perplexity: 1.0001
+2018-01-26 16:18:49,412 seq2seq.trainer.supervised_trainer INFO     Finished epoch 96: Train Perplexity: 1.0010, Dev Perplexity: 8.7573, Accuracy: 0.7777, Sequence Accuracy: 0.1411
+2018-01-26 16:18:49,659 seq2seq.trainer.supervised_trainer INFO     Progress: 96%, Train Perplexity: 1.0002
+2018-01-26 16:18:51,125 seq2seq.trainer.supervised_trainer INFO     Progress: 96%, Train Perplexity: 1.0056
+2018-01-26 16:18:52,355 seq2seq.trainer.supervised_trainer INFO     Progress: 96%, Train Perplexity: 1.0013
+2018-01-26 16:18:53,750 seq2seq.trainer.supervised_trainer INFO     Progress: 96%, Train Perplexity: 1.0013
+2018-01-26 16:18:54,690 seq2seq.trainer.supervised_trainer INFO     Progress: 96%, Train Perplexity: 1.0031
+2018-01-26 16:18:57,940 seq2seq.trainer.supervised_trainer INFO     Finished epoch 97: Train Perplexity: 1.0025, Dev Perplexity: 11.3774, Accuracy: 0.7530, Sequence Accuracy: 0.1245
+2018-01-26 16:18:58,188 seq2seq.trainer.supervised_trainer INFO     Progress: 97%, Train Perplexity: 1.0016
+2018-01-26 16:18:59,788 seq2seq.trainer.supervised_trainer INFO     Progress: 97%, Train Perplexity: 1.0038
+2018-01-26 16:19:02,963 seq2seq.trainer.supervised_trainer INFO     Progress: 97%, Train Perplexity: 1.0009
+2018-01-26 16:19:04,494 seq2seq.trainer.supervised_trainer INFO     Progress: 97%, Train Perplexity: 1.0005
+2018-01-26 16:19:05,701 seq2seq.trainer.supervised_trainer INFO     Progress: 97%, Train Perplexity: 1.0000
+2018-01-26 16:19:08,842 seq2seq.trainer.supervised_trainer INFO     Finished epoch 98: Train Perplexity: 1.0011, Dev Perplexity: 8.5766, Accuracy: 0.7697, Sequence Accuracy: 0.1449
+2018-01-26 16:19:09,080 seq2seq.trainer.supervised_trainer INFO     Progress: 98%, Train Perplexity: 1.0000
+2018-01-26 16:19:10,240 seq2seq.trainer.supervised_trainer INFO     Progress: 98%, Train Perplexity: 1.0000
+2018-01-26 16:19:11,475 seq2seq.trainer.supervised_trainer INFO     Progress: 98%, Train Perplexity: 1.0000
+2018-01-26 16:19:14,996 seq2seq.trainer.supervised_trainer INFO     Progress: 98%, Train Perplexity: 1.0001
+2018-01-26 16:19:16,192 seq2seq.trainer.supervised_trainer INFO     Progress: 98%, Train Perplexity: 1.0000
+2018-01-26 16:19:19,428 seq2seq.trainer.supervised_trainer INFO     Finished epoch 99: Train Perplexity: 1.0000, Dev Perplexity: 8.4227, Accuracy: 0.7718, Sequence Accuracy: 0.1426
+2018-01-26 16:19:19,567 seq2seq.trainer.supervised_trainer INFO     Progress: 99%, Train Perplexity: 1.0000
+2018-01-26 16:19:20,981 seq2seq.trainer.supervised_trainer INFO     Progress: 99%, Train Perplexity: 1.0000
+2018-01-26 16:19:22,305 seq2seq.trainer.supervised_trainer INFO     Progress: 99%, Train Perplexity: 1.0000
+2018-01-26 16:19:23,632 seq2seq.trainer.supervised_trainer INFO     Progress: 99%, Train Perplexity: 1.0002
+2018-01-26 16:19:25,067 seq2seq.trainer.supervised_trainer INFO     Progress: 99%, Train Perplexity: 1.0000
+2018-01-26 16:19:28,526 seq2seq.trainer.supervised_trainer INFO     Progress: 100%, Train Perplexity: 1.0000
+2018-01-26 16:19:32,659 seq2seq.trainer.supervised_trainer INFO     Finished epoch 100: Train Perplexity: 1.0000, Dev Perplexity: 8.8617, Accuracy: 0.7700, Sequence Accuracy: 0.1434
+Test on length > 22
+Cuda device set to 0
+Loading checkpoints from checkpoints_experiment_random_leave_out/12 13 17 16 16 2 5 16/acc_0.73_seq_acc_0.03_ppl_3.14_s1048
+Loss: 3.141214, Word accuracy: 0.734302, Sequence accuracy: 0.026531
+Test on length 24
+Cuda device set to 0
+Loading checkpoints from checkpoints_experiment_random_leave_out/12 13 17 16 16 2 5 16/acc_0.73_seq_acc_0.03_ppl_3.14_s1048
+Loss: 1.268211, Word accuracy: 0.912738, Sequence accuracy: 0.193452
+Test on length 25
+Cuda device set to 0
+Loading checkpoints from checkpoints_experiment_random_leave_out/12 13 17 16 16 2 5 16/acc_0.73_seq_acc_0.03_ppl_3.14_s1048
+Loss: 2.697100, Word accuracy: 0.754207, Sequence accuracy: 0.046875
+Test on length 26
+Cuda device set to 0
+Loading checkpoints from checkpoints_experiment_random_leave_out/12 13 17 16 16 2 5 16/acc_0.73_seq_acc_0.03_ppl_3.14_s1048
+Loss: 3.670733, Word accuracy: 0.736979, Sequence accuracy: 0.000000
+Test on length 27
+Cuda device set to 0
+Loading checkpoints from checkpoints_experiment_random_leave_out/12 13 17 16 16 2 5 16/acc_0.73_seq_acc_0.03_ppl_3.14_s1048
+Loss: 3.330141, Word accuracy: 0.744101, Sequence accuracy: 0.000000
+Test on length 28
+Cuda device set to 0
+Loading checkpoints from checkpoints_experiment_random_leave_out/12 13 17 16 16 2 5 16/acc_0.73_seq_acc_0.03_ppl_3.14_s1048
+Loss: 2.856747, Word accuracy: 0.749307, Sequence accuracy: 0.006696
+Test on length 30
+Cuda device set to 0
+Loading checkpoints from checkpoints_experiment_random_leave_out/12 13 17 16 16 2 5 16/acc_0.73_seq_acc_0.03_ppl_3.14_s1048
+Loss: 3.505235, Word accuracy: 0.689628, Sequence accuracy: 0.000000
+Test on length 32
+Cuda device set to 0
+Loading checkpoints from checkpoints_experiment_random_leave_out/12 13 17 16 16 2 5 16/acc_0.73_seq_acc_0.03_ppl_3.14_s1048
+Loss: 2.270136, Word accuracy: 0.799107, Sequence accuracy: 0.033482
+Test on length 33
+Cuda device set to 0
+Loading checkpoints from checkpoints_experiment_random_leave_out/12 13 17 16 16 2 5 16/acc_0.73_seq_acc_0.03_ppl_3.14_s1048
+Loss: 3.923440, Word accuracy: 0.637523, Sequence accuracy: 0.000000
+Test on length 36
+Cuda device set to 0
+Loading checkpoints from checkpoints_experiment_random_leave_out/12 13 17 16 16 2 5 16/acc_0.73_seq_acc_0.03_ppl_3.14_s1048
+Loss: 3.769655, Word accuracy: 0.619510, Sequence accuracy: 0.000000
+Test on length 40
+Cuda device set to 0
+Loading checkpoints from checkpoints_experiment_random_leave_out/12 13 17 16 16 2 5 16/acc_0.73_seq_acc_0.03_ppl_3.14_s1048
+Loss: 3.736421, Word accuracy: 0.718178, Sequence accuracy: 0.000000
+Test on length 48
+Cuda device set to 0
+Loading checkpoints from checkpoints_experiment_random_leave_out/12 13 17 16 16 2 5 16/acc_0.73_seq_acc_0.03_ppl_3.14_s1048
+Loss: 8.709809, Word accuracy: 0.580835, Sequence accuracy: 0.000000
+
+
