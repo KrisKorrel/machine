@@ -1,0 +1,25 @@
+#!/bin/bash
+#SBATCH -N 1
+#SBATCH -p gpu_short
+#SBATCH -t 0-01:00:00
+#SBATCH -n 2
+
+### CALL LIKE: sbatch increasing_lengths.job {Max train length} ###
+
+echo start of job
+
+module load python
+module load mkl
+module load cuda/8.0.44
+
+cd ~/machine
+
+TRAIN_MAX_LENGTH=$1
+RUN_COUNTER=0
+while true
+do
+    time srun -o ~/output_exp_train_max_$TRAIN_MAX_LENGTH-run_%t_$RUN_COUNTER --multi-prog job_config/increasing_lengths.conf $TRAIN_MAX_LENGTH
+    RUN_COUNTER=$((RUN_COUNTER+1))
+done
+
+echo end of job
