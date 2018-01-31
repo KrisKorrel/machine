@@ -79,6 +79,8 @@ class Checkpoint(object):
         with open(os.path.join(path, self.OUTPUT_VOCAB_FILE), 'wb') as fout:
             dill.dump(self.output_vocab, fout)
 
+        print("Saved checkpoint in {}".format(path))
+
         return path
 
     @classmethod
