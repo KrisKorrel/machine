@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 CUDA=$1
 TRAIN_MAX_LENGTH=$2
