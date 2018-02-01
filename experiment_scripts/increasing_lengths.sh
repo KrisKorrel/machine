@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 CUDA=$1
 TRAIN_MAX_LENGTH=$2
@@ -19,6 +19,20 @@ ATTENTION=true
 BIDIRECTIONAL=false
 PRINT_EVERY=20
 SAVE_EVERY=131
+
+if [ "$BIDIRECTIONAL" = true ]
+then
+    BIDIRECTIONAL="--bidirectional"
+else
+    BIDIRECTIONAL=""
+fi
+
+if [ "$ATTENTION" = true ]
+then
+    ATTENTION="--attention"
+else
+    ATTENTION=""
+fi
 
 # Define the train data and checkpoint path
 TRAIN_PATH=data/CLEANED-SCAN/length_split/increasing_lengths/$TRAIN_MAX_LENGTH/tasks_train.txt
@@ -42,8 +56,8 @@ python train_model.py \
     --dropout_p_decoder $DROPOUT_DECODER \
     --teacher_forcing_ratio $TF \
     --batch_size $BATCH_SIZE \
-    $( (( $BIDIRECTIONAL )) && echo '--bidirectional' ) \
-    $( (( $ATTENTION )) && echo '--attention' ) \
+    $BIDIRECTIONAL \
+    $ATTENTION \
     --print_every $PRINT_EVERY \
     --save_every $SAVE_EVERY \
     --cuda_device $CUDA
