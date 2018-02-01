@@ -4,7 +4,7 @@ Script to make it easier to split the data set on basis of lengths
 
 import os
 from collections import Counter
-
+import numpy
 
 def show_statistics():
     """
@@ -73,10 +73,12 @@ def create_split(max_train_length):
     if not os.path.exists(output_path):
         os.mkdir(output_path)
     output_file_train = open(os.path.join(output_path, 'tasks_train.txt'), 'w')
-    output_file_test = open(os.path.join(output_path, 'tasks_test.txt'), 'w')
+    output_file_dev   = open(os.path.join(output_path, 'tasks_dev.txt'), 'w')
+    output_file_test  = open(os.path.join(output_path, 'tasks_test.txt'), 'w')
 
-    n_included = 0
-    n_excluded = 0
+    n_included_train = 0
+    n_included_dev = 0
+    n_included_test = 0
 
     actual_included = set()
     actual_excluded = set()
@@ -88,18 +90,24 @@ def create_split(max_train_length):
         output_sequence_length = len(output_sequence.split())
 
         if output_sequence_length <= max_train_length:
-            output_file_train.write(line)
-            n_included += 1
-            actual_included.add(output_sequence_length)
+            if numpy.random.random() < 0.1:
+                output_file_dev.write(line)
+                n_included_dev += 1
+                actual_included.add(output_sequence_length)
+            else:
+                output_file_train.write(line)
+                n_included_train += 1
+                actual_included.add(output_sequence_length)
         else:
             output_file_test.write(line)
-            n_excluded += 1
+            n_included_test += 1
             actual_excluded.add(output_sequence_length)
 
-    total_number_of_tasks = n_included + n_excluded
+    total_number_of_tasks = n_included_train + n_included_dev + n_included_test
 
-    print("Included output lengths in training set ({:.02f}%): {}".format(100.0 * n_included / total_number_of_tasks, sorted(actual_included)))
-    print("Included output lengths in test set ({:.02f}%): {}".format(100.0 * n_excluded / total_number_of_tasks, sorted(actual_excluded)))
+    print("Included output lengths in training set ({:.02f}%): {}".format(100.0 * n_included_train / total_number_of_tasks, sorted(actual_included)))
+    print("Included output lengths in dev set ({:.02f}%): {}".format(100.0 * n_included_dev / total_number_of_tasks, sorted(actual_included)))
+    print("Included output lengths in test set ({:.02f}%): {}".format(100.0 * n_included_test / total_number_of_tasks, sorted(actual_excluded)))
     print("Results are in '{}'".format(output_path))
     print()
 
