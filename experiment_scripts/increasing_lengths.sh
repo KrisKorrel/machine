@@ -36,7 +36,7 @@ fi
 
 # Define the train data and checkpoint path
 TRAIN_PATH=data/CLEANED-SCAN/length_split/increasing_lengths/$TRAIN_MAX_LENGTH/tasks_train.txt
-DEV_PATH=data/CLEANED-SCAN/length_split/increasing_lengths/$TRAIN_MAX_LENGTH/tasks_test.txt
+DEV_PATH=data/CLEANED-SCAN/length_split/increasing_lengths/$TRAIN_MAX_LENGTH/tasks_dev.txt
 EXPT_DIR=checkpoints_exp_increasing_lengths/train_max_$TRAIN_MAX_LENGTH
 
 # Start training
