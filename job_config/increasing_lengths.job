@@ -18,7 +18,7 @@ TRAIN_MAX_LENGTH=$1
 RUN_COUNTER=0
 while true
 do
-    time srun -o ~/output_exp_train_max_$TRAIN_MAX_LENGTH-run_%t_$RUN_COUNTER --multi-prog job_config/increasing_lengths.conf $TRAIN_MAX_LENGTH
+    time srun -o ~/output_exp_train_max_$TRAIN_MAX_LENGTH-run_%t_$RUN_COUNTER --multi-prog job_config/increasing_lengths.conf $TRAIN_MAX_LENGTH $RUN_COUNTER
     RUN_COUNTER=$((RUN_COUNTER+1))
 done
 
