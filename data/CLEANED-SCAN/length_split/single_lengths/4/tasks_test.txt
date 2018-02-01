@@ -1,0 +1,860 @@
+ look opposite left after run	I_RUN I_TURN_LEFT I_TURN_LEFT I_LOOK
+ look twice and run right	I_LOOK I_LOOK I_TURN_RIGHT I_RUN
+ turn right twice and run right	I_TURN_RIGHT I_TURN_RIGHT I_TURN_RIGHT I_RUN
+ walk right and look twice	I_TURN_RIGHT I_WALK I_LOOK I_LOOK
+ run right and walk left	I_TURN_RIGHT I_RUN I_TURN_LEFT I_WALK
+ look left after turn opposite right	I_TURN_RIGHT I_TURN_RIGHT I_TURN_LEFT I_LOOK
+ turn opposite left and jump twice	I_TURN_LEFT I_TURN_LEFT I_JUMP I_JUMP
+ jump twice and run twice	I_JUMP I_JUMP I_RUN I_RUN
+ jump after jump thrice	I_JUMP I_JUMP I_JUMP I_JUMP
+ run twice after walk right	I_TURN_RIGHT I_WALK I_RUN I_RUN
+ run opposite right after turn right	I_TURN_RIGHT I_TURN_RIGHT I_TURN_RIGHT I_RUN
+ run twice after walk left	I_TURN_LEFT I_WALK I_RUN I_RUN
+ turn opposite left and look right	I_TURN_LEFT I_TURN_LEFT I_TURN_RIGHT I_LOOK
+ walk thrice after turn right	I_TURN_RIGHT I_WALK I_WALK I_WALK
+ look after look opposite right	I_TURN_RIGHT I_TURN_RIGHT I_LOOK I_LOOK
+ look and look opposite left	I_LOOK I_TURN_LEFT I_TURN_LEFT I_LOOK
+ walk thrice after jump	I_JUMP I_WALK I_WALK I_WALK
+ look opposite right after run	I_RUN I_TURN_RIGHT I_TURN_RIGHT I_LOOK
+ walk right after walk right	I_TURN_RIGHT I_WALK I_TURN_RIGHT I_WALK
+ walk after walk thrice	I_WALK I_WALK I_WALK I_WALK
+ jump opposite right and look	I_TURN_RIGHT I_TURN_RIGHT I_JUMP I_LOOK
+ turn right and run opposite right	I_TURN_RIGHT I_TURN_RIGHT I_TURN_RIGHT I_RUN
+ turn right twice and turn opposite left	I_TURN_RIGHT I_TURN_RIGHT I_TURN_LEFT I_TURN_LEFT
+ walk twice and jump left	I_WALK I_WALK I_TURN_LEFT I_JUMP
+ run left and look left	I_TURN_LEFT I_RUN I_TURN_LEFT I_LOOK
+ run left after turn left twice	I_TURN_LEFT I_TURN_LEFT I_TURN_LEFT I_RUN
+ look left after walk right	I_TURN_RIGHT I_WALK I_TURN_LEFT I_LOOK
+ jump opposite right and run	I_TURN_RIGHT I_TURN_RIGHT I_JUMP I_RUN
+ turn right thrice after look	I_LOOK I_TURN_RIGHT I_TURN_RIGHT I_TURN_RIGHT
+ look left and jump twice	I_TURN_LEFT I_LOOK I_JUMP I_JUMP
+ jump thrice and jump	I_JUMP I_JUMP I_JUMP I_JUMP
+ jump and jump opposite left	I_JUMP I_TURN_LEFT I_TURN_LEFT I_JUMP
+ turn opposite left after turn left twice	I_TURN_LEFT I_TURN_LEFT I_TURN_LEFT I_TURN_LEFT
+ look twice and run twice	I_LOOK I_LOOK I_RUN I_RUN
+ run and turn right thrice	I_RUN I_TURN_RIGHT I_TURN_RIGHT I_TURN_RIGHT
+ turn right after turn left thrice	I_TURN_LEFT I_TURN_LEFT I_TURN_LEFT I_TURN_RIGHT
+ turn left twice and look right	I_TURN_LEFT I_TURN_LEFT I_TURN_RIGHT I_LOOK
+ walk opposite right and turn right	I_TURN_RIGHT I_TURN_RIGHT I_WALK I_TURN_RIGHT
+ run left after look right	I_TURN_RIGHT I_LOOK I_TURN_LEFT I_RUN
+ run left after look twice	I_LOOK I_LOOK I_TURN_LEFT I_RUN
+ turn opposite left after turn opposite right	I_TURN_RIGHT I_TURN_RIGHT I_TURN_LEFT I_TURN_LEFT
+ look twice and jump left	I_LOOK I_LOOK I_TURN_LEFT I_JUMP
+ jump after look opposite left	I_TURN_LEFT I_TURN_LEFT I_LOOK I_JUMP
+ walk left after turn opposite right	I_TURN_RIGHT I_TURN_RIGHT I_TURN_LEFT I_WALK
+ turn right twice after turn left twice	I_TURN_LEFT I_TURN_LEFT I_TURN_RIGHT I_TURN_RIGHT
+ jump opposite right and jump	I_TURN_RIGHT I_TURN_RIGHT I_JUMP I_JUMP
+ run twice after jump right	I_TURN_RIGHT I_JUMP I_RUN I_RUN
+ run right and run twice	I_TURN_RIGHT I_RUN I_RUN I_RUN
+ run left after run left	I_TURN_LEFT I_RUN I_TURN_LEFT I_RUN
+ turn left twice and jump left	I_TURN_LEFT I_TURN_LEFT I_TURN_LEFT I_JUMP
+ look right after turn opposite right	I_TURN_RIGHT I_TURN_RIGHT I_TURN_RIGHT I_LOOK
+ jump and walk opposite right	I_JUMP I_TURN_RIGHT I_TURN_RIGHT I_WALK
+ walk opposite right and run	I_TURN_RIGHT I_TURN_RIGHT I_WALK I_RUN
+ walk twice after turn opposite left	I_TURN_LEFT I_TURN_LEFT I_WALK I_WALK
+ walk after jump opposite left	I_TURN_LEFT I_TURN_LEFT I_JUMP I_WALK
+ look and run opposite right	I_LOOK I_TURN_RIGHT I_TURN_RIGHT I_RUN
+ turn left and jump opposite right	I_TURN_LEFT I_TURN_RIGHT I_TURN_RIGHT I_JUMP
+ turn left after turn right thrice	I_TURN_RIGHT I_TURN_RIGHT I_TURN_RIGHT I_TURN_LEFT
+ turn left after walk opposite left	I_TURN_LEFT I_TURN_LEFT I_WALK I_TURN_LEFT
+ walk left and look right	I_TURN_LEFT I_WALK I_TURN_RIGHT I_LOOK
+ run right after run right	I_TURN_RIGHT I_RUN I_TURN_RIGHT I_RUN
+ turn opposite right after walk right	I_TURN_RIGHT I_WALK I_TURN_RIGHT I_TURN_RIGHT
+ turn opposite right and look twice	I_TURN_RIGHT I_TURN_RIGHT I_LOOK I_LOOK
+ turn left twice after turn opposite left	I_TURN_LEFT I_TURN_LEFT I_TURN_LEFT I_TURN_LEFT
+ turn right twice after run left	I_TURN_LEFT I_RUN I_TURN_RIGHT I_TURN_RIGHT
+ run thrice and turn left	I_RUN I_RUN I_RUN I_TURN_LEFT
+ jump opposite right and walk	I_TURN_RIGHT I_TURN_RIGHT I_JUMP I_WALK
+ look right after jump twice	I_JUMP I_JUMP I_TURN_RIGHT I_LOOK
+ run thrice after walk	I_WALK I_RUN I_RUN I_RUN
+ run twice and turn right twice	I_RUN I_RUN I_TURN_RIGHT I_TURN_RIGHT
+ walk left and turn right twice	I_TURN_LEFT I_WALK I_TURN_RIGHT I_TURN_RIGHT
+ turn right twice and jump left	I_TURN_RIGHT I_TURN_RIGHT I_TURN_LEFT I_JUMP
+ look twice after jump right	I_TURN_RIGHT I_JUMP I_LOOK I_LOOK
+ run opposite left after look	I_LOOK I_TURN_LEFT I_TURN_LEFT I_RUN
+ jump twice after run left	I_TURN_LEFT I_RUN I_JUMP I_JUMP
+ walk twice after turn left twice	I_TURN_LEFT I_TURN_LEFT I_WALK I_WALK
+ walk and look opposite right	I_WALK I_TURN_RIGHT I_TURN_RIGHT I_LOOK
+ walk right and walk right	I_TURN_RIGHT I_WALK I_TURN_RIGHT I_WALK
+ run right and jump right	I_TURN_RIGHT I_RUN I_TURN_RIGHT I_JUMP
+ jump right after run twice	I_RUN I_RUN I_TURN_RIGHT I_JUMP
+ look left after turn opposite left	I_TURN_LEFT I_TURN_LEFT I_TURN_LEFT I_LOOK
+ jump left and turn opposite left	I_TURN_LEFT I_JUMP I_TURN_LEFT I_TURN_LEFT
+ turn right twice and look left	I_TURN_RIGHT I_TURN_RIGHT I_TURN_LEFT I_LOOK
+ run thrice and look	I_RUN I_RUN I_RUN I_LOOK
+ walk twice after walk twice	I_WALK I_WALK I_WALK I_WALK
+ turn left thrice and turn left	I_TURN_LEFT I_TURN_LEFT I_TURN_LEFT I_TURN_LEFT
+ turn left twice after walk left	I_TURN_LEFT I_WALK I_TURN_LEFT I_TURN_LEFT
+ turn left twice and look twice	I_TURN_LEFT I_TURN_LEFT I_LOOK I_LOOK
+ jump left after turn opposite left	I_TURN_LEFT I_TURN_LEFT I_TURN_LEFT I_JUMP
+ jump and walk thrice	I_JUMP I_WALK I_WALK I_WALK
+ run left and look right	I_TURN_LEFT I_RUN I_TURN_RIGHT I_LOOK
+ walk left after walk left	I_TURN_LEFT I_WALK I_TURN_LEFT I_WALK
+ walk left after jump left	I_TURN_LEFT I_JUMP I_TURN_LEFT I_WALK
+ run opposite left and jump	I_TURN_LEFT I_TURN_LEFT I_RUN I_JUMP
+ run left after walk right	I_TURN_RIGHT I_WALK I_TURN_LEFT I_RUN
+ turn opposite left after look left	I_TURN_LEFT I_LOOK I_TURN_LEFT I_TURN_LEFT
+ walk opposite right and jump	I_TURN_RIGHT I_TURN_RIGHT I_WALK I_JUMP
+ look twice and look twice	I_LOOK I_LOOK I_LOOK I_LOOK
+ walk twice and look left	I_WALK I_WALK I_TURN_LEFT I_LOOK
+ jump opposite left and walk	I_TURN_LEFT I_TURN_LEFT I_JUMP I_WALK
+ turn left twice and turn opposite left	I_TURN_LEFT I_TURN_LEFT I_TURN_LEFT I_TURN_LEFT
+ turn opposite right twice	I_TURN_RIGHT I_TURN_RIGHT I_TURN_RIGHT I_TURN_RIGHT
+ run after turn right thrice	I_TURN_RIGHT I_TURN_RIGHT I_TURN_RIGHT I_RUN
+ walk left after turn opposite left	I_TURN_LEFT I_TURN_LEFT I_TURN_LEFT I_WALK
+ turn opposite right and turn left twice	I_TURN_RIGHT I_TURN_RIGHT I_TURN_LEFT I_TURN_LEFT
+ look opposite left and turn right	I_TURN_LEFT I_TURN_LEFT I_LOOK I_TURN_RIGHT
+ jump thrice and run	I_JUMP I_JUMP I_JUMP I_RUN
+ look and turn right thrice	I_LOOK I_TURN_RIGHT I_TURN_RIGHT I_TURN_RIGHT
+ walk twice and walk right	I_WALK I_WALK I_TURN_RIGHT I_WALK
+ look opposite left after turn right	I_TURN_RIGHT I_TURN_LEFT I_TURN_LEFT I_LOOK
+ jump right and turn opposite left	I_TURN_RIGHT I_JUMP I_TURN_LEFT I_TURN_LEFT
+ walk left and walk twice	I_TURN_LEFT I_WALK I_WALK I_WALK
+ turn opposite left and turn left twice	I_TURN_LEFT I_TURN_LEFT I_TURN_LEFT I_TURN_LEFT
+ look left after jump right	I_TURN_RIGHT I_JUMP I_TURN_LEFT I_LOOK
+ turn left and walk thrice	I_TURN_LEFT I_WALK I_WALK I_WALK
+ look right and jump twice	I_TURN_RIGHT I_LOOK I_JUMP I_JUMP
+ turn opposite right and turn opposite left	I_TURN_RIGHT I_TURN_RIGHT I_TURN_LEFT I_TURN_LEFT
+ run twice after turn opposite right	I_TURN_RIGHT I_TURN_RIGHT I_RUN I_RUN
+ jump twice and turn opposite right	I_JUMP I_JUMP I_TURN_RIGHT I_TURN_RIGHT
+ walk right after walk left	I_TURN_LEFT I_WALK I_TURN_RIGHT I_WALK
+ jump right and jump right	I_TURN_RIGHT I_JUMP I_TURN_RIGHT I_JUMP
+ jump twice after walk left	I_TURN_LEFT I_WALK I_JUMP I_JUMP
+ walk left and jump right	I_TURN_LEFT I_WALK I_TURN_RIGHT I_JUMP
+ look and look thrice	I_LOOK I_LOOK I_LOOK I_LOOK
+ jump left and turn opposite right	I_TURN_LEFT I_JUMP I_TURN_RIGHT I_TURN_RIGHT
+ look and run opposite left	I_LOOK I_TURN_LEFT I_TURN_LEFT I_RUN
+ run twice after jump left	I_TURN_LEFT I_JUMP I_RUN I_RUN
+ jump right and jump twice	I_TURN_RIGHT I_JUMP I_JUMP I_JUMP
+ look twice after look left	I_TURN_LEFT I_LOOK I_LOOK I_LOOK
+ look thrice and turn right	I_LOOK I_LOOK I_LOOK I_TURN_RIGHT
+ look right and turn right twice	I_TURN_RIGHT I_LOOK I_TURN_RIGHT I_TURN_RIGHT
+ look right and jump right	I_TURN_RIGHT I_LOOK I_TURN_RIGHT I_JUMP
+ look after walk opposite right	I_TURN_RIGHT I_TURN_RIGHT I_WALK I_LOOK
+ run twice and turn opposite left	I_RUN I_RUN I_TURN_LEFT I_TURN_LEFT
+ run opposite right after look	I_LOOK I_TURN_RIGHT I_TURN_RIGHT I_RUN
+ jump left and walk twice	I_TURN_LEFT I_JUMP I_WALK I_WALK
+ look left after walk twice	I_WALK I_WALK I_TURN_LEFT I_LOOK
+ run and jump opposite left	I_RUN I_TURN_LEFT I_TURN_LEFT I_JUMP
+ walk opposite left and walk	I_TURN_LEFT I_TURN_LEFT I_WALK I_WALK
+ run left after run right	I_TURN_RIGHT I_RUN I_TURN_LEFT I_RUN
+ turn right twice after look left	I_TURN_LEFT I_LOOK I_TURN_RIGHT I_TURN_RIGHT
+ jump right and run left	I_TURN_RIGHT I_JUMP I_TURN_LEFT I_RUN
+ run left and jump left	I_TURN_LEFT I_RUN I_TURN_LEFT I_JUMP
+ walk right after turn opposite right	I_TURN_RIGHT I_TURN_RIGHT I_TURN_RIGHT I_WALK
+ walk left and look left	I_TURN_LEFT I_WALK I_TURN_LEFT I_LOOK
+ jump right after jump left	I_TURN_LEFT I_JUMP I_TURN_RIGHT I_JUMP
+ jump left after look right	I_TURN_RIGHT I_LOOK I_TURN_LEFT I_JUMP
+ run twice and walk twice	I_RUN I_RUN I_WALK I_WALK
+ run left after look left	I_TURN_LEFT I_LOOK I_TURN_LEFT I_RUN
+ run and look thrice	I_RUN I_LOOK I_LOOK I_LOOK
+ look after turn left thrice	I_TURN_LEFT I_TURN_LEFT I_TURN_LEFT I_LOOK
+ turn left and look thrice	I_TURN_LEFT I_LOOK I_LOOK I_LOOK
+ look twice after turn left twice	I_TURN_LEFT I_TURN_LEFT I_LOOK I_LOOK
+ look opposite left and walk	I_TURN_LEFT I_TURN_LEFT I_LOOK I_WALK
+ turn right and turn left thrice	I_TURN_RIGHT I_TURN_LEFT I_TURN_LEFT I_TURN_LEFT
+ turn opposite right after turn left twice	I_TURN_LEFT I_TURN_LEFT I_TURN_RIGHT I_TURN_RIGHT
+ turn opposite left and turn opposite right	I_TURN_LEFT I_TURN_LEFT I_TURN_RIGHT I_TURN_RIGHT
+ walk after look opposite left	I_TURN_LEFT I_TURN_LEFT I_LOOK I_WALK
+ jump opposite left after walk	I_WALK I_TURN_LEFT I_TURN_LEFT I_JUMP
+ walk left and turn opposite right	I_TURN_LEFT I_WALK I_TURN_RIGHT I_TURN_RIGHT
+ jump opposite right after turn right	I_TURN_RIGHT I_TURN_RIGHT I_TURN_RIGHT I_JUMP
+ run thrice after turn right	I_TURN_RIGHT I_RUN I_RUN I_RUN
+ jump opposite right and turn left	I_TURN_RIGHT I_TURN_RIGHT I_JUMP I_TURN_LEFT
+ walk opposite right and walk	I_TURN_RIGHT I_TURN_RIGHT I_WALK I_WALK
+ walk twice after look twice	I_LOOK I_LOOK I_WALK I_WALK
+ walk opposite right and look	I_TURN_RIGHT I_TURN_RIGHT I_WALK I_LOOK
+ walk thrice and walk	I_WALK I_WALK I_WALK I_WALK
+ turn left twice and turn right twice	I_TURN_LEFT I_TURN_LEFT I_TURN_RIGHT I_TURN_RIGHT
+ run and run opposite left	I_RUN I_TURN_LEFT I_TURN_LEFT I_RUN
+ run twice and walk right	I_RUN I_RUN I_TURN_RIGHT I_WALK
+ look and look opposite right	I_LOOK I_TURN_RIGHT I_TURN_RIGHT I_LOOK
+ walk right and turn left twice	I_TURN_RIGHT I_WALK I_TURN_LEFT I_TURN_LEFT
+ run right and turn left twice	I_TURN_RIGHT I_RUN I_TURN_LEFT I_TURN_LEFT
+ walk right twice	I_TURN_RIGHT I_WALK I_TURN_RIGHT I_WALK
+ walk twice and look right	I_WALK I_WALK I_TURN_RIGHT I_LOOK
+ jump twice and turn right twice	I_JUMP I_JUMP I_TURN_RIGHT I_TURN_RIGHT
+ turn left after look opposite left	I_TURN_LEFT I_TURN_LEFT I_LOOK I_TURN_LEFT
+ turn right thrice after run	I_RUN I_TURN_RIGHT I_TURN_RIGHT I_TURN_RIGHT
+ run opposite right and look	I_TURN_RIGHT I_TURN_RIGHT I_RUN I_LOOK
+ walk opposite left and look	I_TURN_LEFT I_TURN_LEFT I_WALK I_LOOK
+ turn right twice after walk twice	I_WALK I_WALK I_TURN_RIGHT I_TURN_RIGHT
+ run left and run right	I_TURN_LEFT I_RUN I_TURN_RIGHT I_RUN
+ turn opposite left after walk right	I_TURN_RIGHT I_WALK I_TURN_LEFT I_TURN_LEFT
+ jump twice after look left	I_TURN_LEFT I_LOOK I_JUMP I_JUMP
+ look opposite right after turn right	I_TURN_RIGHT I_TURN_RIGHT I_TURN_RIGHT I_LOOK
+ jump right and walk right	I_TURN_RIGHT I_JUMP I_TURN_RIGHT I_WALK
+ look opposite right and turn left	I_TURN_RIGHT I_TURN_RIGHT I_LOOK I_TURN_LEFT
+ jump right after walk right	I_TURN_RIGHT I_WALK I_TURN_RIGHT I_JUMP
+ look left after turn right twice	I_TURN_RIGHT I_TURN_RIGHT I_TURN_LEFT I_LOOK
+ turn opposite left twice	I_TURN_LEFT I_TURN_LEFT I_TURN_LEFT I_TURN_LEFT
+ turn left twice and jump right	I_TURN_LEFT I_TURN_LEFT I_TURN_RIGHT I_JUMP
+ walk and jump opposite right	I_WALK I_TURN_RIGHT I_TURN_RIGHT I_JUMP
+ run twice after run right	I_TURN_RIGHT I_RUN I_RUN I_RUN
+ run twice after run twice	I_RUN I_RUN I_RUN I_RUN
+ turn right after jump thrice	I_JUMP I_JUMP I_JUMP I_TURN_RIGHT
+ walk left after turn left twice	I_TURN_LEFT I_TURN_LEFT I_TURN_LEFT I_WALK
+ run left and turn opposite left	I_TURN_LEFT I_RUN I_TURN_LEFT I_TURN_LEFT
+ jump left after run twice	I_RUN I_RUN I_TURN_LEFT I_JUMP
+ look opposite right and run	I_TURN_RIGHT I_TURN_RIGHT I_LOOK I_RUN
+ turn right twice after turn right twice	I_TURN_RIGHT I_TURN_RIGHT I_TURN_RIGHT I_TURN_RIGHT
+ look twice and jump twice	I_LOOK I_LOOK I_JUMP I_JUMP
+ jump twice after jump twice	I_JUMP I_JUMP I_JUMP I_JUMP
+ jump left after jump left	I_TURN_LEFT I_JUMP I_TURN_LEFT I_JUMP
+ turn opposite left after walk twice	I_WALK I_WALK I_TURN_LEFT I_TURN_LEFT
+ jump left and look right	I_TURN_LEFT I_JUMP I_TURN_RIGHT I_LOOK
+ jump left and look twice	I_TURN_LEFT I_JUMP I_LOOK I_LOOK
+ turn opposite right after turn right twice	I_TURN_RIGHT I_TURN_RIGHT I_TURN_RIGHT I_TURN_RIGHT
+ turn left twice after walk right	I_TURN_RIGHT I_WALK I_TURN_LEFT I_TURN_LEFT
+ turn left twice after walk twice	I_WALK I_WALK I_TURN_LEFT I_TURN_LEFT
+ run twice after turn left twice	I_TURN_LEFT I_TURN_LEFT I_RUN I_RUN
+ look opposite right and jump	I_TURN_RIGHT I_TURN_RIGHT I_LOOK I_JUMP
+ run and jump thrice	I_RUN I_JUMP I_JUMP I_JUMP
+ jump left after jump twice	I_JUMP I_JUMP I_TURN_LEFT I_JUMP
+ run after jump thrice	I_JUMP I_JUMP I_JUMP I_RUN
+ turn right twice after walk right	I_TURN_RIGHT I_WALK I_TURN_RIGHT I_TURN_RIGHT
+ jump after walk thrice	I_WALK I_WALK I_WALK I_JUMP
+ jump opposite right after walk	I_WALK I_TURN_RIGHT I_TURN_RIGHT I_JUMP
+ turn opposite right and walk right	I_TURN_RIGHT I_TURN_RIGHT I_TURN_RIGHT I_WALK
+ run twice and jump left	I_RUN I_RUN I_TURN_LEFT I_JUMP
+ run after look opposite right	I_TURN_RIGHT I_TURN_RIGHT I_LOOK I_RUN
+ turn right and walk opposite left	I_TURN_RIGHT I_TURN_LEFT I_TURN_LEFT I_WALK
+ walk opposite left after look	I_LOOK I_TURN_LEFT I_TURN_LEFT I_WALK
+ turn left after run thrice	I_RUN I_RUN I_RUN I_TURN_LEFT
+ jump right and look left	I_TURN_RIGHT I_JUMP I_TURN_LEFT I_LOOK
+ look and run thrice	I_LOOK I_RUN I_RUN I_RUN
+ turn opposite right after walk left	I_TURN_LEFT I_WALK I_TURN_RIGHT I_TURN_RIGHT
+ walk twice and look twice	I_WALK I_WALK I_LOOK I_LOOK
+ look and jump opposite left	I_LOOK I_TURN_LEFT I_TURN_LEFT I_JUMP
+ run twice after walk twice	I_WALK I_WALK I_RUN I_RUN
+ run opposite left after turn left	I_TURN_LEFT I_TURN_LEFT I_TURN_LEFT I_RUN
+ look right twice	I_TURN_RIGHT I_LOOK I_TURN_RIGHT I_LOOK
+ look left and walk left	I_TURN_LEFT I_LOOK I_TURN_LEFT I_WALK
+ walk right and jump right	I_TURN_RIGHT I_WALK I_TURN_RIGHT I_JUMP
+ walk opposite right after turn right	I_TURN_RIGHT I_TURN_RIGHT I_TURN_RIGHT I_WALK
+ turn right thrice and turn left	I_TURN_RIGHT I_TURN_RIGHT I_TURN_RIGHT I_TURN_LEFT
+ look thrice and run	I_LOOK I_LOOK I_LOOK I_RUN
+ run right after run left	I_TURN_LEFT I_RUN I_TURN_RIGHT I_RUN
+ run left after walk left	I_TURN_LEFT I_WALK I_TURN_LEFT I_RUN
+ turn right after run thrice	I_RUN I_RUN I_RUN I_TURN_RIGHT
+ jump twice and jump left	I_JUMP I_JUMP I_TURN_LEFT I_JUMP
+ run right twice	I_TURN_RIGHT I_RUN I_TURN_RIGHT I_RUN
+ walk left after walk right	I_TURN_RIGHT I_WALK I_TURN_LEFT I_WALK
+ look left after jump twice	I_JUMP I_JUMP I_TURN_LEFT I_LOOK
+ turn left after jump opposite left	I_TURN_LEFT I_TURN_LEFT I_JUMP I_TURN_LEFT
+ turn left twice and walk twice	I_TURN_LEFT I_TURN_LEFT I_WALK I_WALK
+ walk thrice after look	I_LOOK I_WALK I_WALK I_WALK
+ look twice after run left	I_TURN_LEFT I_RUN I_LOOK I_LOOK
+ look right after turn opposite left	I_TURN_LEFT I_TURN_LEFT I_TURN_RIGHT I_LOOK
+ run thrice and run	I_RUN I_RUN I_RUN I_RUN
+ walk left after jump twice	I_JUMP I_JUMP I_TURN_LEFT I_WALK
+ walk twice after run twice	I_RUN I_RUN I_WALK I_WALK
+ jump thrice and turn left	I_JUMP I_JUMP I_JUMP I_TURN_LEFT
+ turn opposite left after jump right	I_TURN_RIGHT I_JUMP I_TURN_LEFT I_TURN_LEFT
+ turn opposite left and turn opposite left	I_TURN_LEFT I_TURN_LEFT I_TURN_LEFT I_TURN_LEFT
+ walk right and walk left	I_TURN_RIGHT I_WALK I_TURN_LEFT I_WALK
+ turn opposite left after jump twice	I_JUMP I_JUMP I_TURN_LEFT I_TURN_LEFT
+ walk thrice after run	I_RUN I_WALK I_WALK I_WALK
+ run right after look left	I_TURN_LEFT I_LOOK I_TURN_RIGHT I_RUN
+ run right and run left	I_TURN_RIGHT I_RUN I_TURN_LEFT I_RUN
+ look twice and turn left twice	I_LOOK I_LOOK I_TURN_LEFT I_TURN_LEFT
+ run twice and run twice	I_RUN I_RUN I_RUN I_RUN
+ walk left and walk right	I_TURN_LEFT I_WALK I_TURN_RIGHT I_WALK
+ run right after jump left	I_TURN_LEFT I_JUMP I_TURN_RIGHT I_RUN
+ walk left after jump right	I_TURN_RIGHT I_JUMP I_TURN_LEFT I_WALK
+ turn opposite right and jump left	I_TURN_RIGHT I_TURN_RIGHT I_TURN_LEFT I_JUMP
+ turn left twice after look right	I_TURN_RIGHT I_LOOK I_TURN_LEFT I_TURN_LEFT
+ jump thrice after turn right	I_TURN_RIGHT I_JUMP I_JUMP I_JUMP
+ look left twice	I_TURN_LEFT I_LOOK I_TURN_LEFT I_LOOK
+ walk after jump opposite right	I_TURN_RIGHT I_TURN_RIGHT I_JUMP I_WALK
+ walk after look thrice	I_LOOK I_LOOK I_LOOK I_WALK
+ jump thrice and look	I_JUMP I_JUMP I_JUMP I_LOOK
+ turn opposite left and look left	I_TURN_LEFT I_TURN_LEFT I_TURN_LEFT I_LOOK
+ look twice after walk left	I_TURN_LEFT I_WALK I_LOOK I_LOOK
+ jump right after run right	I_TURN_RIGHT I_RUN I_TURN_RIGHT I_JUMP
+ walk opposite right and turn left	I_TURN_RIGHT I_TURN_RIGHT I_WALK I_TURN_LEFT
+ jump thrice after jump	I_JUMP I_JUMP I_JUMP I_JUMP
+ look after look thrice	I_LOOK I_LOOK I_LOOK I_LOOK
+ jump twice and walk right	I_JUMP I_JUMP I_TURN_RIGHT I_WALK
+ look after walk thrice	I_WALK I_WALK I_WALK I_LOOK
+ turn opposite right after jump twice	I_JUMP I_JUMP I_TURN_RIGHT I_TURN_RIGHT
+ turn left twice after jump twice	I_JUMP I_JUMP I_TURN_LEFT I_TURN_LEFT
+ look thrice and walk	I_LOOK I_LOOK I_LOOK I_WALK
+ turn left after jump opposite right	I_TURN_RIGHT I_TURN_RIGHT I_JUMP I_TURN_LEFT
+ look right and run twice	I_TURN_RIGHT I_LOOK I_RUN I_RUN
+ look right and run left	I_TURN_RIGHT I_LOOK I_TURN_LEFT I_RUN
+ turn right and run thrice	I_TURN_RIGHT I_RUN I_RUN I_RUN
+ jump after jump opposite right	I_TURN_RIGHT I_TURN_RIGHT I_JUMP I_JUMP
+ run twice and look right	I_RUN I_RUN I_TURN_RIGHT I_LOOK
+ turn opposite right after look twice	I_LOOK I_LOOK I_TURN_RIGHT I_TURN_RIGHT
+ jump left and run twice	I_TURN_LEFT I_JUMP I_RUN I_RUN
+ walk right and jump twice	I_TURN_RIGHT I_WALK I_JUMP I_JUMP
+ jump opposite right after look	I_LOOK I_TURN_RIGHT I_TURN_RIGHT I_JUMP
+ jump right after look right	I_TURN_RIGHT I_LOOK I_TURN_RIGHT I_JUMP
+ walk twice and walk twice	I_WALK I_WALK I_WALK I_WALK
+ look left and turn opposite left	I_TURN_LEFT I_LOOK I_TURN_LEFT I_TURN_LEFT
+ jump twice after jump left	I_TURN_LEFT I_JUMP I_JUMP I_JUMP
+ jump opposite right after run	I_RUN I_TURN_RIGHT I_TURN_RIGHT I_JUMP
+ turn left thrice after look	I_LOOK I_TURN_LEFT I_TURN_LEFT I_TURN_LEFT
+ run and look opposite right	I_RUN I_TURN_RIGHT I_TURN_RIGHT I_LOOK
+ walk twice after jump left	I_TURN_LEFT I_JUMP I_WALK I_WALK
+ walk thrice and jump	I_WALK I_WALK I_WALK I_JUMP
+ look right after run left	I_TURN_LEFT I_RUN I_TURN_RIGHT I_LOOK
+ look after walk opposite left	I_TURN_LEFT I_TURN_LEFT I_WALK I_LOOK
+ walk and look opposite left	I_WALK I_TURN_LEFT I_TURN_LEFT I_LOOK
+ look opposite right after walk	I_WALK I_TURN_RIGHT I_TURN_RIGHT I_LOOK
+ look left and jump right	I_TURN_LEFT I_LOOK I_TURN_RIGHT I_JUMP
+ walk right and look left	I_TURN_RIGHT I_WALK I_TURN_LEFT I_LOOK
+ walk right and run twice	I_TURN_RIGHT I_WALK I_RUN I_RUN
+ walk thrice and turn right	I_WALK I_WALK I_WALK I_TURN_RIGHT
+ turn opposite left after run left	I_TURN_LEFT I_RUN I_TURN_LEFT I_TURN_LEFT
+ turn opposite left after turn opposite left	I_TURN_LEFT I_TURN_LEFT I_TURN_LEFT I_TURN_LEFT
+ run and look opposite left	I_RUN I_TURN_LEFT I_TURN_LEFT I_LOOK
+ turn left and look opposite left	I_TURN_LEFT I_TURN_LEFT I_TURN_LEFT I_LOOK
+ walk after look opposite right	I_TURN_RIGHT I_TURN_RIGHT I_LOOK I_WALK
+ look right after walk right	I_TURN_RIGHT I_WALK I_TURN_RIGHT I_LOOK
+ turn left and walk opposite right	I_TURN_LEFT I_TURN_RIGHT I_TURN_RIGHT I_WALK
+ run right after turn opposite right	I_TURN_RIGHT I_TURN_RIGHT I_TURN_RIGHT I_RUN
+ jump left and jump twice	I_TURN_LEFT I_JUMP I_JUMP I_JUMP
+ look left and turn left twice	I_TURN_LEFT I_LOOK I_TURN_LEFT I_TURN_LEFT
+ look twice after turn opposite right	I_TURN_RIGHT I_TURN_RIGHT I_LOOK I_LOOK
+ walk left after run right	I_TURN_RIGHT I_RUN I_TURN_LEFT I_WALK
+ jump right after look twice	I_LOOK I_LOOK I_TURN_RIGHT I_JUMP
+ run opposite left after walk	I_WALK I_TURN_LEFT I_TURN_LEFT I_RUN
+ walk right and run left	I_TURN_RIGHT I_WALK I_TURN_LEFT I_RUN
+ turn opposite left after walk left	I_TURN_LEFT I_WALK I_TURN_LEFT I_TURN_LEFT
+ walk twice and turn opposite right	I_WALK I_WALK I_TURN_RIGHT I_TURN_RIGHT
+ look left after look twice	I_LOOK I_LOOK I_TURN_LEFT I_LOOK
+ look right after turn left twice	I_TURN_LEFT I_TURN_LEFT I_TURN_RIGHT I_LOOK
+ turn opposite right after run right	I_TURN_RIGHT I_RUN I_TURN_RIGHT I_TURN_RIGHT
+ turn opposite right after run left	I_TURN_LEFT I_RUN I_TURN_RIGHT I_TURN_RIGHT
+ walk and jump opposite left	I_WALK I_TURN_LEFT I_TURN_LEFT I_JUMP
+ look right and run right	I_TURN_RIGHT I_LOOK I_TURN_RIGHT I_RUN
+ run opposite left after jump	I_JUMP I_TURN_LEFT I_TURN_LEFT I_RUN
+ walk left and jump twice	I_TURN_LEFT I_WALK I_JUMP I_JUMP
+ turn right and jump thrice	I_TURN_RIGHT I_JUMP I_JUMP I_JUMP
+ turn opposite left and walk twice	I_TURN_LEFT I_TURN_LEFT I_WALK I_WALK
+ walk opposite left and run	I_TURN_LEFT I_TURN_LEFT I_WALK I_RUN
+ turn opposite right after walk twice	I_WALK I_WALK I_TURN_RIGHT I_TURN_RIGHT
+ run right after walk right	I_TURN_RIGHT I_WALK I_TURN_RIGHT I_RUN
+ look left and look right	I_TURN_LEFT I_LOOK I_TURN_RIGHT I_LOOK
+ jump twice and jump right	I_JUMP I_JUMP I_TURN_RIGHT I_JUMP
+ turn right thrice and walk	I_TURN_RIGHT I_TURN_RIGHT I_TURN_RIGHT I_WALK
+ look twice and turn opposite right	I_LOOK I_LOOK I_TURN_RIGHT I_TURN_RIGHT
+ turn right twice after turn opposite right	I_TURN_RIGHT I_TURN_RIGHT I_TURN_RIGHT I_TURN_RIGHT
+ turn right twice after jump right	I_TURN_RIGHT I_JUMP I_TURN_RIGHT I_TURN_RIGHT
+ turn right and jump opposite right	I_TURN_RIGHT I_TURN_RIGHT I_TURN_RIGHT I_JUMP
+ turn left twice after jump right	I_TURN_RIGHT I_JUMP I_TURN_LEFT I_TURN_LEFT
+ look opposite right after turn left	I_TURN_LEFT I_TURN_RIGHT I_TURN_RIGHT I_LOOK
+ run left after run twice	I_RUN I_RUN I_TURN_LEFT I_RUN
+ look and jump thrice	I_LOOK I_JUMP I_JUMP I_JUMP
+ look left and turn right twice	I_TURN_LEFT I_LOOK I_TURN_RIGHT I_TURN_RIGHT
+ walk twice and run twice	I_WALK I_WALK I_RUN I_RUN
+ turn right and walk opposite right	I_TURN_RIGHT I_TURN_RIGHT I_TURN_RIGHT I_WALK
+ turn opposite right after turn opposite left	I_TURN_LEFT I_TURN_LEFT I_TURN_RIGHT I_TURN_RIGHT
+ jump twice and look right	I_JUMP I_JUMP I_TURN_RIGHT I_LOOK
+ turn opposite right and turn opposite right	I_TURN_RIGHT I_TURN_RIGHT I_TURN_RIGHT I_TURN_RIGHT
+ jump left and jump right	I_TURN_LEFT I_JUMP I_TURN_RIGHT I_JUMP
+ walk twice after turn right twice	I_TURN_RIGHT I_TURN_RIGHT I_WALK I_WALK
+ turn opposite left after run right	I_TURN_RIGHT I_RUN I_TURN_LEFT I_TURN_LEFT
+ jump right after jump right	I_TURN_RIGHT I_JUMP I_TURN_RIGHT I_JUMP
+ jump left after turn left twice	I_TURN_LEFT I_TURN_LEFT I_TURN_LEFT I_JUMP
+ look right after look twice	I_LOOK I_LOOK I_TURN_RIGHT I_LOOK
+ turn opposite left and jump right	I_TURN_LEFT I_TURN_LEFT I_TURN_RIGHT I_JUMP
+ run and run opposite right	I_RUN I_TURN_RIGHT I_TURN_RIGHT I_RUN
+ jump left and walk left	I_TURN_LEFT I_JUMP I_TURN_LEFT I_WALK
+ turn right twice and look right	I_TURN_RIGHT I_TURN_RIGHT I_TURN_RIGHT I_LOOK
+ run twice and run right	I_RUN I_RUN I_TURN_RIGHT I_RUN
+ jump opposite right after turn left	I_TURN_LEFT I_TURN_RIGHT I_TURN_RIGHT I_JUMP
+ walk twice after run left	I_TURN_LEFT I_RUN I_WALK I_WALK
+ walk thrice and look	I_WALK I_WALK I_WALK I_LOOK
+ jump right and run twice	I_TURN_RIGHT I_JUMP I_RUN I_RUN
+ look thrice after turn left	I_TURN_LEFT I_LOOK I_LOOK I_LOOK
+ turn opposite right and run twice	I_TURN_RIGHT I_TURN_RIGHT I_RUN I_RUN
+ turn left thrice after jump	I_JUMP I_TURN_LEFT I_TURN_LEFT I_TURN_LEFT
+ jump twice after turn right twice	I_TURN_RIGHT I_TURN_RIGHT I_JUMP I_JUMP
+ run after look thrice	I_LOOK I_LOOK I_LOOK I_RUN
+ turn opposite right after look left	I_TURN_LEFT I_LOOK I_TURN_RIGHT I_TURN_RIGHT
+ jump left after walk right	I_TURN_RIGHT I_WALK I_TURN_LEFT I_JUMP
+ run left and walk twice	I_TURN_LEFT I_RUN I_WALK I_WALK
+ look after look opposite left	I_TURN_LEFT I_TURN_LEFT I_LOOK I_LOOK
+ walk twice and jump right	I_WALK I_WALK I_TURN_RIGHT I_JUMP
+ jump and look opposite right	I_JUMP I_TURN_RIGHT I_TURN_RIGHT I_LOOK
+ walk twice and run right	I_WALK I_WALK I_TURN_RIGHT I_RUN
+ turn opposite left after jump left	I_TURN_LEFT I_JUMP I_TURN_LEFT I_TURN_LEFT
+ turn left and run opposite right	I_TURN_LEFT I_TURN_RIGHT I_TURN_RIGHT I_RUN
+ look right after run twice	I_RUN I_RUN I_TURN_RIGHT I_LOOK
+ jump twice and turn left twice	I_JUMP I_JUMP I_TURN_LEFT I_TURN_LEFT
+ walk right and run right	I_TURN_RIGHT I_WALK I_TURN_RIGHT I_RUN
+ turn opposite right and turn right twice	I_TURN_RIGHT I_TURN_RIGHT I_TURN_RIGHT I_TURN_RIGHT
+ turn left and run thrice	I_TURN_LEFT I_RUN I_RUN I_RUN
+ look opposite right after look	I_LOOK I_TURN_RIGHT I_TURN_RIGHT I_LOOK
+ turn right and walk thrice	I_TURN_RIGHT I_WALK I_WALK I_WALK
+ jump left after run left	I_TURN_LEFT I_RUN I_TURN_LEFT I_JUMP
+ turn left thrice after turn right	I_TURN_RIGHT I_TURN_LEFT I_TURN_LEFT I_TURN_LEFT
+ run twice and turn opposite right	I_RUN I_RUN I_TURN_RIGHT I_TURN_RIGHT
+ run thrice after turn left	I_TURN_LEFT I_RUN I_RUN I_RUN
+ look twice and look left	I_LOOK I_LOOK I_TURN_LEFT I_LOOK
+ look after run opposite left	I_TURN_LEFT I_TURN_LEFT I_RUN I_LOOK
+ jump right and jump left	I_TURN_RIGHT I_JUMP I_TURN_LEFT I_JUMP
+ turn left and jump thrice	I_TURN_LEFT I_JUMP I_JUMP I_JUMP
+ run after look opposite left	I_TURN_LEFT I_TURN_LEFT I_LOOK I_RUN
+ jump left and run right	I_TURN_LEFT I_JUMP I_TURN_RIGHT I_RUN
+ look twice and run left	I_LOOK I_LOOK I_TURN_LEFT I_RUN
+ turn left twice and walk left	I_TURN_LEFT I_TURN_LEFT I_TURN_LEFT I_WALK
+ walk twice and walk left	I_WALK I_WALK I_TURN_LEFT I_WALK
+ turn left twice and jump twice	I_TURN_LEFT I_TURN_LEFT I_JUMP I_JUMP
+ run and walk opposite left	I_RUN I_TURN_LEFT I_TURN_LEFT I_WALK
+ look opposite right and walk	I_TURN_RIGHT I_TURN_RIGHT I_LOOK I_WALK
+ turn opposite right after look right	I_TURN_RIGHT I_LOOK I_TURN_RIGHT I_TURN_RIGHT
+ look thrice and look	I_LOOK I_LOOK I_LOOK I_LOOK
+ walk right after turn left twice	I_TURN_LEFT I_TURN_LEFT I_TURN_RIGHT I_WALK
+ turn left twice and walk right	I_TURN_LEFT I_TURN_LEFT I_TURN_RIGHT I_WALK
+ look and walk thrice	I_LOOK I_WALK I_WALK I_WALK
+ walk twice after look left	I_TURN_LEFT I_LOOK I_WALK I_WALK
+ jump thrice and turn right	I_JUMP I_JUMP I_JUMP I_TURN_RIGHT
+ jump thrice after turn left	I_TURN_LEFT I_JUMP I_JUMP I_JUMP
+ look and walk opposite left	I_LOOK I_TURN_LEFT I_TURN_LEFT I_WALK
+ turn left twice after look left	I_TURN_LEFT I_LOOK I_TURN_LEFT I_TURN_LEFT
+ walk opposite left and turn right	I_TURN_LEFT I_TURN_LEFT I_WALK I_TURN_RIGHT
+ turn opposite right after jump left	I_TURN_LEFT I_JUMP I_TURN_RIGHT I_TURN_RIGHT
+ run opposite left and walk	I_TURN_LEFT I_TURN_LEFT I_RUN I_WALK
+ look twice and turn right twice	I_LOOK I_LOOK I_TURN_RIGHT I_TURN_RIGHT
+ jump thrice after walk	I_WALK I_JUMP I_JUMP I_JUMP
+ jump thrice and walk	I_JUMP I_JUMP I_JUMP I_WALK
+ jump after walk opposite left	I_TURN_LEFT I_TURN_LEFT I_WALK I_JUMP
+ jump twice and run right	I_JUMP I_JUMP I_TURN_RIGHT I_RUN
+ turn right thrice and turn right	I_TURN_RIGHT I_TURN_RIGHT I_TURN_RIGHT I_TURN_RIGHT
+ look opposite left and run	I_TURN_LEFT I_TURN_LEFT I_LOOK I_RUN
+ turn opposite left and walk right	I_TURN_LEFT I_TURN_LEFT I_TURN_RIGHT I_WALK
+ run right and turn opposite right	I_TURN_RIGHT I_RUN I_TURN_RIGHT I_TURN_RIGHT
+ jump left and run left	I_TURN_LEFT I_JUMP I_TURN_LEFT I_RUN
+ walk right after run left	I_TURN_LEFT I_RUN I_TURN_RIGHT I_WALK
+ jump and jump thrice	I_JUMP I_JUMP I_JUMP I_JUMP
+ run opposite left and look	I_TURN_LEFT I_TURN_LEFT I_RUN I_LOOK
+ jump twice after look twice	I_LOOK I_LOOK I_JUMP I_JUMP
+ run twice and jump twice	I_RUN I_RUN I_JUMP I_JUMP
+ turn right thrice and look	I_TURN_RIGHT I_TURN_RIGHT I_TURN_RIGHT I_LOOK
+ run left and run left	I_TURN_LEFT I_RUN I_TURN_LEFT I_RUN
+ turn opposite left and turn right twice	I_TURN_LEFT I_TURN_LEFT I_TURN_RIGHT I_TURN_RIGHT
+ jump right twice	I_TURN_RIGHT I_JUMP I_TURN_RIGHT I_JUMP
+ walk left after look right	I_TURN_RIGHT I_LOOK I_TURN_LEFT I_WALK
+ run after walk opposite right	I_TURN_RIGHT I_TURN_RIGHT I_WALK I_RUN
+ jump and look thrice	I_JUMP I_LOOK I_LOOK I_LOOK
+ walk right after jump left	I_TURN_LEFT I_JUMP I_TURN_RIGHT I_WALK
+ turn right twice and walk left	I_TURN_RIGHT I_TURN_RIGHT I_TURN_LEFT I_WALK
+ look and jump opposite right	I_LOOK I_TURN_RIGHT I_TURN_RIGHT I_JUMP
+ jump opposite left and turn right	I_TURN_LEFT I_TURN_LEFT I_JUMP I_TURN_RIGHT
+ run right and look left	I_TURN_RIGHT I_RUN I_TURN_LEFT I_LOOK
+ run right after turn left twice	I_TURN_LEFT I_TURN_LEFT I_TURN_RIGHT I_RUN
+ walk after turn right thrice	I_TURN_RIGHT I_TURN_RIGHT I_TURN_RIGHT I_WALK
+ turn opposite left after run twice	I_RUN I_RUN I_TURN_LEFT I_TURN_LEFT
+ jump right after look left	I_TURN_LEFT I_LOOK I_TURN_RIGHT I_JUMP
+ run opposite right after run	I_RUN I_TURN_RIGHT I_TURN_RIGHT I_RUN
+ look right after look right	I_TURN_RIGHT I_LOOK I_TURN_RIGHT I_LOOK
+ turn left and jump opposite left	I_TURN_LEFT I_TURN_LEFT I_TURN_LEFT I_JUMP
+ walk right after look right	I_TURN_RIGHT I_LOOK I_TURN_RIGHT I_WALK
+ run left and turn opposite right	I_TURN_LEFT I_RUN I_TURN_RIGHT I_TURN_RIGHT
+ look after jump opposite left	I_TURN_LEFT I_TURN_LEFT I_JUMP I_LOOK
+ look left and look twice	I_TURN_LEFT I_LOOK I_LOOK I_LOOK
+ run twice and turn left twice	I_RUN I_RUN I_TURN_LEFT I_TURN_LEFT
+ turn right thrice after walk	I_WALK I_TURN_RIGHT I_TURN_RIGHT I_TURN_RIGHT
+ turn right twice and run left	I_TURN_RIGHT I_TURN_RIGHT I_TURN_LEFT I_RUN
+ run left and walk right	I_TURN_LEFT I_RUN I_TURN_RIGHT I_WALK
+ walk right and walk twice	I_TURN_RIGHT I_WALK I_WALK I_WALK
+ look right after look left	I_TURN_LEFT I_LOOK I_TURN_RIGHT I_LOOK
+ jump twice and turn opposite left	I_JUMP I_JUMP I_TURN_LEFT I_TURN_LEFT
+ run left and jump right	I_TURN_LEFT I_RUN I_TURN_RIGHT I_JUMP
+ run right and walk twice	I_TURN_RIGHT I_RUN I_WALK I_WALK
+ run opposite left and turn left	I_TURN_LEFT I_TURN_LEFT I_RUN I_TURN_LEFT
+ jump right and walk twice	I_TURN_RIGHT I_JUMP I_WALK I_WALK
+ walk thrice and run	I_WALK I_WALK I_WALK I_RUN
+ walk opposite left after run	I_RUN I_TURN_LEFT I_TURN_LEFT I_WALK
+ run opposite left after turn right	I_TURN_RIGHT I_TURN_LEFT I_TURN_LEFT I_RUN
+ turn left thrice and turn right	I_TURN_LEFT I_TURN_LEFT I_TURN_LEFT I_TURN_RIGHT
+ run opposite right after walk	I_WALK I_TURN_RIGHT I_TURN_RIGHT I_RUN
+ walk twice after turn opposite right	I_TURN_RIGHT I_TURN_RIGHT I_WALK I_WALK
+ run right and turn opposite left	I_TURN_RIGHT I_RUN I_TURN_LEFT I_TURN_LEFT
+ look after turn right thrice	I_TURN_RIGHT I_TURN_RIGHT I_TURN_RIGHT I_LOOK
+ look left after run left	I_TURN_LEFT I_RUN I_TURN_LEFT I_LOOK
+ turn right and look opposite right	I_TURN_RIGHT I_TURN_RIGHT I_TURN_RIGHT I_LOOK
+ jump left after jump right	I_TURN_RIGHT I_JUMP I_TURN_LEFT I_JUMP
+ look twice after look twice	I_LOOK I_LOOK I_LOOK I_LOOK
+ look twice and walk left	I_LOOK I_LOOK I_TURN_LEFT I_WALK
+ jump twice after run right	I_TURN_RIGHT I_RUN I_JUMP I_JUMP
+ run after run thrice	I_RUN I_RUN I_RUN I_RUN
+ jump left twice	I_TURN_LEFT I_JUMP I_TURN_LEFT I_JUMP
+ run left after turn opposite right	I_TURN_RIGHT I_TURN_RIGHT I_TURN_LEFT I_RUN
+ walk and walk opposite left	I_WALK I_TURN_LEFT I_TURN_LEFT I_WALK
+ run right after jump twice	I_JUMP I_JUMP I_TURN_RIGHT I_RUN
+ look opposite right and look	I_TURN_RIGHT I_TURN_RIGHT I_LOOK I_LOOK
+ run left after jump twice	I_JUMP I_JUMP I_TURN_LEFT I_RUN
+ look thrice and jump	I_LOOK I_LOOK I_LOOK I_JUMP
+ jump twice after look right	I_TURN_RIGHT I_LOOK I_JUMP I_JUMP
+ turn opposite right and jump right	I_TURN_RIGHT I_TURN_RIGHT I_TURN_RIGHT I_JUMP
+ turn right after run opposite left	I_TURN_LEFT I_TURN_LEFT I_RUN I_TURN_RIGHT
+ run opposite left and turn right	I_TURN_LEFT I_TURN_LEFT I_RUN I_TURN_RIGHT
+ jump opposite left and turn left	I_TURN_LEFT I_TURN_LEFT I_JUMP I_TURN_LEFT
+ turn right twice and turn opposite right	I_TURN_RIGHT I_TURN_RIGHT I_TURN_RIGHT I_TURN_RIGHT
+ turn right twice after turn opposite left	I_TURN_LEFT I_TURN_LEFT I_TURN_RIGHT I_TURN_RIGHT
+ run twice after look right	I_TURN_RIGHT I_LOOK I_RUN I_RUN
+ run twice and jump right	I_RUN I_RUN I_TURN_RIGHT I_JUMP
+ turn right and run opposite left	I_TURN_RIGHT I_TURN_LEFT I_TURN_LEFT I_RUN
+ run right after look right	I_TURN_RIGHT I_LOOK I_TURN_RIGHT I_RUN
+ run opposite right and turn right	I_TURN_RIGHT I_TURN_RIGHT I_RUN I_TURN_RIGHT
+ jump opposite left and look	I_TURN_LEFT I_TURN_LEFT I_JUMP I_LOOK
+ run twice after jump twice	I_JUMP I_JUMP I_RUN I_RUN
+ walk after turn left thrice	I_TURN_LEFT I_TURN_LEFT I_TURN_LEFT I_WALK
+ turn right thrice and jump	I_TURN_RIGHT I_TURN_RIGHT I_TURN_RIGHT I_JUMP
+ turn left twice and run left	I_TURN_LEFT I_TURN_LEFT I_TURN_LEFT I_RUN
+ turn right twice after run right	I_TURN_RIGHT I_RUN I_TURN_RIGHT I_TURN_RIGHT
+ turn left after run opposite left	I_TURN_LEFT I_TURN_LEFT I_RUN I_TURN_LEFT
+ look right and turn opposite right	I_TURN_RIGHT I_LOOK I_TURN_RIGHT I_TURN_RIGHT
+ run after walk opposite left	I_TURN_LEFT I_TURN_LEFT I_WALK I_RUN
+ jump after run opposite left	I_TURN_LEFT I_TURN_LEFT I_RUN I_JUMP
+ look right and look right	I_TURN_RIGHT I_LOOK I_TURN_RIGHT I_LOOK
+ turn left twice after run right	I_TURN_RIGHT I_RUN I_TURN_LEFT I_TURN_LEFT
+ walk and turn right thrice	I_WALK I_TURN_RIGHT I_TURN_RIGHT I_TURN_RIGHT
+ look opposite right and turn right	I_TURN_RIGHT I_TURN_RIGHT I_LOOK I_TURN_RIGHT
+ walk and run opposite right	I_WALK I_TURN_RIGHT I_TURN_RIGHT I_RUN
+ jump after look thrice	I_LOOK I_LOOK I_LOOK I_JUMP
+ walk opposite left after turn right	I_TURN_RIGHT I_TURN_LEFT I_TURN_LEFT I_WALK
+ turn right thrice and run	I_TURN_RIGHT I_TURN_RIGHT I_TURN_RIGHT I_RUN
+ run opposite left and run	I_TURN_LEFT I_TURN_LEFT I_RUN I_RUN
+ walk and run opposite left	I_WALK I_TURN_LEFT I_TURN_LEFT I_RUN
+ run thrice and walk	I_RUN I_RUN I_RUN I_WALK
+ walk twice after jump twice	I_JUMP I_JUMP I_WALK I_WALK
+ look twice after look right	I_TURN_RIGHT I_LOOK I_LOOK I_LOOK
+ jump left and look left	I_TURN_LEFT I_JUMP I_TURN_LEFT I_LOOK
+ jump left and walk right	I_TURN_LEFT I_JUMP I_TURN_RIGHT I_WALK
+ run left after walk twice	I_WALK I_WALK I_TURN_LEFT I_RUN
+ walk opposite left and jump	I_TURN_LEFT I_TURN_LEFT I_WALK I_JUMP
+ jump right and turn left twice	I_TURN_RIGHT I_JUMP I_TURN_LEFT I_TURN_LEFT
+ walk after run opposite left	I_TURN_LEFT I_TURN_LEFT I_RUN I_WALK
+ look left after look left	I_TURN_LEFT I_LOOK I_TURN_LEFT I_LOOK
+ look twice after run twice	I_RUN I_RUN I_LOOK I_LOOK
+ walk opposite right after run	I_RUN I_TURN_RIGHT I_TURN_RIGHT I_WALK
+ turn left twice after look twice	I_LOOK I_LOOK I_TURN_LEFT I_TURN_LEFT
+ walk thrice and turn left	I_WALK I_WALK I_WALK I_TURN_LEFT
+ look left after turn left twice	I_TURN_LEFT I_TURN_LEFT I_TURN_LEFT I_LOOK
+ turn right twice and look twice	I_TURN_RIGHT I_TURN_RIGHT I_LOOK I_LOOK
+ jump and walk opposite left	I_JUMP I_TURN_LEFT I_TURN_LEFT I_WALK
+ turn left and walk opposite left	I_TURN_LEFT I_TURN_LEFT I_TURN_LEFT I_WALK
+ turn opposite right after turn opposite right	I_TURN_RIGHT I_TURN_RIGHT I_TURN_RIGHT I_TURN_RIGHT
+ look left after walk left	I_TURN_LEFT I_WALK I_TURN_LEFT I_LOOK
+ look twice and jump right	I_LOOK I_LOOK I_TURN_RIGHT I_JUMP
+ run and run thrice	I_RUN I_RUN I_RUN I_RUN
+ run after run opposite left	I_TURN_LEFT I_TURN_LEFT I_RUN I_RUN
+ walk left and walk left	I_TURN_LEFT I_WALK I_TURN_LEFT I_WALK
+ walk thrice after walk	I_WALK I_WALK I_WALK I_WALK
+ walk right and jump left	I_TURN_RIGHT I_WALK I_TURN_LEFT I_JUMP
+ look opposite left after turn left	I_TURN_LEFT I_TURN_LEFT I_TURN_LEFT I_LOOK
+ turn left twice and run right	I_TURN_LEFT I_TURN_LEFT I_TURN_RIGHT I_RUN
+ jump right after turn opposite right	I_TURN_RIGHT I_TURN_RIGHT I_TURN_RIGHT I_JUMP
+ look twice after run right	I_TURN_RIGHT I_RUN I_LOOK I_LOOK
+ turn right twice and run twice	I_TURN_RIGHT I_TURN_RIGHT I_RUN I_RUN
+ walk opposite left after turn left	I_TURN_LEFT I_TURN_LEFT I_TURN_LEFT I_WALK
+ turn right after walk thrice	I_WALK I_WALK I_WALK I_TURN_RIGHT
+ walk right after run right	I_TURN_RIGHT I_RUN I_TURN_RIGHT I_WALK
+ look after jump opposite right	I_TURN_RIGHT I_TURN_RIGHT I_JUMP I_LOOK
+ jump twice after turn left twice	I_TURN_LEFT I_TURN_LEFT I_JUMP I_JUMP
+ turn right twice and walk twice	I_TURN_RIGHT I_TURN_RIGHT I_WALK I_WALK
+ look left and run right	I_TURN_LEFT I_LOOK I_TURN_RIGHT I_RUN
+ jump and run thrice	I_JUMP I_RUN I_RUN I_RUN
+ walk left and run twice	I_TURN_LEFT I_WALK I_RUN I_RUN
+ run left after turn opposite left	I_TURN_LEFT I_TURN_LEFT I_TURN_LEFT I_RUN
+ walk twice and turn opposite left	I_WALK I_WALK I_TURN_LEFT I_TURN_LEFT
+ run left and run twice	I_TURN_LEFT I_RUN I_RUN I_RUN
+ walk opposite right after look	I_LOOK I_TURN_RIGHT I_TURN_RIGHT I_WALK
+ turn right and turn right thrice	I_TURN_RIGHT I_TURN_RIGHT I_TURN_RIGHT I_TURN_RIGHT
+ jump right and walk left	I_TURN_RIGHT I_JUMP I_TURN_LEFT I_WALK
+ walk right after jump right	I_TURN_RIGHT I_JUMP I_TURN_RIGHT I_WALK
+ run thrice after jump	I_JUMP I_RUN I_RUN I_RUN
+ run opposite right after jump	I_JUMP I_TURN_RIGHT I_TURN_RIGHT I_RUN
+ walk opposite left after walk	I_WALK I_TURN_LEFT I_TURN_LEFT I_WALK
+ jump twice after run twice	I_RUN I_RUN I_JUMP I_JUMP
+ turn left after jump thrice	I_JUMP I_JUMP I_JUMP I_TURN_LEFT
+ run twice after run left	I_TURN_LEFT I_RUN I_RUN I_RUN
+ look opposite left and turn left	I_TURN_LEFT I_TURN_LEFT I_LOOK I_TURN_LEFT
+ turn right thrice after jump	I_JUMP I_TURN_RIGHT I_TURN_RIGHT I_TURN_RIGHT
+ look twice and look right	I_LOOK I_LOOK I_TURN_RIGHT I_LOOK
+ walk twice after walk left	I_TURN_LEFT I_WALK I_WALK I_WALK
+ turn opposite left after turn right twice	I_TURN_RIGHT I_TURN_RIGHT I_TURN_LEFT I_TURN_LEFT
+ turn left thrice and run	I_TURN_LEFT I_TURN_LEFT I_TURN_LEFT I_RUN
+ walk twice and jump twice	I_WALK I_WALK I_JUMP I_JUMP
+ walk left after run left	I_TURN_LEFT I_RUN I_TURN_LEFT I_WALK
+ walk and walk opposite right	I_WALK I_TURN_RIGHT I_TURN_RIGHT I_WALK
+ look twice after jump twice	I_JUMP I_JUMP I_LOOK I_LOOK
+ look right after turn right twice	I_TURN_RIGHT I_TURN_RIGHT I_TURN_RIGHT I_LOOK
+ jump after run thrice	I_RUN I_RUN I_RUN I_JUMP
+ jump right and look twice	I_TURN_RIGHT I_JUMP I_LOOK I_LOOK
+ look thrice after look	I_LOOK I_LOOK I_LOOK I_LOOK
+ walk and turn left thrice	I_WALK I_TURN_LEFT I_TURN_LEFT I_TURN_LEFT
+ jump twice and walk twice	I_JUMP I_JUMP I_WALK I_WALK
+ look left after run twice	I_RUN I_RUN I_TURN_LEFT I_LOOK
+ turn right and look thrice	I_TURN_RIGHT I_LOOK I_LOOK I_LOOK
+ look right and turn opposite left	I_TURN_RIGHT I_LOOK I_TURN_LEFT I_TURN_LEFT
+ turn opposite right and look left	I_TURN_RIGHT I_TURN_RIGHT I_TURN_LEFT I_LOOK
+ look twice after walk twice	I_WALK I_WALK I_LOOK I_LOOK
+ look right after run right	I_TURN_RIGHT I_RUN I_TURN_RIGHT I_LOOK
+ look opposite left after look	I_LOOK I_TURN_LEFT I_TURN_LEFT I_LOOK
+ turn opposite right after run twice	I_RUN I_RUN I_TURN_RIGHT I_TURN_RIGHT
+ turn around right	I_TURN_RIGHT I_TURN_RIGHT I_TURN_RIGHT I_TURN_RIGHT
+ jump and look opposite left	I_JUMP I_TURN_LEFT I_TURN_LEFT I_LOOK
+ turn right after jump opposite right	I_TURN_RIGHT I_TURN_RIGHT I_JUMP I_TURN_RIGHT
+ jump twice and walk left	I_JUMP I_JUMP I_TURN_LEFT I_WALK
+ look right and turn left twice	I_TURN_RIGHT I_LOOK I_TURN_LEFT I_TURN_LEFT
+ jump left and turn right twice	I_TURN_LEFT I_JUMP I_TURN_RIGHT I_TURN_RIGHT
+ look opposite right after jump	I_JUMP I_TURN_RIGHT I_TURN_RIGHT I_LOOK
+ turn left twice after turn left twice	I_TURN_LEFT I_TURN_LEFT I_TURN_LEFT I_TURN_LEFT
+ walk left and turn opposite left	I_TURN_LEFT I_WALK I_TURN_LEFT I_TURN_LEFT
+ turn left thrice after run	I_RUN I_TURN_LEFT I_TURN_LEFT I_TURN_LEFT
+ look thrice after run	I_RUN I_LOOK I_LOOK I_LOOK
+ run and walk opposite right	I_RUN I_TURN_RIGHT I_TURN_RIGHT I_WALK
+ walk right after run twice	I_RUN I_RUN I_TURN_RIGHT I_WALK
+ turn opposite right and run right	I_TURN_RIGHT I_TURN_RIGHT I_TURN_RIGHT I_RUN
+ turn opposite left and look twice	I_TURN_LEFT I_TURN_LEFT I_LOOK I_LOOK
+ walk twice after look right	I_TURN_RIGHT I_LOOK I_WALK I_WALK
+ run right after turn opposite left	I_TURN_LEFT I_TURN_LEFT I_TURN_RIGHT I_RUN
+ run after jump opposite left	I_TURN_LEFT I_TURN_LEFT I_JUMP I_RUN
+ jump left after look twice	I_LOOK I_LOOK I_TURN_LEFT I_JUMP
+ walk twice and run left	I_WALK I_WALK I_TURN_LEFT I_RUN
+ look opposite left and look	I_TURN_LEFT I_TURN_LEFT I_LOOK I_LOOK
+ walk and look thrice	I_WALK I_LOOK I_LOOK I_LOOK
+ turn left after look thrice	I_LOOK I_LOOK I_LOOK I_TURN_LEFT
+ run left and turn left twice	I_TURN_LEFT I_RUN I_TURN_LEFT I_TURN_LEFT
+ look right and look left	I_TURN_RIGHT I_LOOK I_TURN_LEFT I_LOOK
+ turn left twice after turn right twice	I_TURN_RIGHT I_TURN_RIGHT I_TURN_LEFT I_TURN_LEFT
+ run opposite right and turn left	I_TURN_RIGHT I_TURN_RIGHT I_RUN I_TURN_LEFT
+ jump twice after walk twice	I_WALK I_WALK I_JUMP I_JUMP
+ run thrice and jump	I_RUN I_RUN I_RUN I_JUMP
+ walk twice after jump right	I_TURN_RIGHT I_JUMP I_WALK I_WALK
+ jump after turn left thrice	I_TURN_LEFT I_TURN_LEFT I_TURN_LEFT I_JUMP
+ look twice and turn opposite left	I_LOOK I_LOOK I_TURN_LEFT I_TURN_LEFT
+ jump right after turn right twice	I_TURN_RIGHT I_TURN_RIGHT I_TURN_RIGHT I_JUMP
+ walk left after turn right twice	I_TURN_RIGHT I_TURN_RIGHT I_TURN_LEFT I_WALK
+ jump right and run right	I_TURN_RIGHT I_JUMP I_TURN_RIGHT I_RUN
+ look right after walk twice	I_WALK I_WALK I_TURN_RIGHT I_LOOK
+ look left and walk twice	I_TURN_LEFT I_LOOK I_WALK I_WALK
+ walk after run thrice	I_RUN I_RUN I_RUN I_WALK
+ walk left and run right	I_TURN_LEFT I_WALK I_TURN_RIGHT I_RUN
+ look twice and walk twice	I_LOOK I_LOOK I_WALK I_WALK
+ jump twice and run left	I_JUMP I_JUMP I_TURN_LEFT I_RUN
+ walk right after walk twice	I_WALK I_WALK I_TURN_RIGHT I_WALK
+ run opposite right and jump	I_TURN_RIGHT I_TURN_RIGHT I_RUN I_JUMP
+ walk opposite right after walk	I_WALK I_TURN_RIGHT I_TURN_RIGHT I_WALK
+ walk left after look left	I_TURN_LEFT I_LOOK I_TURN_LEFT I_WALK
+ turn left after run opposite right	I_TURN_RIGHT I_TURN_RIGHT I_RUN I_TURN_LEFT
+ run after jump opposite right	I_TURN_RIGHT I_TURN_RIGHT I_JUMP I_RUN
+ jump opposite left after look	I_LOOK I_TURN_LEFT I_TURN_LEFT I_JUMP
+ run opposite right after turn left	I_TURN_LEFT I_TURN_RIGHT I_TURN_RIGHT I_RUN
+ jump after walk opposite right	I_TURN_RIGHT I_TURN_RIGHT I_WALK I_JUMP
+ look left after look right	I_TURN_RIGHT I_LOOK I_TURN_LEFT I_LOOK
+ look right and jump left	I_TURN_RIGHT I_LOOK I_TURN_LEFT I_JUMP
+ run twice after look left	I_TURN_LEFT I_LOOK I_RUN I_RUN
+ jump right after turn opposite left	I_TURN_LEFT I_TURN_LEFT I_TURN_RIGHT I_JUMP
+ jump and turn right thrice	I_JUMP I_TURN_RIGHT I_TURN_RIGHT I_TURN_RIGHT
+ look right after jump right	I_TURN_RIGHT I_JUMP I_TURN_RIGHT I_LOOK
+ walk right and look right	I_TURN_RIGHT I_WALK I_TURN_RIGHT I_LOOK
+ turn left after walk opposite right	I_TURN_RIGHT I_TURN_RIGHT I_WALK I_TURN_LEFT
+ look twice after turn opposite left	I_TURN_LEFT I_TURN_LEFT I_LOOK I_LOOK
+ turn left twice after run left	I_TURN_LEFT I_RUN I_TURN_LEFT I_TURN_LEFT
+ walk after walk opposite right	I_TURN_RIGHT I_TURN_RIGHT I_WALK I_WALK
+ jump twice after turn opposite left	I_TURN_LEFT I_TURN_LEFT I_JUMP I_JUMP
+ jump left after walk twice	I_WALK I_WALK I_TURN_LEFT I_JUMP
+ run opposite right and walk	I_TURN_RIGHT I_TURN_RIGHT I_RUN I_WALK
+ run and jump opposite right	I_RUN I_TURN_RIGHT I_TURN_RIGHT I_JUMP
+ run right and turn right twice	I_TURN_RIGHT I_RUN I_TURN_RIGHT I_TURN_RIGHT
+ turn right after look opposite right	I_TURN_RIGHT I_TURN_RIGHT I_LOOK I_TURN_RIGHT
+ run left and turn right twice	I_TURN_LEFT I_RUN I_TURN_RIGHT I_TURN_RIGHT
+ jump opposite left after turn left	I_TURN_LEFT I_TURN_LEFT I_TURN_LEFT I_JUMP
+ turn left twice after run twice	I_RUN I_RUN I_TURN_LEFT I_TURN_LEFT
+ turn left thrice and look	I_TURN_LEFT I_TURN_LEFT I_TURN_LEFT I_LOOK
+ look twice after walk right	I_TURN_RIGHT I_WALK I_LOOK I_LOOK
+ jump right and turn right twice	I_TURN_RIGHT I_JUMP I_TURN_RIGHT I_TURN_RIGHT
+ jump after run opposite right	I_TURN_RIGHT I_TURN_RIGHT I_RUN I_JUMP
+ turn right after walk opposite left	I_TURN_LEFT I_TURN_LEFT I_WALK I_TURN_RIGHT
+ turn opposite left after look right	I_TURN_RIGHT I_LOOK I_TURN_LEFT I_TURN_LEFT
+ run right after run twice	I_RUN I_RUN I_TURN_RIGHT I_RUN
+ look after run thrice	I_RUN I_RUN I_RUN I_LOOK
+ walk after walk opposite left	I_TURN_LEFT I_TURN_LEFT I_WALK I_WALK
+ turn opposite left and jump left	I_TURN_LEFT I_TURN_LEFT I_TURN_LEFT I_JUMP
+ look opposite left and jump	I_TURN_LEFT I_TURN_LEFT I_LOOK I_JUMP
+ walk and walk thrice	I_WALK I_WALK I_WALK I_WALK
+ turn right twice and walk right	I_TURN_RIGHT I_TURN_RIGHT I_TURN_RIGHT I_WALK
+ look left and walk right	I_TURN_LEFT I_LOOK I_TURN_RIGHT I_WALK
+ turn right after turn right thrice	I_TURN_RIGHT I_TURN_RIGHT I_TURN_RIGHT I_TURN_RIGHT
+ turn around left	I_TURN_LEFT I_TURN_LEFT I_TURN_LEFT I_TURN_LEFT
+ look after jump thrice	I_JUMP I_JUMP I_JUMP I_LOOK
+ run right and run right	I_TURN_RIGHT I_RUN I_TURN_RIGHT I_RUN
+ look right and look twice	I_TURN_RIGHT I_LOOK I_LOOK I_LOOK
+ run after run opposite right	I_TURN_RIGHT I_TURN_RIGHT I_RUN I_RUN
+ look thrice after walk	I_WALK I_LOOK I_LOOK I_LOOK
+ jump right after run left	I_TURN_LEFT I_RUN I_TURN_RIGHT I_JUMP
+ look left and look left	I_TURN_LEFT I_LOOK I_TURN_LEFT I_LOOK
+ jump right and look right	I_TURN_RIGHT I_JUMP I_TURN_RIGHT I_LOOK
+ walk twice and turn left twice	I_WALK I_WALK I_TURN_LEFT I_TURN_LEFT
+ run left and look twice	I_TURN_LEFT I_RUN I_LOOK I_LOOK
+ walk twice after run right	I_TURN_RIGHT I_RUN I_WALK I_WALK
+ turn right and jump opposite left	I_TURN_RIGHT I_TURN_LEFT I_TURN_LEFT I_JUMP
+ jump opposite right after jump	I_JUMP I_TURN_RIGHT I_TURN_RIGHT I_JUMP
+ walk right after look left	I_TURN_LEFT I_LOOK I_TURN_RIGHT I_WALK
+ run twice after look twice	I_LOOK I_LOOK I_RUN I_RUN
+ run and walk thrice	I_RUN I_WALK I_WALK I_WALK
+ walk right and turn opposite right	I_TURN_RIGHT I_WALK I_TURN_RIGHT I_TURN_RIGHT
+ look left after jump left	I_TURN_LEFT I_JUMP I_TURN_LEFT I_LOOK
+ run thrice and turn right	I_RUN I_RUN I_RUN I_TURN_RIGHT
+ walk left twice	I_TURN_LEFT I_WALK I_TURN_LEFT I_WALK
+ jump opposite left after turn right	I_TURN_RIGHT I_TURN_LEFT I_TURN_LEFT I_JUMP
+ walk twice and turn right twice	I_WALK I_WALK I_TURN_RIGHT I_TURN_RIGHT
+ look thrice after turn right	I_TURN_RIGHT I_LOOK I_LOOK I_LOOK
+ jump right after walk twice	I_WALK I_WALK I_TURN_RIGHT I_JUMP
+ run right and jump left	I_TURN_RIGHT I_RUN I_TURN_LEFT I_JUMP
+ turn left twice and look left	I_TURN_LEFT I_TURN_LEFT I_TURN_LEFT I_LOOK
+ look right and walk twice	I_TURN_RIGHT I_LOOK I_WALK I_WALK
+ turn left twice and turn left twice	I_TURN_LEFT I_TURN_LEFT I_TURN_LEFT I_TURN_LEFT
+ look right after walk left	I_TURN_LEFT I_WALK I_TURN_RIGHT I_LOOK
+ walk left and turn left twice	I_TURN_LEFT I_WALK I_TURN_LEFT I_TURN_LEFT
+ look twice after jump left	I_TURN_LEFT I_JUMP I_LOOK I_LOOK
+ turn right after run opposite right	I_TURN_RIGHT I_TURN_RIGHT I_RUN I_TURN_RIGHT
+ jump left and jump left	I_TURN_LEFT I_JUMP I_TURN_LEFT I_JUMP
+ look twice and walk right	I_LOOK I_LOOK I_TURN_RIGHT I_WALK
+ turn right twice and turn right twice	I_TURN_RIGHT I_TURN_RIGHT I_TURN_RIGHT I_TURN_RIGHT
+ jump after look opposite right	I_TURN_RIGHT I_TURN_RIGHT I_LOOK I_JUMP
+ walk after run opposite right	I_TURN_RIGHT I_TURN_RIGHT I_RUN I_WALK
+ walk opposite left and turn left	I_TURN_LEFT I_TURN_LEFT I_WALK I_TURN_LEFT
+ jump thrice after look	I_LOOK I_JUMP I_JUMP I_JUMP
+ walk twice after walk right	I_TURN_RIGHT I_WALK I_WALK I_WALK
+ walk right and turn opposite left	I_TURN_RIGHT I_WALK I_TURN_LEFT I_TURN_LEFT
+ jump twice and jump twice	I_JUMP I_JUMP I_JUMP I_JUMP
+ jump twice after walk right	I_TURN_RIGHT I_WALK I_JUMP I_JUMP
+ turn opposite left after look twice	I_LOOK I_LOOK I_TURN_LEFT I_TURN_LEFT
+ turn right twice after jump left	I_TURN_LEFT I_JUMP I_TURN_RIGHT I_TURN_RIGHT
+ turn right thrice after turn left	I_TURN_LEFT I_TURN_RIGHT I_TURN_RIGHT I_TURN_RIGHT
+ run left and jump twice	I_TURN_LEFT I_RUN I_JUMP I_JUMP
+ look thrice and turn left	I_LOOK I_LOOK I_LOOK I_TURN_LEFT
+ turn left after look opposite right	I_TURN_RIGHT I_TURN_RIGHT I_LOOK I_TURN_LEFT
+ walk right after turn right twice	I_TURN_RIGHT I_TURN_RIGHT I_TURN_RIGHT I_WALK
+ run right after walk twice	I_WALK I_WALK I_TURN_RIGHT I_RUN
+ look left and turn opposite right	I_TURN_LEFT I_LOOK I_TURN_RIGHT I_TURN_RIGHT
+ look thrice after jump	I_JUMP I_LOOK I_LOOK I_LOOK
+ run right after look twice	I_LOOK I_LOOK I_TURN_RIGHT I_RUN
+ look right after jump left	I_TURN_LEFT I_JUMP I_TURN_RIGHT I_LOOK
+ turn opposite right and walk left	I_TURN_RIGHT I_TURN_RIGHT I_TURN_LEFT I_WALK
+ look and turn left thrice	I_LOOK I_TURN_LEFT I_TURN_LEFT I_TURN_LEFT
+ turn left twice and turn opposite right	I_TURN_LEFT I_TURN_LEFT I_TURN_RIGHT I_TURN_RIGHT
+ run twice and look twice	I_RUN I_RUN I_LOOK I_LOOK
+ run left and walk left	I_TURN_LEFT I_RUN I_TURN_LEFT I_WALK
+ turn left thrice and walk	I_TURN_LEFT I_TURN_LEFT I_TURN_LEFT I_WALK
+ turn left and look opposite right	I_TURN_LEFT I_TURN_RIGHT I_TURN_RIGHT I_LOOK
+ run opposite left after run	I_RUN I_TURN_LEFT I_TURN_LEFT I_RUN
+ jump left after turn right twice	I_TURN_RIGHT I_TURN_RIGHT I_TURN_LEFT I_JUMP
+ turn left and run opposite left	I_TURN_LEFT I_TURN_LEFT I_TURN_LEFT I_RUN
+ jump thrice after run	I_RUN I_JUMP I_JUMP I_JUMP
+ look opposite left after jump	I_JUMP I_TURN_LEFT I_TURN_LEFT I_LOOK
+ look and walk opposite right	I_LOOK I_TURN_RIGHT I_TURN_RIGHT I_WALK
+ turn right after look opposite left	I_TURN_LEFT I_TURN_LEFT I_LOOK I_TURN_RIGHT
+ jump and jump opposite right	I_JUMP I_TURN_RIGHT I_TURN_RIGHT I_JUMP
+ jump twice and look twice	I_JUMP I_JUMP I_LOOK I_LOOK
+ run twice and run left	I_RUN I_RUN I_TURN_LEFT I_RUN
+ run twice after turn right twice	I_TURN_RIGHT I_TURN_RIGHT I_RUN I_RUN
+ turn right twice after look twice	I_LOOK I_LOOK I_TURN_RIGHT I_TURN_RIGHT
+ run opposite right and run	I_TURN_RIGHT I_TURN_RIGHT I_RUN I_RUN
+ walk left after run twice	I_RUN I_RUN I_TURN_LEFT I_WALK
+ jump right after turn left twice	I_TURN_LEFT I_TURN_LEFT I_TURN_RIGHT I_JUMP
+ walk opposite right after turn left	I_TURN_LEFT I_TURN_RIGHT I_TURN_RIGHT I_WALK
+ turn left and turn left thrice	I_TURN_LEFT I_TURN_LEFT I_TURN_LEFT I_TURN_LEFT
+ turn opposite right and jump twice	I_TURN_RIGHT I_TURN_RIGHT I_JUMP I_JUMP
+ jump left and turn left twice	I_TURN_LEFT I_JUMP I_TURN_LEFT I_TURN_LEFT
+ turn left thrice after turn left	I_TURN_LEFT I_TURN_LEFT I_TURN_LEFT I_TURN_LEFT
+ run right and walk right	I_TURN_RIGHT I_RUN I_TURN_RIGHT I_WALK
+ run left after jump right	I_TURN_RIGHT I_JUMP I_TURN_LEFT I_RUN
+ jump twice after turn opposite right	I_TURN_RIGHT I_TURN_RIGHT I_JUMP I_JUMP
+ run twice after turn opposite left	I_TURN_LEFT I_TURN_LEFT I_RUN I_RUN
+ jump right and turn opposite right	I_TURN_RIGHT I_JUMP I_TURN_RIGHT I_TURN_RIGHT
+ turn left thrice and jump	I_TURN_LEFT I_TURN_LEFT I_TURN_LEFT I_JUMP
+ jump and run opposite right	I_JUMP I_TURN_RIGHT I_TURN_RIGHT I_RUN
+ turn left thrice after walk	I_WALK I_TURN_LEFT I_TURN_LEFT I_TURN_LEFT
+ jump right after walk left	I_TURN_LEFT I_WALK I_TURN_RIGHT I_JUMP
+ run after turn left thrice	I_TURN_LEFT I_TURN_LEFT I_TURN_LEFT I_RUN
+ jump after jump opposite left	I_TURN_LEFT I_TURN_LEFT I_JUMP I_JUMP
+ run twice and look left	I_RUN I_RUN I_TURN_LEFT I_LOOK
+ look right and walk left	I_TURN_RIGHT I_LOOK I_TURN_LEFT I_WALK
+ jump and turn left thrice	I_JUMP I_TURN_LEFT I_TURN_LEFT I_TURN_LEFT
+ run thrice after run	I_RUN I_RUN I_RUN I_RUN
+ turn left twice and run twice	I_TURN_LEFT I_TURN_LEFT I_RUN I_RUN
+ jump left after look left	I_TURN_LEFT I_LOOK I_TURN_LEFT I_JUMP
+ run twice and walk left	I_RUN I_RUN I_TURN_LEFT I_WALK
+ turn opposite left and run left	I_TURN_LEFT I_TURN_LEFT I_TURN_LEFT I_RUN
+ turn right after walk opposite right	I_TURN_RIGHT I_TURN_RIGHT I_WALK I_TURN_RIGHT
+ jump left after walk left	I_TURN_LEFT I_WALK I_TURN_LEFT I_JUMP
+ look after run opposite right	I_TURN_RIGHT I_TURN_RIGHT I_RUN I_LOOK
+ run right and look twice	I_TURN_RIGHT I_RUN I_LOOK I_LOOK
+ turn left twice after turn opposite right	I_TURN_RIGHT I_TURN_RIGHT I_TURN_LEFT I_TURN_LEFT
+ walk and jump thrice	I_WALK I_JUMP I_JUMP I_JUMP
+ turn right twice after walk left	I_TURN_LEFT I_WALK I_TURN_RIGHT I_TURN_RIGHT
+ turn opposite right and walk twice	I_TURN_RIGHT I_TURN_RIGHT I_WALK I_WALK
+ turn opposite right and run left	I_TURN_RIGHT I_TURN_RIGHT I_TURN_LEFT I_RUN
+ walk left and run left	I_TURN_LEFT I_WALK I_TURN_LEFT I_RUN
+ walk opposite left after jump	I_JUMP I_TURN_LEFT I_TURN_LEFT I_WALK
+ run left after turn right twice	I_TURN_RIGHT I_TURN_RIGHT I_TURN_LEFT I_RUN
+ look left and run twice	I_TURN_LEFT I_LOOK I_RUN I_RUN
+ turn right after jump opposite left	I_TURN_LEFT I_TURN_LEFT I_JUMP I_TURN_RIGHT
+ turn left after walk thrice	I_WALK I_WALK I_WALK I_TURN_LEFT
+ run right after walk left	I_TURN_LEFT I_WALK I_TURN_RIGHT I_RUN
+ run right after jump right	I_TURN_RIGHT I_JUMP I_TURN_RIGHT I_RUN
+ turn right and look opposite left	I_TURN_RIGHT I_TURN_LEFT I_TURN_LEFT I_LOOK
+ turn opposite right after jump right	I_TURN_RIGHT I_JUMP I_TURN_RIGHT I_TURN_RIGHT
+ turn right twice and turn left twice	I_TURN_RIGHT I_TURN_RIGHT I_TURN_LEFT I_TURN_LEFT
+ jump left after run right	I_TURN_RIGHT I_RUN I_TURN_LEFT I_JUMP
+ turn opposite left and run twice	I_TURN_LEFT I_TURN_LEFT I_RUN I_RUN
+ turn opposite left and run right	I_TURN_LEFT I_TURN_LEFT I_TURN_RIGHT I_RUN
+ turn right thrice after turn right	I_TURN_RIGHT I_TURN_RIGHT I_TURN_RIGHT I_TURN_RIGHT
+ jump right after jump twice	I_JUMP I_JUMP I_TURN_RIGHT I_JUMP
+ walk opposite right after jump	I_JUMP I_TURN_RIGHT I_TURN_RIGHT I_WALK
+ turn left and turn right thrice	I_TURN_LEFT I_TURN_RIGHT I_TURN_RIGHT I_TURN_RIGHT
+ jump opposite left and run	I_TURN_LEFT I_TURN_LEFT I_JUMP I_RUN
+ turn right twice after run twice	I_RUN I_RUN I_TURN_RIGHT I_TURN_RIGHT
+ run left after jump left	I_TURN_LEFT I_JUMP I_TURN_LEFT I_RUN
+ run right and look right	I_TURN_RIGHT I_RUN I_TURN_RIGHT I_LOOK
+ jump after turn right thrice	I_TURN_RIGHT I_TURN_RIGHT I_TURN_RIGHT I_JUMP
+ turn right twice and jump twice	I_TURN_RIGHT I_TURN_RIGHT I_JUMP I_JUMP
+ jump opposite left and jump	I_TURN_LEFT I_TURN_LEFT I_JUMP I_JUMP
+ look left and run left	I_TURN_LEFT I_LOOK I_TURN_LEFT I_RUN
+ jump and run opposite left	I_JUMP I_TURN_LEFT I_TURN_LEFT I_RUN
+ run and turn left thrice	I_RUN I_TURN_LEFT I_TURN_LEFT I_TURN_LEFT
+ walk right and turn right twice	I_TURN_RIGHT I_WALK I_TURN_RIGHT I_TURN_RIGHT
+ walk left and jump left	I_TURN_LEFT I_WALK I_TURN_LEFT I_JUMP
+ look left and jump left	I_TURN_LEFT I_LOOK I_TURN_LEFT I_JUMP
+ look opposite left after walk	I_WALK I_TURN_LEFT I_TURN_LEFT I_LOOK
+ jump opposite right and turn right	I_TURN_RIGHT I_TURN_RIGHT I_JUMP I_TURN_RIGHT
+ turn right twice after jump twice	I_JUMP I_JUMP I_TURN_RIGHT I_TURN_RIGHT
+ walk left after look twice	I_LOOK I_LOOK I_TURN_LEFT I_WALK
+ turn right after look thrice	I_LOOK I_LOOK I_LOOK I_TURN_RIGHT
+ walk left and look twice	I_TURN_LEFT I_WALK I_LOOK I_LOOK
+ turn left after turn left thrice	I_TURN_LEFT I_TURN_LEFT I_TURN_LEFT I_TURN_LEFT
+ walk and run thrice	I_WALK I_RUN I_RUN I_RUN
+ turn right twice and jump right	I_TURN_RIGHT I_TURN_RIGHT I_TURN_RIGHT I_JUMP
+ walk right after turn opposite left	I_TURN_LEFT I_TURN_LEFT I_TURN_RIGHT I_WALK
+ look right and walk right	I_TURN_RIGHT I_LOOK I_TURN_RIGHT I_WALK
+ jump twice and look left	I_JUMP I_JUMP I_TURN_LEFT I_LOOK
+ run left twice	I_TURN_LEFT I_RUN I_TURN_LEFT I_RUN
+ jump left after turn opposite right	I_TURN_RIGHT I_TURN_RIGHT I_TURN_LEFT I_JUMP
+ turn opposite left and walk left	I_TURN_LEFT I_TURN_LEFT I_TURN_LEFT I_WALK
+ turn right twice after look right	I_TURN_RIGHT I_LOOK I_TURN_RIGHT I_TURN_RIGHT
+ run after walk thrice	I_WALK I_WALK I_WALK I_RUN
+ walk right after look twice	I_LOOK I_LOOK I_TURN_RIGHT I_WALK
+ run right and jump twice	I_TURN_RIGHT I_RUN I_JUMP I_JUMP
+ walk right after jump twice	I_JUMP I_JUMP I_TURN_RIGHT I_WALK
+ turn left twice after jump left	I_TURN_LEFT I_JUMP I_TURN_LEFT I_TURN_LEFT
+ jump twice after jump right	I_TURN_RIGHT I_JUMP I_JUMP I_JUMP
+ look left after run right	I_TURN_RIGHT I_RUN I_TURN_LEFT I_LOOK
+ run thrice after look	I_LOOK I_RUN I_RUN I_RUN
+ jump opposite left after run	I_RUN I_TURN_LEFT I_TURN_LEFT I_JUMP
+ jump opposite left after jump	I_JUMP I_TURN_LEFT I_TURN_LEFT I_JUMP
+ turn opposite right and look right	I_TURN_RIGHT I_TURN_RIGHT I_TURN_RIGHT I_LOOK
+ look twice after turn right twice	I_TURN_RIGHT I_TURN_RIGHT I_LOOK I_LOOK
+ walk thrice after turn left	I_TURN_LEFT I_WALK I_WALK I_WALK
+ walk left after walk twice	I_WALK I_WALK I_TURN_LEFT I_WALK
+ walk after jump thrice	I_JUMP I_JUMP I_JUMP I_WALK
+ run right after turn right twice	I_TURN_RIGHT I_TURN_RIGHT I_TURN_RIGHT I_RUN
