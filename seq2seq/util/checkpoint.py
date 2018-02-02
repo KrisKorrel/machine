@@ -74,6 +74,8 @@ class Checkpoint(object):
                    os.path.join(path, self.TRAINER_STATE_NAME))
         torch.save(self.model, os.path.join(path, self.MODEL_NAME))
 
+        print("Saved model to {}".format(path))
+
         with open(os.path.join(path, self.INPUT_VOCAB_FILE), 'wb') as fout:
             dill.dump(self.input_vocab, fout)
         with open(os.path.join(path, self.OUTPUT_VOCAB_FILE), 'wb') as fout:
