@@ -114,5 +114,5 @@ def create_split(max_train_length):
 if __name__ == '__main__':
     show_statistics()
 
-    for max_train_length in [16, 17, 18, 19, 20, 22, 24, 25, 26, 27, 28]:
+    for max_train_length in [16, 17, 18, 19, 20, 21, 22, 24, 25, 26, 27, 28]:
         create_split(max_train_length)

@@ -15,14 +15,14 @@ import matplotlib.pyplot as plt
 
 from collections import OrderedDict
 
-for max_train_length in [16, 17, 18, 19, 20, 22, 24, 25, 26, 27, 28]:
+for max_train_length in [16, 17, 18, 19, 20, 21, 22, 24, 25, 26, 27, 28]:
     top_checkpoints_dir = os.path.join('checkpoints_exp_increasing_lengths', 'train_max_{}'.format(max_train_length))
     checkpoint_dirs = [os.path.join(top_checkpoints_dir, subdir) for subdir in os.listdir(
         top_checkpoints_dir) if os.path.isdir(os.path.join(top_checkpoints_dir, subdir))]
     checkpoint_dirs = [os.path.join(top, sub) for top in checkpoint_dirs for sub in os.listdir(top)]
 
 
-    test_lengths = [tl for tl in [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 22, 24, 25, 26, 27, 28, 30, 32, 33, 36, 40, 48]]
+    test_lengths = [tl for tl in [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 24, 25, 26, 27, 28, 30, 32, 33, 36, 40, 48]]
     checkpoint_i = 0
     sum_test_acc_seq = {}
     sum_test_acc_word = {}
