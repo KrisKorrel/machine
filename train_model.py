@@ -153,7 +153,7 @@ seq2seq = t.train(seq2seq, train,
                   learning_rate=opt.lr,
                   resume=opt.resume,
                   checkpoint_path=checkpoint_path,
-                  top_k=3)
+                  top_k=1)
 
 # evaluator = Evaluator(loss=loss, batch_size=opt.batch_size)
 # dev_loss, accuracy = evaluator.evaluate(seq2seq, dev)

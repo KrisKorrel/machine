@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH -N 1
-#SBATCH -p gpu_short
-#SBATCH -t 0-01:00:00
+#SBATCH -p gpu
+#SBATCH -t 0-03:00:00
 #SBATCH -J exp2c
 #SBATCH -n 2
 #SBATCH -o exp2c
@@ -19,6 +19,8 @@ cd ~/machine
 time srun --multi-prog -o ~/output_run-%t-0 job_config/exp2c.conf 0
 time srun --multi-prog -o ~/output_run-%t-1 job_config/exp2c.conf 1
 time srun --multi-prog -o ~/output_run-%t-2 job_config/exp2c.conf 2
+time srun --multi-prog -o ~/output_run-%t-3 job_config/exp2c.conf 3
+time srun --multi-prog -o ~/output_run-%t-4 job_config/exp2c.conf 4
 
 deactivate
 
