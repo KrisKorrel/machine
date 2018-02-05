@@ -1,13 +1,14 @@
-#! /bin/sh
+#! /bin/bash
 
-TRAIN_PATH=data/CLEANED-SCAN/length_split/experiment2c_output_interleaved_short_to_long/tasks_train.txt
-DEV_PATH=data/CLEANED-SCAN/length_split/experiment2c_output_interleaved_short_to_long/tasks_test.txt
-EXPT_DIR=checkpoints_experiment_2c-1
-ATTENTION=false
-CUDA=0
+CUDA=$1
+RUN_COUNTER=$2
+
+TRAIN_PATH=data/CLEANED-SCAN/length_split/2c-train-dev-test/tasks_train.txt
+DEV_PATH=data/CLEANED-SCAN/length_split/2c-train-dev-test/tasks_dev.txt
+EXPT_DIR=checkpoints-experiment-2c/run-$CUDA-$RUN_COUNTER
 
 # set values
-EPOCHS=50
+EPOCHS=70
 OPTIMIZER='adam'
 LR=0.001
 RNN_CELL='lstm'
@@ -18,9 +19,8 @@ DROPOUT_ENCODER=0.5
 DROPOUT_DECODER=0.5
 TF=0.5
 BATCH_SIZE=128
-BIDIRECTIONAL=false
 PRINT_EVERY=20
-SAVE_EVERY=120 #Batches per epoch (print steps_per_epoch in supervised_trainer.py to find out)
+SAVE_EVERY=131 #Batches per epoch (print steps_per_epoch in supervised_trainer.py to find out)
 
 # Start training
 echo "Train model on example data"
@@ -39,8 +39,7 @@ python train_model.py \
     --dropout_p_decoder $DROPOUT_DECODER \
     --teacher_forcing_ratio $TF \
     --batch_size $BATCH_SIZE \
-    $( (( $BIDIRECTIONAL )) && echo '--bidirectional' ) \
-    $( (( $ATTENTION )) && echo '--attention' ) \
+    --attention \
     --print_every $PRINT_EVERY \
     --save_every $SAVE_EVERY \
     --cuda_device $CUDA

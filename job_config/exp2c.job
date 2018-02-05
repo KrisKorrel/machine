@@ -16,7 +16,9 @@ module load cuda/8.0.44
 
 cd ~/machine
 
-time srun --multi-prog -l job_config/exp2c.conf
+time srun --multi-prog -o ~/output_run-%t-0 job_config/exp2c.conf 0
+time srun --multi-prog -o ~/output_run-%t-1 job_config/exp2c.conf 1
+time srun --multi-prog -o ~/output_run-%t-2 job_config/exp2c.conf 2
 
 deactivate
 
