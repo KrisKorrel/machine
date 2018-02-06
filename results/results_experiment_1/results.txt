@@ -1,0 +1,8 @@
+Average train sequence accuracy: 0.999282590872
+Average train word accuracy: 0.999938415604
+
+Average dev sequence accuracy: 0.999442053244
+Average dev word accuracy: 0.999963372263
+
+Average test sequence accuracy: 0.998964060881
+Average test word accuracy: 0.999905988531
