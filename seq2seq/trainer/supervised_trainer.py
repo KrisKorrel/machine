@@ -14,7 +14,7 @@ from torch.autograd import Variable
 
 import seq2seq
 from seq2seq.evaluator import Evaluator
-from seq2seq.loss import NLLLoss
+from seq2seq.loss import NLLLoss, Variance
 from seq2seq.optim import Optimizer
 from seq2seq.util.checkpoint import Checkpoint
 
@@ -70,12 +70,11 @@ class SupervisedTrainer(object):
             batch_size = target_variable.size(0)
             loss.eval_batch(step_output.contiguous().view(batch_size, -1), target_variable[:, step + 1])
 
-        print "\nloss", loss.acc_loss.data[0], 
         # add regularization loss
         input_vocab_size = model.encoder.vocab_size
         output_vocab_size = model.decoder.vocab_size
-        variance = self.get_variance(input_variable, other['sequence'], other['attention_score'], input_vocab_size, output_vocab_size, reg_scale)  
-        # variance = self.get_variance(input_variable, target_variable, other['attention_score'], input_vocab_size, output_vocab_size, reg_scale)  
+        variance, _ = Variance.get_variance(input_variable, other['sequence'], other['attention_score'], input_vocab_size, output_vocab_size, reg_scale)  
+
         self.writer.add_scalar("variance/train", variance, run_step)
 
         regularizaton = -reg_scale * variance
@@ -87,71 +86,6 @@ class SupervisedTrainer(object):
         self.optimizer.step()
 
         return loss.get_loss()
-
-    def get_variance(self, inputs, outputs, attentions, input_vocab_size, output_vocab_size, reg_scale):
-
-        # create empty confusion matrix
-        confusion_matrix = torch.zeros(output_vocab_size, input_vocab_size)
-        if torch.cuda.is_available():
-            pass
-            # confusion_matrix = confusion_matrix.cuda()
-        confusion_matrix = Variable(confusion_matrix)
-
-        # loop over attention vectors
-        output_step = 0
-        for attention in attentions:
-            
-            # flatten and squeeze vector
-            if torch.cuda.is_available():
-                attention = attention.cpu()
-            attention_flat = attention.contiguous().view(-1)
-
-            attention = attention.squeeze()
-
-            # compute confusion matrix indices for each attention value
-            attention_size_total = attention_flat.size(0)
-            indices = torch.LongTensor(attention_size_total)
-            if torch.cuda.is_available():
-                pass 
-                # indices = indices.cuda()
-
-            # loop over values in attention matrix
-            count = 0
-            for seq in xrange(attention.size(0)):
-                for i in xrange(attention.size(1)):
-                    input_index = inputs[seq][i].data[0]
-                    # output_index = outputs[seq][output_step].data[0]
-                    output_index = outputs[output_step][seq].data[0]
-
-                    # compute corresponding index in confusion matrix
-                    confusion_index = output_index*input_vocab_size + input_index
-                    indices.index_fill_(0, torch.LongTensor([count]), confusion_index)
-                    count+=1
-
-            # add values to confusion matrix
-            confusion_matrix.put_(Variable(indices), attention_flat, accumulate=True)
-            output_step += 1
-
-        # normalise rows
-        confusion_matrix = torch.nn.functional.normalize(confusion_matrix, p=1, dim=1)
-
-        # Remove rows <unk>, <pad>, <sos>
-        row_ids = Variable(torch.LongTensor([2, 3, 4, 5, 6, 7, 8]))
-        confusion_matrix = confusion_matrix.index_select(0, row_ids)
-
-        # Only retain columns jump, run, look, walk
-        col_ids = Variable(torch.LongTensor([10, 11, 12, 13]))
-        confusion_matrix = confusion_matrix.index_select(1, col_ids)
-
-        # compute variance of the confusion matrix:  c1
-        variance = torch.sum(torch.var(confusion_matrix, 0))
-        if torch.cuda.is_available():
-            variance = variance.cuda()
-
-        print "variance", variance.data[0],
-
-        return variance
-
 
     def _train_epoches(self, data, model, n_epochs, start_epoch, start_step,
                        dev_data=None, teacher_forcing_ratio=0, top_k=5, reg_scale=1000):
@@ -237,10 +171,10 @@ class SupervisedTrainer(object):
                     self.writer.add_scalar("loss/validation", loss, step)
                     self.writer.add_scalar("variance/validation", variance, step)
                     
-                    #if loss < max_eval_loss:
-                    if variance > max_variance:
-                            #index_max = loss_best.index(max_eval_loss)
-                            index_max = var_best.index(max_variance)
+                    if loss < max_eval_loss:
+                    # if variance > max_variance:
+                            index_max = loss_best.index(max_eval_loss)
+                            # index_max = var_best.index(max_variance)
                             # rm prev model
                             if best_checkpoints[index_max] is not None:
                                 shutil.rmtree(os.path.join(self.expt_dir, best_checkpoints[index_max]))

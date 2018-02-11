@@ -25,9 +25,10 @@ except NameError:
 # Add profiler
 import line_profiler as P
 from seq2seq.trainer import SupervisedTrainer as trainer
+from seq2seq.loss import Variance as variance
 profiler = P.LineProfiler()
 profiler.add_function(trainer._train_batch)
-profiler.add_function(trainer.get_variance)
+profiler.add_function(variance.get_variance)
 
 ############################################################
 

@@ -4,7 +4,7 @@ import torch
 import torchtext
 
 import seq2seq
-from seq2seq.loss import NLLLoss
+from seq2seq.loss import NLLLoss, Variance
 
 import numpy as np
 
@@ -60,7 +60,6 @@ class Evaluator(object):
 
             # Evaluation
             seqlist = other['sequence']
-
             attentions = [att.squeeze() for att in other['attention_score']]
 
             for q, input_seq in enumerate(input_variables.data):
