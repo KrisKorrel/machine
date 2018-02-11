@@ -52,7 +52,11 @@ class SupervisedTrainer(object):
 
         self.logger = logging.getLogger(__name__)
 
-        self.tensorboard_dir = os.path.join("tensorboard_runs", datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S") + '-cuda' + str(torch.cuda.current_device()))
+        if torch.cuda.is_available():
+            self.tensorboard_dir = os.path.join("tensorboard_runs", datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S") + '-cuda' + str(torch.cuda.current_device()))
+        else:
+            self.tensorboard_dir = os.path.join("tensorboard_runs", datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+
         self.writer = SummaryWriter(self.tensorboard_dir)
 
     def _train_batch(self, input_variable, input_lengths, target_variable, model, teacher_forcing_ratio, reg_scale, run_step):

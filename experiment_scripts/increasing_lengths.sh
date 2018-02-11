@@ -4,6 +4,8 @@ CUDA=$1
 TRAIN_MAX_LENGTH=$2
 RUN_COUNTER=$3
 
+LOG_LEVEL='debug'
+
 # set values
 EPOCHS=70
 OPTIMIZER='adam'
@@ -61,4 +63,5 @@ python train_model.py \
     $ATTENTION \
     --print_every $PRINT_EVERY \
     --save_every $SAVE_EVERY \
-    --cuda_device $CUDA
+    --cuda_device $CUDA \
+    --log-level $LOG_LEVEL \

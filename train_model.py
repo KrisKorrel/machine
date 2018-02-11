@@ -142,6 +142,9 @@ else:
     for param in seq2seq.parameters():
         param.data.uniform_(-0.08, 0.08)
 
+logging.debug("Input vocab: {}".format(input_vocab.itos))
+logging.debug("Output vocab: {}".format(output_vocab.itos))
+
 ##############################################################################
 # train model
 
