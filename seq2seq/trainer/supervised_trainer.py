@@ -10,7 +10,7 @@ import torch
 import torchtext
 from torch import optim
 from tensorboardX import SummaryWriter
-import numpy as np
+from torch.autograd import Variable
 
 import seq2seq
 from seq2seq.evaluator import Evaluator
@@ -55,7 +55,7 @@ class SupervisedTrainer(object):
         self.tensorboard_dir = os.path.join("tensorboard_runs", datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
         self.writer = SummaryWriter(self.tensorboard_dir)
 
-    def _train_batch(self, input_variable, input_lengths, target_variable, model, teacher_forcing_ratio, run_step):
+    def _train_batch(self, input_variable, input_lengths, target_variable, model, teacher_forcing_ratio, reg_scale, run_step):
         loss = self.loss
         # Forward propagation
         decoder_outputs, decoder_hidden, other = model(input_variable, input_lengths, target_variable,
@@ -66,7 +66,19 @@ class SupervisedTrainer(object):
             batch_size = target_variable.size(0)
             loss.eval_batch(step_output.contiguous().view(batch_size, -1), target_variable[:, step + 1])
 
-        loss.acc_loss += self.get_regularization(input_variable, target_variable, other['attention_score'], run_step)
+        print "\nloss", loss.acc_loss.data[0], 
+        # add regularization loss
+        input_vocab_size = model.encoder.vocab_size
+        output_vocab_size = model.decoder.vocab_size
+        variance = self.get_variance(input_variable, target_variable, other['attention_score'], input_vocab_size, output_vocab_size, run_step)
+        
+        self.writer.add_scalar("variance/train", variance, run_step)
+
+        regularizaton = -reg_scale * variance
+        loss.acc_loss += regularizaton 
+
+        print "total loss", loss.acc_loss.data[0], 
+
         # Backward propagation
         model.zero_grad()
         loss.backward()
@@ -74,47 +86,64 @@ class SupervisedTrainer(object):
 
         return loss.get_loss()
 
-    def get_regularization(self, input, output, attentions, step):
-        att_dict = {}
-        attentions = [att.squeeze() for att in attentions]
-        for q, input_seq in enumerate(input):
-            for i, output_word in enumerate(output[q][1:].data.cpu().numpy()):
-                if output.data[q][i + 1] != 1:
-                    if output_word in att_dict:
-                        output_word_dict = att_dict[output_word]
-                    else:
-                        output_word_dict = {}
-                        att_dict[output_word] = output_word_dict
-                    for j, input_word in enumerate(input_seq.data):
-                        if input_word in output_word_dict:
-                            output_word_dict[input_word].append(attentions[i][q][j].data.cpu().numpy()[0])
-                        else:
-                            output_word_dict[input_word] = [attentions[i][q][j].data.cpu().numpy()[0]]
+    def get_variance(self, input, output, attentions, input_vocab_size, output_vocab_size):
 
-        for i in range(2,9):
-            if i not in att_dict:
-                att_dict[i] = {}
-            for j in range(1,15):
-                if j not in att_dict[i]:
-                    att_dict[i][j] = [0.0]
+        # create empty confusion matrix
+        confusion_matrix = torch.zeros(output_vocab_size, input_vocab_size) + 1e-10
+        if torch.cuda.is_available():
+            pass
+            # confusion_matrix = confusion_matrix.cuda()
+        confusion_matrix = Variable(confusion_matrix)
 
+        # loop over attention vectors
+        output_step = 1
+        for attention in attentions:
+            
+            # flatten and squeeze vector
+            if torch.cuda.is_available():
+                attention = attention.cpu()
+            attention_flat = attention.contiguous().view(-1)
 
-        cooccurrences = np.array(
-            [[np.mean(att_dict[output_word][input_word]) for input_word in sorted(att_dict[output_word])] for
-             output_word in sorted(att_dict)])
+            attention = attention.squeeze()
 
-        variance = sum(np.var(cooccurrences, axis=0))
+            # compute confusion matrix indices for each attention value
+            attention_size_total = attention_flat.size(0)
+            indices = torch.LongTensor(attention_size_total)
+            if torch.cuda.is_available():
+                pass 
+                # indices = indices.cuda()
 
-        regularization = 1000*(3.25 - variance)
+            # loop over values in attention matrix
+            count = 0
+            for seq in xrange(attention.size(0)):
+                for i in xrange(attention.size(1)):
+                    input_index = input[seq][i].data[0]
+                    output_index = output[seq][output_step].data[0]
 
-        # Log to tensorboard
-        self.writer.add_scalar("attention_variance/train", variance, step)
+                    # compute corresponding index in confusion matrix
+                    confusion_index = output_index*input_vocab_size + input_index
+                    indices.index_fill_(0, torch.LongTensor([count]), confusion_index)
+                    count+=1
 
-        return regularization
+            # add values to confusion matrix
+            confusion_matrix.put_(Variable(indices), attention_flat, accumulate=True)
+            output_step += 1
+
+        # normalise rows
+        confusion_matrix = torch.nn.functional.normalize(confusion_matrix, p=1, dim=1)
+
+        # compute variance of the confusion matrix:  c1
+        variance = torch.sum(torch.var(confusion_matrix, 0))
+        if torch.cuda.is_available():
+            variance = variance.cuda()
+
+        print "variance", variance.data[0],
+
+        return variance
 
 
     def _train_epoches(self, data, model, n_epochs, start_epoch, start_step,
-                       dev_data=None, teacher_forcing_ratio=0, top_k=5):
+                       dev_data=None, teacher_forcing_ratio=0, top_k=5, reg_scale=1000):
         log = self.logger
 
         print_loss_total = 0  # Reset every print_every
@@ -142,9 +171,8 @@ class SupervisedTrainer(object):
         model_name = 'var_%.2f_acc_%.2f_seq_acc_%.2f_ppl_%.2f_s%d' % (variance, accuracy, seq_accuracy, loss, 0)
         best_checkpoints[0] = model_name
 
-        # Log to tensorboard
         self.writer.add_scalar("loss/validation", loss, step)
-        self.writer.add_scalar("attention_variance/validation", variance, step)
+        self.writer.add_scalar("variance/validation", variance, step)
 
         Checkpoint(model=model,
                    optimizer=self.optimizer,
@@ -170,14 +198,11 @@ class SupervisedTrainer(object):
                 input_variables, input_lengths = getattr(batch, seq2seq.src_field_name)
                 target_variables = getattr(batch, seq2seq.tgt_field_name)
 
-                loss = self._train_batch(input_variables, input_lengths.tolist(), target_variables, model, teacher_forcing_ratio, step)
+                loss = self._train_batch(input_variables, input_lengths.tolist(), target_variables, model, teacher_forcing_ratio, reg_scale, step)
 
                 # Record average loss
                 print_loss_total += loss
                 epoch_loss_total += loss
-
-                # Log to tensorboard
-                self.writer.add_scalar("loss/train", loss, step)
 
                 # print log info according to print_every parm
                 if step % self.print_every == 0 and step_elapsed > self.print_every:
@@ -196,10 +221,8 @@ class SupervisedTrainer(object):
                     max_eval_loss = max(loss_best)
                     max_variance = max(var_best)
 
-                    # Log to tensorboard
                     self.writer.add_scalar("loss/validation", loss, step)
-                    self.writer.add_scalar("attention_variance/validation", variance, step)
-                    
+
                     #if loss < max_eval_loss:
                     if variance > max_variance:
                             #index_max = loss_best.index(max_eval_loss)
@@ -226,7 +249,7 @@ class SupervisedTrainer(object):
             epoch_loss_total = 0
             log_msg = "Finished epoch %d: Train %s: %.4f" % (epoch, self.loss.name, epoch_loss_avg)
             if dev_data is not None:
-                dev_loss, accuracy, seq_accuracy, variance = self.evaluator.evaluate(model, dev_data, self.writer, step)
+                dev_loss, accuracy, seq_accuracy, variance = self.evaluator.evaluate(model, dev_data)
                 self.optimizer.update(dev_loss, epoch)
                 log_msg += ", Dev %s: %.4f, Accuracy: %.4f, Sequence Accuracy: %.4f, Variance: %.4f" % (self.loss.name, dev_loss, accuracy, seq_accuracy, variance)
                 model.train(mode=True)
@@ -238,7 +261,7 @@ class SupervisedTrainer(object):
     def train(self, model, data, num_epochs=5,
               resume=False, dev_data=None,
               optimizer=None, teacher_forcing_ratio=0,
-              learning_rate=0.001, checkpoint_path=None, top_k=5):
+              learning_rate=0.001, checkpoint_path=None, top_k=5, reg_scale=1000):
         """ Run training for a given model.
 
         Args:
@@ -254,6 +277,7 @@ class SupervisedTrainer(object):
             learing_rate (float, optional): learning rate used by the optimizer (default 0.001)
             checkpoint_path (str, optional): path to load checkpoint from in case training should be resumed
             top_k (int): how many models should be stored during training
+            reg_scale (float): how to scale the regularization term wrt the other loss
         Returns:
             model (seq2seq.models): trained model.
         """
@@ -291,7 +315,7 @@ class SupervisedTrainer(object):
         self._train_epoches(data, model, num_epochs,
                             start_epoch, step, dev_data=dev_data,
                             teacher_forcing_ratio=teacher_forcing_ratio,
-                            top_k=top_k)
+                            top_k=top_k, reg_scale=reg_scale)
 
         # export scalar data to JSON for external processing
         self.writer.export_scalars_to_json(os.path.join(self.tensorboard_dir, "all_scalars.json"))

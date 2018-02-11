@@ -1,4 +1,5 @@
 import os
+import make_path
 import argparse
 import logging
 import random
@@ -21,6 +22,16 @@ try:
 except NameError:
     raw_input = input  # Python 3
 
+###############################
+# Add profiler
+import line_profiler as P
+from seq2seq.trainer import SupervisedTrainer as trainer
+profiler = P.LineProfiler()
+profiler.add_function(trainer._train_batch)
+profiler.add_function(trainer.get_regularization)
+
+############################################################
+
 parser = argparse.ArgumentParser()
 parser.add_argument('--train', help='Training data')
 parser.add_argument('--dev', help='Development data')
@@ -41,6 +52,7 @@ parser.add_argument('--teacher_forcing_ratio', type=float, help='Teacher forcing
 parser.add_argument('--attention', action='store_true')
 parser.add_argument('--batch_size', type=int, help='Batch size', default=32)
 parser.add_argument('--lr', type=float, help='Learning rate, recommended settings.\nrecommended settings: adam=0.001 adadelta=1.0 adamax=0.002 rmsprop=0.01 sgd=0.1', default=0.001)
+parser.add_argument('--reg_scale', type=int, help='Scaling factor for regularization', default=1000)
 
 parser.add_argument('--load_checkpoint', help='The name of the checkpoint to load, usually an encoded time string')
 parser.add_argument('--save_every', type=int, help='Every how many batches the model should be saved', default=100)
@@ -48,6 +60,7 @@ parser.add_argument('--print_every', type=int, help='Every how many batches to p
 parser.add_argument('--resume', action='store_true', help='Indicates if training has to be resumed from the latest checkpoint')
 parser.add_argument('--log-level', default='info', help='Logging level.')
 parser.add_argument('--cuda_device', default=0, type=int, help='set cuda device to use')
+parser.add_argument('--profile', action='store_true')
 
 opt = parser.parse_args()
 
@@ -147,13 +160,19 @@ t = SupervisedTrainer(loss=loss, batch_size=opt.batch_size,
 
 checkpoint_path = os.path.join(opt.output_dir, opt.load_checkpoint) if opt.resume else None
 
+if opt.profile:
+    profiler.run('t.train(seq2seq, train, num_epochs=opt.epochs, dev_data=dev, optimizer=opt.optim, teacher_forcing_ratio=opt.teacher_forcing_ratio, learning_rate=opt.lr, resume=opt.resume, checkpoint_path=checkpoint_path)')
+    profiler.print_stats()
+    exit()
+
 seq2seq = t.train(seq2seq, train,
                   num_epochs=opt.epochs, dev_data=dev,
                   optimizer=opt.optim,
                   teacher_forcing_ratio=opt.teacher_forcing_ratio,
                   learning_rate=opt.lr,
                   resume=opt.resume,
-                  checkpoint_path=checkpoint_path)
+                  checkpoint_path=checkpoint_path,
+                  reg_scale=opt.reg_scale)
 
 # evaluator = Evaluator(loss=loss, batch_size=opt.batch_size)
 # dev_loss, accuracy = evaluator.evaluate(seq2seq, dev)
