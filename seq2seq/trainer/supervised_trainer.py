@@ -70,7 +70,7 @@ class SupervisedTrainer(object):
         # add regularization loss
         input_vocab_size = model.encoder.vocab_size
         output_vocab_size = model.decoder.vocab_size
-        variance = self.get_variance(input_variable, target_variable, other['attention_score'], input_vocab_size, output_vocab_size, run_step)
+        variance = self.get_variance(input_variable, target_variable, other['attention_score'], input_vocab_size, output_vocab_size, reg_scale)
         
         self.writer.add_scalar("variance/train", variance, run_step)
 
@@ -86,7 +86,7 @@ class SupervisedTrainer(object):
 
         return loss.get_loss()
 
-    def get_variance(self, input, output, attentions, input_vocab_size, output_vocab_size):
+    def get_variance(self, input, output, attentions, input_vocab_size, output_vocab_size, reg_scale):
 
         # create empty confusion matrix
         confusion_matrix = torch.zeros(output_vocab_size, input_vocab_size) + 1e-10

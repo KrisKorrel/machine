@@ -1,5 +1,4 @@
 import os
-import make_path
 import argparse
 import logging
 import random
@@ -28,7 +27,7 @@ import line_profiler as P
 from seq2seq.trainer import SupervisedTrainer as trainer
 profiler = P.LineProfiler()
 profiler.add_function(trainer._train_batch)
-profiler.add_function(trainer.get_regularization)
+profiler.add_function(trainer.get_variance)
 
 ############################################################
 
@@ -68,7 +67,7 @@ if opt.resume and not opt.load_checkpoint:
     parser.error('load_checkpoint argument is required to resume training from checkpoint')
 
 LOG_FORMAT = '%(asctime)s %(name)-12s %(levelname)-8s %(message)s'
-logging.basicConfig(filename=time.strftime("%Y%m%d-%H%M%S") + '.log', format=LOG_FORMAT, level=getattr(logging, opt.log_level.upper()))
+logging.basicConfig(format=LOG_FORMAT, level=getattr(logging, opt.log_level.upper()))
 logging.info(opt)
 
 if torch.cuda.is_available():
@@ -172,7 +171,8 @@ seq2seq = t.train(seq2seq, train,
                   learning_rate=opt.lr,
                   resume=opt.resume,
                   checkpoint_path=checkpoint_path,
-                  reg_scale=opt.reg_scale)
+                  reg_scale=opt.reg_scale,
+                  top_k=1)
 
 # evaluator = Evaluator(loss=loss, batch_size=opt.batch_size)
 # dev_loss, accuracy = evaluator.evaluate(seq2seq, dev)
