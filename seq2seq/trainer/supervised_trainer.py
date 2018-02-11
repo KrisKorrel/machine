@@ -52,7 +52,7 @@ class SupervisedTrainer(object):
 
         self.logger = logging.getLogger(__name__)
 
-        self.tensorboard_dir = os.path.join("tensorboard_runs", datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+        self.tensorboard_dir = os.path.join("tensorboard_runs", datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S") + '-cuda' + str(torch.cuda.current_device()))
         self.writer = SummaryWriter(self.tensorboard_dir)
 
     def _train_batch(self, input_variable, input_lengths, target_variable, model, teacher_forcing_ratio, reg_scale, run_step):
@@ -70,8 +70,7 @@ class SupervisedTrainer(object):
         # add regularization loss
         input_vocab_size = model.encoder.vocab_size
         output_vocab_size = model.decoder.vocab_size
-        variance = self.get_variance(input_variable, target_variable, other['attention_score'], input_vocab_size, output_vocab_size, reg_scale)
-        
+        variance = self.get_variance(input_variable, target_variable, other['attention_score'], input_vocab_size, output_vocab_size, reg_scale)  
         self.writer.add_scalar("variance/train", variance, run_step)
 
         regularizaton = -reg_scale * variance
@@ -231,6 +230,8 @@ class SupervisedTrainer(object):
                             if best_checkpoints[index_max] is not None:
                                 shutil.rmtree(os.path.join(self.expt_dir, best_checkpoints[index_max]))
                             model_name = 'var_%.2f_acc_%.2f_seq_acc_%.2f_ppl_%.2f_s%d' % (variance, accuracy, seq_accuracy, loss, step)
+
+                            self.logger.debug("Saved checkpoint {}".format(model_name))
 
                             best_checkpoints[index_max] = model_name
                             loss_best[index_max] = loss
