@@ -74,13 +74,12 @@ class SupervisedTrainer(object):
         # add regularization loss
         input_vocab_size = model.encoder.vocab_size
         output_vocab_size = model.decoder.vocab_size
-        variance = self.get_variance(input_variable, target_variable, other['attention_score'], input_vocab_size, output_vocab_size, reg_scale)  
+        variance = self.get_variance(input_variable, other['sequence'], other['attention_score'], input_vocab_size, output_vocab_size, reg_scale)  
+        # variance = self.get_variance(input_variable, target_variable, other['attention_score'], input_vocab_size, output_vocab_size, reg_scale)  
         self.writer.add_scalar("variance/train", variance, run_step)
 
         regularizaton = -reg_scale * variance
         loss.acc_loss += regularizaton 
-
-        print "total loss", loss.acc_loss.data[0], 
 
         # Backward propagation
         model.zero_grad()
@@ -89,7 +88,7 @@ class SupervisedTrainer(object):
 
         return loss.get_loss()
 
-    def get_variance(self, input, output, attentions, input_vocab_size, output_vocab_size, reg_scale):
+    def get_variance(self, inputs, outputs, attentions, input_vocab_size, output_vocab_size, reg_scale):
 
         # create empty confusion matrix
         confusion_matrix = torch.zeros(output_vocab_size, input_vocab_size) + 1e-10
@@ -99,7 +98,7 @@ class SupervisedTrainer(object):
         confusion_matrix = Variable(confusion_matrix)
 
         # loop over attention vectors
-        output_step = 1
+        output_step = 0
         for attention in attentions:
             
             # flatten and squeeze vector
@@ -120,8 +119,9 @@ class SupervisedTrainer(object):
             count = 0
             for seq in xrange(attention.size(0)):
                 for i in xrange(attention.size(1)):
-                    input_index = input[seq][i].data[0]
-                    output_index = output[seq][output_step].data[0]
+                    input_index = inputs[seq][i].data[0]
+                    # output_index = outputs[seq][output_step].data[0]
+                    output_index = outputs[output_step][seq].data[0]
 
                     # compute corresponding index in confusion matrix
                     confusion_index = output_index*input_vocab_size + input_index
