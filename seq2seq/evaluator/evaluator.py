@@ -117,4 +117,6 @@ class Evaluator(object):
         else:
             seq_accuracy = seq_match/seq_total
 
+        print("TODO: Evaluator loss and variance are not correct")
+
         return loss.get_loss() + 1000*(3.25 - variance), accuracy, seq_accuracy, variance

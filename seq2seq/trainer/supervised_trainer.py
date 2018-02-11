@@ -92,7 +92,7 @@ class SupervisedTrainer(object):
     def get_variance(self, input, output, attentions, input_vocab_size, output_vocab_size, reg_scale):
 
         # create empty confusion matrix
-        confusion_matrix = torch.zeros(output_vocab_size, input_vocab_size) + 1e-10
+        confusion_matrix = torch.zeros(output_vocab_size, input_vocab_size)
         if torch.cuda.is_available():
             pass
             # confusion_matrix = confusion_matrix.cuda()
@@ -134,6 +134,14 @@ class SupervisedTrainer(object):
 
         # normalise rows
         confusion_matrix = torch.nn.functional.normalize(confusion_matrix, p=1, dim=1)
+
+        # Remove rows <unk>, <pad>, <sos>
+        row_ids = Variable(torch.LongTensor([2, 3, 4, 5, 6, 7, 8]))
+        confusion_matrix = confusion_matrix.index_select(0, row_ids)
+
+        # Only retain columns jump, run, look, walk
+        col_ids = Variable(torch.LongTensor([10, 11, 12, 13]))
+        confusion_matrix = confusion_matrix.index_select(1, col_ids)
 
         # compute variance of the confusion matrix:  c1
         variance = torch.sum(torch.var(confusion_matrix, 0))
@@ -203,6 +211,8 @@ class SupervisedTrainer(object):
 
                 loss = self._train_batch(input_variables, input_lengths.tolist(), target_variables, model, teacher_forcing_ratio, reg_scale, step)
 
+                self.writer.add_scalar("loss/train", loss, step)
+
                 # Record average loss
                 print_loss_total += loss
                 epoch_loss_total += loss
@@ -225,7 +235,8 @@ class SupervisedTrainer(object):
                     max_variance = max(var_best)
 
                     self.writer.add_scalar("loss/validation", loss, step)
-
+                    self.writer.add_scalar("loss/validation", loss, step)
+                    
                     #if loss < max_eval_loss:
                     if variance > max_variance:
                             #index_max = loss_best.index(max_eval_loss)
@@ -254,7 +265,7 @@ class SupervisedTrainer(object):
             epoch_loss_total = 0
             log_msg = "Finished epoch %d: Train %s: %.4f" % (epoch, self.loss.name, epoch_loss_avg)
             if dev_data is not None:
-                dev_loss, accuracy, seq_accuracy, variance = self.evaluator.evaluate(model, dev_data)
+                dev_loss, accuracy, seq_accuracy, variance = self.evaluator.evaluate(model, dev_data, self.writer, step)
                 self.optimizer.update(dev_loss, epoch)
                 log_msg += ", Dev %s: %.4f, Accuracy: %.4f, Sequence Accuracy: %.4f, Variance: %.4f" % (self.loss.name, dev_loss, accuracy, seq_accuracy, variance)
                 model.train(mode=True)
