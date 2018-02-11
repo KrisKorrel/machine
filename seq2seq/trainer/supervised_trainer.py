@@ -235,7 +235,7 @@ class SupervisedTrainer(object):
                     max_variance = max(var_best)
 
                     self.writer.add_scalar("loss/validation", loss, step)
-                    self.writer.add_scalar("loss/validation", loss, step)
+                    self.writer.add_scalar("variance/validation", variance, step)
                     
                     #if loss < max_eval_loss:
                     if variance > max_variance:
