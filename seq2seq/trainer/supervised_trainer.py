@@ -109,7 +109,7 @@ class SupervisedTrainer(object):
 
         # store initial model to be sure at least one model is stored
         eval_data = dev_data or data
-        loss, accuracy, seq_accuracy, variance = self.evaluator.evaluate(model, eval_data, self.writer, step)
+        loss, accuracy, seq_accuracy, variance = self.evaluator.evaluate(model, eval_data, reg_scale, self.writer, step)
         loss_best = top_k*[loss]
         var_best = top_k*[variance]
         best_checkpoints = top_k*[None]
@@ -164,7 +164,7 @@ class SupervisedTrainer(object):
                 # check if new model should be saved
                 if step % self.checkpoint_every == 0 or step == total_steps:
                     # compute dev loss
-                    loss, accuracy, seq_accuracy, variance = self.evaluator.evaluate(model, eval_data, self.writer, step)
+                    loss, accuracy, seq_accuracy, variance = self.evaluator.evaluate(model, eval_data, reg_scale, self.writer, step)
                     max_eval_loss = max(loss_best)
                     max_variance = max(var_best)
 
@@ -199,7 +199,7 @@ class SupervisedTrainer(object):
             epoch_loss_total = 0
             log_msg = "Finished epoch %d: Train %s: %.4f" % (epoch, self.loss.name, epoch_loss_avg)
             if dev_data is not None:
-                dev_loss, accuracy, seq_accuracy, variance = self.evaluator.evaluate(model, dev_data, self.writer, step)
+                dev_loss, accuracy, seq_accuracy, variance = self.evaluator.evaluate(model, dev_data, reg_scale, self.writer, step)
                 self.optimizer.update(dev_loss, epoch)
                 log_msg += ", Dev %s: %.4f, Accuracy: %.4f, Sequence Accuracy: %.4f, Variance: %.4f" % (self.loss.name, dev_loss, accuracy, seq_accuracy, variance)
                 model.train(mode=True)

@@ -20,7 +20,7 @@ class Evaluator(object):
         self.loss = loss
         self.batch_size = batch_size
 
-    def evaluate(self, model, data, writer=None, run_step=0):
+    def evaluate(self, model, data, reg_scale, writer=None, run_step=0):
         """ Evaluate a model on given dataset and return performance.
 
         Args:
@@ -116,6 +116,8 @@ class Evaluator(object):
         else:
             seq_accuracy = seq_match/seq_total
 
+        loss.acc_loss += -reg_scale * variance
+
         print("TODO: Evaluator loss and variance are not correct")
 
-        return loss.get_loss() + 1000*(3.25 - variance), accuracy, seq_accuracy, variance
+        return loss.get_loss(), accuracy, seq_accuracy, variance

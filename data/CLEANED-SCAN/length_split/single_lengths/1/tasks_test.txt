@@ -1,0 +1,6 @@
+ look	I_LOOK
+ jump	I_JUMP
+ run	I_RUN
+ turn right	I_TURN_RIGHT
+ walk	I_WALK
+ turn left	I_TURN_LEFT
