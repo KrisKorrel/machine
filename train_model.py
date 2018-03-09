@@ -87,7 +87,7 @@ else:
     dev = None
 
 #################################################################################
-# prepare model
+# prepare learner model
 
 if opt.load_checkpoint is not None:
     logging.info("loading checkpoint from {}".format(os.path.join(opt.output_dir, opt.load_checkpoint)))
