@@ -60,6 +60,13 @@ class SupervisedTrainer(object):
         decoder_outputs, decoder_hidden, other = model(input_variable, input_lengths, target_variable,
                                                        teacher_forcing_ratio=teacher_forcing_ratio)
 
+        # print(decoder_outputs)
+
+        if self.ponderer is not None:
+            decoder_outputs = self.ponderer.mask_silent_outputs(input_variable, input_lengths, decoder_outputs)
+            decoder_targets = self.ponderer.mask_silent_targets(input_variable, input_lengths, target_variable['decoder_output'])
+            target_variable['decoder_output'] = decoder_targets
+
         losses = self.evaluator.compute_batch_loss(decoder_outputs, decoder_hidden, other, target_variable)
         
         # Backward propagation
