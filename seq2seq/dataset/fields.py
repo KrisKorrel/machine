@@ -29,8 +29,10 @@ class TargetField(torchtext.data.Field):
     SYM_EOS = '<eos>'
     remove_output_eos = False
 
-    def __init__(self, **kwargs):
+    def __init__(self, remove_output_eos, **kwargs):
         logger = logging.getLogger(__name__)
+
+        self.remove_output_eos = remove_output_eos
 
         if kwargs.get('batch_first') == False:
             logger.warning("Option batch_first has to be set to use pytorch-seq2seq.  Changed to True.")
@@ -55,5 +57,6 @@ class TargetField(torchtext.data.Field):
         super(TargetField, self).build_vocab(*args, **kwargs)
         self.sos_id = self.vocab.stoi[self.SYM_SOS]
         self.eos_id = self.vocab.stoi[self.SYM_EOS]
+        
         if self.remove_output_eos:
             self.eos_id = self.vocab.stoi[self.pad_token]

@@ -42,6 +42,8 @@ parser.add_argument('--attention', choices=['pre-rnn', 'post-rnn'], default=Fals
 parser.add_argument('--attention_method', choices=['dot', 'mlp'], default=None)
 parser.add_argument('--batch_size', type=int, help='Batch size', default=32)
 parser.add_argument('--lr', type=float, help='Learning rate, recommended settings.\nrecommended settings: adam=0.001 adadelta=1.0 adamax=0.002 rmsprop=0.01 sgd=0.1', default=0.001)
+parser.add_argument('--use_input_eos', action='store_true', help='EOS symbol in input sequences is not used by default. Use this flag to enable.')
+parser.add_argument('--remove_output_eos', action='store_true', help='Set to true to not use an EOS symbol in the output')
 
 parser.add_argument('--load_checkpoint', help='The name of the checkpoint to load, usually an encoded time string')
 parser.add_argument('--save_every', type=int, help='Every how many batches the model should be saved', default=100)
@@ -69,8 +71,8 @@ if opt.attention:
 
 ############################################################################
 # Prepare dataset
-src = SourceField()
-tgt = TargetField()
+src = SourceField(use_input_eos=opt.use_input_eos)
+tgt = TargetField(remove_output_eos=opt.remove_output_eos) # TODO: What happens when we load source and target fields in evaluate or inference?
 max_len = opt.max_len
 
 def len_filter(example):
