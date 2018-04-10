@@ -8,7 +8,7 @@ USE_ATTENTION_LOSS=false
 
 TRAIN=data/lookup-3bit/train.csv
 DEV=data/lookup-3bit/validation.csv
-OUTPUT_DIR=baseline_pre
+OUTPUT_DIR=improved_post
 TEST_PATH1=data/lookup-3bit/test1_heldout.csv
 TEST_PATH2=data/lookup-3bit/test2_subset.csv
 TEST_PATH3=data/lookup-3bit/test3_hybrid.csv
@@ -28,10 +28,10 @@ BATCH_SIZE=1
 EVAL_BATCH_SIZE=128
 OPTIM='sgd'
 LR=0.01
-SAVE_EVERY=10
+SAVE_EVERY=100
 PRINT_EVERY=99999999999999999
-ATTENTION='pre-rnn'
-ATTTENTION_METHOD='mlp'
+ATTENTION='post-rnn'
+ATTTENTION_METHOD='hard'
 
 echo "Start training"
 python train_model.py \

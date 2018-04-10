@@ -30,7 +30,7 @@ parser.add_argument('--batch_size', type=int, help='Batch size', default=32)
 parser.add_argument('--pondering', action='store_true')
 
 parser.add_argument('--attention', choices=['pre-rnn', 'post-rnn'], default=False)
-parser.add_argument('--attention_method', choices=['dot', 'mlp'], default=None)
+parser.add_argument('--attention_method', choices=['dot', 'mlp', 'hard'], default=None)
 parser.add_argument('--use_attention_loss', action='store_true')
 parser.add_argument('--scale_attention_loss', type=float, default=1.)
 
@@ -96,8 +96,7 @@ if opt.pondering:
     ponderer = LookupTablePonderer(pad_token=pad)
 attention_function = None
 if opt.use_attention_loss:
-    attention_function = LookupTableAttention(pad_value=IGNORE_INDEX, use_input_eos=opt.use_input_eos, ignore_output_eos=opt.ignore_output_eos)
-    data_func = AttentionTrainer.get_batch_data
+    attention_function = LookupTableAttention(pad_value=IGNORE_INDEX, input_eos_used=opt.use_input_eos, ignore_output_eos=opt.ignore_output_eos)
 
 #################################################################################
 # Evaluate model on test set
