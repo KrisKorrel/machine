@@ -10,7 +10,7 @@ from seq2seq.loss import Perplexity, AttentionLoss, NLLLoss
 from seq2seq.metrics import WordAccuracy, SequenceAccuracy, FinalTargetAccuracy
 from seq2seq.dataset import SourceField, TargetField
 from seq2seq.evaluator import Evaluator
-from seq2seq.trainer import SupervisedTrainer, LookupTableAttention, LookupTablePonderer, AttentionTrainer
+from seq2seq.trainer import SupervisedTrainer, LookupTableAttention, LookupTablePonderer
 from seq2seq.util.checkpoint import Checkpoint
 from seq2seq.trainer import SupervisedTrainer
 
@@ -96,14 +96,14 @@ if opt.pondering:
     ponderer = LookupTablePonderer(pad_token=pad)
 attention_function = None
 if opt.use_attention_loss:
-    attention_function = LookupTableAttention(pad_value=IGNORE_INDEX, ignore_output_eos=opt.ignore_output_eos)
+    attention_function = LookupTableAttention(pad_value=IGNORE_INDEX, use_input_eos=opt.use_input_eos, ignore_output_eos=opt.ignore_output_eos)
     data_func = AttentionTrainer.get_batch_data
 
 #################################################################################
 # Evaluate model on test set
 
-evaluator = Evaluator(batch_size=opt.batch_size, loss=losses, metrics=metrics, ignore_output_eos=opt.ignore_output_eos)
-losses, metrics = evaluator.evaluate(model=seq2seq, data=test, get_batch_data=data_func, ponderer=ponderer, attention_function=attention_function)
+evaluator = Evaluator(batch_size=opt.batch_size, losses=losses, metrics=metrics, ignore_output_eos=opt.ignore_output_eos)
+losses, metrics = evaluator.evaluate(model=seq2seq, data=test, ponderer=ponderer, attention_function=attention_function)
 
 total_loss, log_msg, _ = SupervisedTrainer.print_eval(losses, metrics, 0)
 
