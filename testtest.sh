@@ -57,7 +57,7 @@ python train_model.py \
     --attention_method $ATTTENTION_METHOD \
     --ignore_output_eos \
     --use_attention_loss \
-    --pondering
+    --scale_attention_loss 1
 
 echo 'Stop training'
 echo 'Start testing'
@@ -72,7 +72,8 @@ python evaluate.py \
     --attention_method $ATTTENTION_METHOD \
     --ignore_output_eos \
     --use_attention_loss \
-    --pondering
+    --scale_attention_loss 1
+    
 
 echo '\nDev set'
 python evaluate.py \
@@ -84,7 +85,8 @@ python evaluate.py \
     --attention_method $ATTTENTION_METHOD \
     --ignore_output_eos \
     --use_attention_loss \
-    --pondering
+    --scale_attention_loss 1
+    
 
 echo '\nTest test1_heldout'
 python evaluate.py \
@@ -96,7 +98,8 @@ python evaluate.py \
     --attention_method $ATTTENTION_METHOD \
     --ignore_output_eos \
     --use_attention_loss \
-    --pondering
+    --scale_attention_loss 1
+    
 
 echo '\nTest test2_subset'
 python evaluate.py \
@@ -108,7 +111,8 @@ python evaluate.py \
     --attention_method $ATTTENTION_METHOD \
     --ignore_output_eos \
     --use_attention_loss \
-    --pondering
+    --scale_attention_loss 1
+    
 
 
 echo '\nTest test3_hybrid'
@@ -121,7 +125,8 @@ python evaluate.py \
     --attention_method $ATTTENTION_METHOD \
     --ignore_output_eos \
     --use_attention_loss \
-    --pondering
+    --scale_attention_loss 1
+    
 
 echo '\nTest test4_unseen'
 python evaluate.py \
@@ -133,7 +138,8 @@ python evaluate.py \
     --attention_method $ATTTENTION_METHOD \
     --ignore_output_eos \
     --use_attention_loss \
-    --pondering
+    --scale_attention_loss 1
+    
 
 echo '\nTest test5_longer'
 python evaluate.py \
@@ -145,4 +151,5 @@ python evaluate.py \
     --attention_method $ATTTENTION_METHOD \
     --ignore_output_eos \
     --use_attention_loss \
-    --pondering
+    --scale_attention_loss 1
+
