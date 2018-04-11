@@ -15,7 +15,7 @@ TEST_PATH3=data/lookup-3bit/test3_hybrid.csv
 TEST_PATH4=data/lookup-3bit/test4_unseen.csv
 TEST_PATH5=data/lookup-3bit/test5_longer.csv
 
-EPOCHS=200
+EPOCHS=500
 MAX_LEN=50
 RNN_CELL='gru'
 EMBEDDING_SIZE=300

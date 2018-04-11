@@ -15,7 +15,7 @@ TEST_PATH3=data/lookup-3bit/test3_hybrid.csv
 TEST_PATH4=data/lookup-3bit/test4_unseen.csv
 TEST_PATH5=data/lookup-3bit/test5_longer.csv
 
-EPOCHS=200
+EPOCHS=500
 MAX_LEN=50
 RNN_CELL='gru'
 EMBEDDING_SIZE=300
@@ -58,6 +58,7 @@ python train_model.py \
     --use_input_eos \
     --ignore_output_eos \
 
+
 echo 'Stop training'
 echo 'Start testing'
 
@@ -71,7 +72,8 @@ python evaluate.py \
     --attention_method $ATTTENTION_METHOD \
     --use_input_eos \
     --ignore_output_eos \
-    --use_attention_loss
+    --use_attention_loss \
+
 
 echo '\nDev set'
 python evaluate.py \
@@ -83,7 +85,8 @@ python evaluate.py \
     --attention_method $ATTTENTION_METHOD \
     --use_input_eos \
     --ignore_output_eos \
-    --use_attention_loss
+    --use_attention_loss \
+
 
 echo '\nTest test1_heldout'
 python evaluate.py \
@@ -95,7 +98,8 @@ python evaluate.py \
     --attention_method $ATTTENTION_METHOD \
     --use_input_eos \
     --ignore_output_eos \
-    --use_attention_loss
+    --use_attention_loss \
+
 
 echo '\nTest test2_subset'
 python evaluate.py \
@@ -107,7 +111,8 @@ python evaluate.py \
     --attention_method $ATTTENTION_METHOD \
     --use_input_eos \
     --ignore_output_eos \
-    --use_attention_loss
+    --use_attention_loss \
+
 
 
 echo '\nTest test3_hybrid'
@@ -120,7 +125,8 @@ python evaluate.py \
     --attention_method $ATTTENTION_METHOD \
     --use_input_eos \
     --ignore_output_eos \
-    --use_attention_loss
+    --use_attention_loss \
+
 
 echo '\nTest test4_unseen'
 python evaluate.py \
@@ -132,7 +138,8 @@ python evaluate.py \
     --attention_method $ATTTENTION_METHOD \
     --use_input_eos \
     --ignore_output_eos \
-    --use_attention_loss
+    --use_attention_loss \
+
 
 echo '\nTest test5_longer'
 python evaluate.py \
@@ -144,4 +151,5 @@ python evaluate.py \
     --attention_method $ATTTENTION_METHOD \
     --use_input_eos \
     --ignore_output_eos \
-    --use_attention_loss
+    --use_attention_loss \
+
