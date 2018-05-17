@@ -104,9 +104,11 @@ class SupervisedTrainer(object):
 
         total_loss, log_msg, model_name = self.get_losses(losses, metrics, step)
         print(log_msg)
+        k_acc = metrics[0].get_val()
 
         logs = Log()
         loss_best = top_k*[total_loss]
+        k_acc_best = top_k*[k_acc]
         best_checkpoints = top_k*[None]
         best_checkpoints[0] = model_name
 
@@ -178,13 +180,20 @@ class SupervisedTrainer(object):
                     total_loss, log_msg, model_name = self.get_losses(losses, metrics, step)
 
                     max_eval_loss = max(loss_best)
-                    if total_loss < max_eval_loss:
+                    min_eval_k_acc = min(k_acc_best)
+                    k_acc = metrics[0].get_val()
+
+                    # if total_loss < max_eval_loss:
+                    if k_acc >= min_eval_k_acc:
                             index_max = loss_best.index(max_eval_loss)
+                            index_max = k_acc_best.index(min_eval_k_acc)
+
                             # rm prev model
                             if best_checkpoints[index_max] is not None:
                                 shutil.rmtree(os.path.join(self.expt_dir, best_checkpoints[index_max]))
                             best_checkpoints[index_max] = model_name
                             loss_best[index_max] = total_loss
+                            k_acc_best[index_max] = k_acc
 
                             # save model
                             Checkpoint(model=model,

@@ -116,6 +116,9 @@ class Evaluator(object):
                 input_variable, input_lengths, target_variable = get_batch_data(batch)
 
                 decoder_outputs, decoder_hidden, other = model(input_variable, input_lengths.tolist(), target_variable)
+                
+                # We must have the inputs to check the k-grammar accuracy. This migth not be the best way though..
+                target_variable['encoder_input'] = input_variable
 
                 # apply metrics over entire sequence
                 metrics = self.update_batch_metrics(metrics, other, target_variable)
