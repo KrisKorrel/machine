@@ -156,6 +156,8 @@ class DecoderRNN(BaseRNN):
             output_1, hidden = self.rnn(embedded, hidden)
             context, attn = self.attention(output_1, encoder_embeddings, **attention_method_kwargs)
             print(attn[0])
+            attn, attn_soft = gumbel_softmax(logits=attn.squeeze(1), tau=0.5, hard=True, eps=1e-20)
+            print(attn[0])
             output, self.decoder_2_hidden = self.rnn_2(context, self.decoder_2_hidden)
 
         elif not self.use_attention:
