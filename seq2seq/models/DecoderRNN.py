@@ -8,7 +8,6 @@ import torch.nn.functional as F
 
 from .attention import Attention, HardGuidance
 from .baseRNN import BaseRNN
-from ..util.gumbel import gumbel_softmax
 
 if torch.cuda.is_available():
     import torch.cuda as device
@@ -156,8 +155,6 @@ class DecoderRNN(BaseRNN):
             output_1, hidden = self.rnn(embedded, hidden)
             context, attn = self.attention(output_1, encoder_embeddings, **attention_method_kwargs)
             print(attn[0])
-            attn, attn_soft = gumbel_softmax(logits=attn.squeeze(1), tau=0.5, hard=True, eps=1e-20)
-            print(attn[0])
             output, self.decoder_2_hidden = self.rnn_2(context, self.decoder_2_hidden)
 
         elif not self.use_attention:
@@ -263,9 +260,10 @@ class DecoderRNN(BaseRNN):
                     step_attn = None
                 decode(di, step_output, step_attn)
 
-        print("\n")
         ret_dict[DecoderRNN.KEY_SEQUENCE] = sequence_symbols
         ret_dict[DecoderRNN.KEY_LENGTH] = lengths.tolist()
+
+        print("\n")
 
         return decoder_outputs, decoder_hidden, ret_dict
 

@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-
+from ..util.gumbel import gumbel_softmax
 
 class Attention(nn.Module):
     """
@@ -72,6 +72,9 @@ class Attention(nn.Module):
         attn.masked_fill_(mask, -float('inf'))
 
         attn = F.softmax(attn.view(-1, input_size), dim=1).view(batch_size, -1, input_size)
+
+        attn, attn_soft = gumbel_softmax(logits=attn.squeeze(1), tau=0.5, hard=True, eps=1e-20)
+        attn = attn.unsqueeze(1)
 
         # (batch, out_len, in_len) * (batch, in_len, dim) -> (batch, out_len, dim)
         context = torch.bmm(attn, encoder_states)
