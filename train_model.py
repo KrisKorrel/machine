@@ -21,6 +21,8 @@ from seq2seq.dataset import SourceField, TargetField, AttentionField
 from seq2seq.evaluator import Predictor, Evaluator
 from seq2seq.util.checkpoint import Checkpoint
 
+torch.set_printoptions(precision=2, profile='short')
+
 try:
     raw_input          # Python 2
 except NameError:

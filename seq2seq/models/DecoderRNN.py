@@ -8,6 +8,7 @@ import torch.nn.functional as F
 
 from .attention import Attention, HardGuidance
 from .baseRNN import BaseRNN
+from ..util.gumbel import gumbel_softmax
 
 if torch.cuda.is_available():
     import torch.cuda as device
@@ -111,8 +112,9 @@ class DecoderRNN(BaseRNN):
                 self.ffocus_merge = nn.Linear(2*self.hidden_size, hidden_size)
         elif use_attention == 'new':
             self.out = nn.Linear(self.hidden_size, self.output_size)
+        self.expand_embeddings = nn.Linear(256, self.hidden_size)
 
-    def forward_step(self, input_var, hidden, encoder_outputs, function, **attention_method_kwargs):
+    def forward_step(self, input_var, hidden, encoder_outputs, encoder_embeddings, function, **attention_method_kwargs):
         """
         Performs one or multiple forward decoder steps.
         
@@ -152,7 +154,7 @@ class DecoderRNN(BaseRNN):
 
         elif self.use_attention == 'new':
             output_1, hidden = self.rnn(embedded, hidden)
-            context, attn = self.attention(output_1, encoder_outputs, **attention_method_kwargs)
+            context, attn = self.attention(output_1, encoder_embeddings, **attention_method_kwargs)
             print(attn[0])
             output, self.decoder_2_hidden = self.rnn_2(context, self.decoder_2_hidden)
 
@@ -164,7 +166,7 @@ class DecoderRNN(BaseRNN):
 
         return predicted_softmax, hidden, attn
 
-    def forward(self, inputs=None, encoder_hidden=None, encoder_outputs=None,
+    def forward(self, inputs=None, encoder_hidden=None, encoder_outputs=None, encoder_embeddings=None,
                     function=F.log_softmax, teacher_forcing_ratio=0, provided_attention=None):
 
         ret_dict = dict()
@@ -213,6 +215,11 @@ class DecoderRNN(BaseRNN):
         # TODO: Currently only works with unrolling
         unrolling = True
 
+        original_size = encoder_embeddings.size()
+        encoder_embeddings_batchified = encoder_embeddings.view(-1, 256)
+        encoder_embeddings_expanded = self.expand_embeddings(encoder_embeddings_batchified)
+        encoder_embeddings = encoder_embeddings_expanded.view(original_size[0], original_size[1], -1)
+
         if unrolling:
             symbols = None
             for di in range(max_length):
@@ -229,7 +236,7 @@ class DecoderRNN(BaseRNN):
                 # Perform one forward step
                 if self.attention and isinstance(self.attention.method, HardGuidance):
                     attention_method_kwargs['step'] = di
-                decoder_output, decoder_hidden, step_attn = self.forward_step(decoder_input, decoder_hidden, encoder_outputs,
+                decoder_output, decoder_hidden, step_attn = self.forward_step(decoder_input, decoder_hidden, encoder_outputs, encoder_embeddings,
                                                                          function=function, **attention_method_kwargs)
                 # Remove the unnecessary dimension.
                 step_output = decoder_output.squeeze(1)

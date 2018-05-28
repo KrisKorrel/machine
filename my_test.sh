@@ -1,18 +1,18 @@
 #! /bin/sh
 
 TRAIN_PATH=../machine-tasks/LookupTables/lookup-3bit/samples/sample1/train.tsv
-DEV_PATH=../machine-tasks/LookupTables/lookup-3bit/samples/sample1/train.tsv
+DEV_PATH=../machine-tasks/LookupTables/lookup-3bit/samples/sample1/validation.tsv
 EXPT_DIR=example
 
 # set values
-EMB_SIZE=32
+EMB_SIZE=256
 H_SIZE=256
 N_LAYERS=1
 CELL='lstm'
 EPOCH=1000
 PRINT_EVERY=99999999999
 TF=0.5
-BS=1024
+BS=5
 EBS=1024
 ATTN='new'
 ATTN_METHOD='mlp'

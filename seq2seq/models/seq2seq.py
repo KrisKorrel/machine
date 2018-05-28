@@ -55,10 +55,11 @@ class Seq2seq(nn.Module):
             provided_attention = None
 
 
-        encoder_outputs, encoder_hidden = self.encoder(input_variable, input_lengths)
+        encoder_outputs, encoder_hidden, encoder_embeddings = self.encoder(input_variable, input_lengths)
         result = self.decoder(inputs=target_output,
                               encoder_hidden=encoder_hidden,
                               encoder_outputs=encoder_outputs,
+                              encoder_embeddings=encoder_embeddings,
                               function=self.decode_function,
                               teacher_forcing_ratio=teacher_forcing_ratio,
                               provided_attention=provided_attention)
