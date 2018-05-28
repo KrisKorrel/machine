@@ -87,6 +87,7 @@ class DecoderRNN(BaseRNN):
             input_size*=2
 
         self.rnn = self.rnn_cell(input_size, hidden_size, n_layers, batch_first=True, dropout=dropout_p)
+        self.rnn_2 = torch.nn.LSTM(hidden_size, hidden_size, n_layers, batch_first=True, dropout=dropout_p)
 
         self.output_size = vocab_size
         self.max_length = max_len
@@ -104,10 +105,12 @@ class DecoderRNN(BaseRNN):
 
         if use_attention == 'post-rnn':
             self.out = nn.Linear(2*self.hidden_size, self.output_size)
-        else:
+        elif use_attention == 'pre-rnn':
             self.out = nn.Linear(self.hidden_size, self.output_size)
             if self.full_focus:
                 self.ffocus_merge = nn.Linear(2*self.hidden_size, hidden_size)
+        elif use_attention == 'new':
+            self.out = nn.Linear(self.hidden_size, self.output_size)
 
     def forward_step(self, input_var, hidden, encoder_outputs, function, **attention_method_kwargs):
         """
@@ -146,6 +149,12 @@ class DecoderRNN(BaseRNN):
             # Apply the attention method to get the attention vector and weighted context vector. Provide decoder step for hard attention
             context, attn = self.attention(output, encoder_outputs, **attention_method_kwargs)
             output = torch.cat((context, output), dim=2)
+
+        elif self.use_attention == 'new':
+            output_1, hidden = self.rnn(embedded, hidden)
+            context, attn = self.attention(output_1, encoder_outputs, **attention_method_kwargs)
+            print(attn[0])
+            output, self.decoder_2_hidden = self.rnn_2(context, self.decoder_2_hidden)
 
         elif not self.use_attention:
             attn = None
@@ -201,6 +210,9 @@ class DecoderRNN(BaseRNN):
         else:
             unrolling = False
 
+        # TODO: Currently only works with unrolling
+        unrolling = True
+
         if unrolling:
             symbols = None
             for di in range(max_length):
@@ -208,6 +220,8 @@ class DecoderRNN(BaseRNN):
                 # When we use teacher forcing, we always use the target input.
                 if di == 0 or use_teacher_forcing:
                     decoder_input = inputs[:, di].unsqueeze(1)
+                    # Initialize decoder2 hidden state to zeroes
+                    self.decoder_2_hidden = (torch.zeros(1, inputs.size(0), self.hidden_size), torch.zeros(1, inputs.size(0), self.hidden_size))
                 # If we don't use teacher forcing (and we are beyond the first SOS step), we use the last output as new input
                 else:
                     decoder_input = symbols
@@ -240,6 +254,7 @@ class DecoderRNN(BaseRNN):
                     step_attn = None
                 decode(di, step_output, step_attn)
 
+        print("\n")
         ret_dict[DecoderRNN.KEY_SEQUENCE] = sequence_symbols
         ret_dict[DecoderRNN.KEY_LENGTH] = lengths.tolist()
 
