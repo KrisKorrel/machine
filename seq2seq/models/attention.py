@@ -71,8 +71,6 @@ class Attention(nn.Module):
         # apply local mask
         attn.masked_fill_(mask, -float('inf'))
 
-        attn = F.softmax(attn.view(-1, input_size), dim=1).view(batch_size, -1, input_size)
-
         attn, attn_soft = gumbel_softmax(logits=attn.squeeze(1), tau=0.5, hard=True, eps=1e-20)
         attn = attn.unsqueeze(1)
 
