@@ -1,7 +1,7 @@
 #! /bin/sh
 
 TRAIN_PATH=../machine-tasks/LookupTables/lookup-3bit/samples/sample1/train.tsv
-DEV_PATH=../machine-tasks/LookupTables/lookup-3bit/samples/sample1/train.tsv
+DEV_PATH=../machine-tasks/LookupTables/lookup-3bit/samples/sample1/validation.tsv
 EXPT_DIR=example
 
 # set values
