@@ -75,11 +75,12 @@ class Attention(nn.Module):
 
         use_gumbel = True
         if use_gumbel:
+            temperature = attention_method_kwargs['temperature']
             training_mode = True # Set to true to always use gumbel. Set to self.training to use argmax at inference instead
             if training_mode:
                 print(F.softmax(attn.squeeze(1)[0], dim=0))
                 attn = F.log_softmax(attn.squeeze(1), dim=1)
-                attn, attn_soft = gumbel_softmax(logits=attn, tau=0.5, hard=True, eps=1e-20)
+                attn, attn_soft = gumbel_softmax(logits=attn, tau=temperature, hard=True, eps=1e-20)
                 attn = attn.unsqueeze(1)
             else:
                 print(F.softmax(attn.squeeze(1)[0], dim=0))

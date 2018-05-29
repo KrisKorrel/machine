@@ -87,7 +87,7 @@ class DecoderRNN(BaseRNN):
             input_size*=2
 
         self.rnn = self.rnn_cell(input_size, hidden_size, n_layers, batch_first=True, dropout=dropout_p)
-        self.rnn_2 = torch.nn.LSTM(hidden_size, hidden_size, n_layers, batch_first=True, dropout=dropout_p)
+        self.rnn_2 = self.rnn_cell(hidden_size, hidden_size, n_layers, batch_first=True, dropout=dropout_p)
 
         self.output_size = vocab_size
         self.max_length = max_len
@@ -111,6 +111,9 @@ class DecoderRNN(BaseRNN):
                 self.ffocus_merge = nn.Linear(2*self.hidden_size, hidden_size)
         elif use_attention == 'new':
             self.out = nn.Linear(self.hidden_size, self.output_size)
+            self.temperature_regressor = nn.Linear(self.hidden_size, 1)
+            self.temperature_regressor_activation = nn.Softplus()
+            self.temperature_minimum = 1
         self.expand_embeddings = nn.Linear(256, self.hidden_size)
 
     def forward_step(self, input_var, hidden, encoder_outputs, encoder_embeddings, function, **attention_method_kwargs):
@@ -153,7 +156,12 @@ class DecoderRNN(BaseRNN):
 
         elif self.use_attention == 'new':
             output_1, hidden = self.rnn(embedded, hidden)
+            # Also pass encoder embeddings to attention mechanism, so that can potentially be used for either attention vector calculation
+            # or to use in the context vector. This behaviour is hard-coded though in the Attention class.
             attention_method_kwargs['encoder_embeddings'] = encoder_embeddings
+            # Calculate the temperature and pass to the attention mechanism
+            temperature = self.temperature_minimum + self.temperature_regressor_activation(self.temperature_regressor(output_1[:,0,:]))
+            attention_method_kwargs['temperature'] = temperature
             context, attn = self.attention(output_1, encoder_outputs, **attention_method_kwargs)
             output, self.decoder_2_hidden = self.rnn_2(context, self.decoder_2_hidden)
 
@@ -227,7 +235,11 @@ class DecoderRNN(BaseRNN):
                 if di == 0 or use_teacher_forcing:
                     decoder_input = inputs[:, di].unsqueeze(1)
                     # Initialize decoder2 hidden state to zeroes
-                    self.decoder_2_hidden = (torch.zeros(1, inputs.size(0), self.hidden_size), torch.zeros(1, inputs.size(0), self.hidden_size))
+                    if isinstance(self.rnn_cell, nn.LSTM):
+                        self.decoder_2_hidden = (torch.zeros(1, inputs.size(0), self.hidden_size), torch.zeros(1, inputs.size(0), self.hidden_size))
+                    else:
+                        self.decoder_2_hidden = torch.zeros(1, inputs.size(0), self.hidden_size)
+
                 # If we don't use teacher forcing (and we are beyond the first SOS step), we use the last output as new input
                 else:
                     decoder_input = symbols
