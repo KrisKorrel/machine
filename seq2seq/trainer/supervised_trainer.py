@@ -209,6 +209,12 @@ class SupervisedTrainer(object):
                 self.optimizer.update(loss_total, epoch)    # TODO check if this makes sense!
                 log_msg += ", Dev set: " + log_
                 model.train(mode=True)
+
+                losses, metrics = self.evaluator.evaluate(model, data, self.get_batch_data)
+                loss_total, log_, model_name = self.get_losses(losses, metrics, step)
+
+                log_msg += ", Train set: " + log_
+                model.train(mode=True)
             else:
                 self.optimizer.update(epoch_loss_avg, epoch) # TODO check if this makes sense!
 

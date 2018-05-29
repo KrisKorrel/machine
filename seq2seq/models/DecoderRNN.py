@@ -153,8 +153,8 @@ class DecoderRNN(BaseRNN):
 
         elif self.use_attention == 'new':
             output_1, hidden = self.rnn(embedded, hidden)
-            context, attn = self.attention(output_1, encoder_embeddings, **attention_method_kwargs)
-            print(attn[0])
+            attention_method_kwargs['encoder_embeddings'] = encoder_embeddings
+            context, attn = self.attention(output_1, encoder_outputs, **attention_method_kwargs)
             output, self.decoder_2_hidden = self.rnn_2(context, self.decoder_2_hidden)
 
         elif not self.use_attention:
@@ -260,10 +260,10 @@ class DecoderRNN(BaseRNN):
                     step_attn = None
                 decode(di, step_output, step_attn)
 
+        print("\n")
+
         ret_dict[DecoderRNN.KEY_SEQUENCE] = sequence_symbols
         ret_dict[DecoderRNN.KEY_LENGTH] = lengths.tolist()
-
-        print("\n")
 
         return decoder_outputs, decoder_hidden, ret_dict
 

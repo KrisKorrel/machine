@@ -63,7 +63,9 @@ class Attention(nn.Module):
         mask = encoder_states.eq(0.)[:, :, :1].transpose(1, 2)
 
         # Compute attention vals
-        attn = self.method(decoder_states, encoder_states, **attention_method_kwargs)
+        # Use either embeddings or states to calculate the attention vectors
+        # attn = self.method(decoder_states, attention_method_kwargs['encoder_embeddings'])
+        attn = self.method(decoder_states, encoder_states)
 
         if self.mask is not None:
             attn.masked_fill_(self.mask, -float('inf'))
@@ -73,18 +75,22 @@ class Attention(nn.Module):
 
         use_gumbel = True
         if use_gumbel:
-            if self.training:
-                attn = F.log_softmax(attn.squeeze(1))
-                print(F.softmax(attn.squeeze(1)[0]))
-                attn, attn_soft = gumbel_softmax(logits=attn, tau=2, hard=True, eps=1e-20)
+            training_mode = True # Set to true to always use gumbel. Set to self.training to use argmax at inference instead
+            if training_mode:
+                print(F.softmax(attn.squeeze(1)[0], dim=0))
+                attn = F.log_softmax(attn.squeeze(1), dim=1)
+                attn, attn_soft = gumbel_softmax(logits=attn, tau=0.5, hard=True, eps=1e-20)
                 attn = attn.unsqueeze(1)
             else:
+                print(F.softmax(attn.squeeze(1)[0], dim=0))
                 argmax = attn.argmax(dim=2, keepdim=True)
                 attn = torch.zeros_like(attn)
                 attn.scatter_(dim=2, index=argmax, value=1)
 
         # (batch, out_len, in_len) * (batch, in_len, dim) -> (batch, out_len, dim)
-        context = torch.bmm(attn, encoder_states)
+        # Use either embeddings or states in the context vector
+        context = torch.bmm(attn, attention_method_kwargs['encoder_embeddings'])
+        # context = torch.bmm(attn, encoder_states)
 
         return context, attn
 
