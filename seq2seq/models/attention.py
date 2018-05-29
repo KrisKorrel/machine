@@ -71,8 +71,17 @@ class Attention(nn.Module):
         # apply local mask
         attn.masked_fill_(mask, -float('inf'))
 
-        attn, attn_soft = gumbel_softmax(logits=attn.squeeze(1), tau=2, hard=True, eps=1e-20)
-        attn = attn.unsqueeze(1)
+        use_gumbel = True
+        if use_gumbel:
+            if self.training:
+                attn = F.log_softmax(attn.squeeze(1))
+                print(F.softmax(attn.squeeze(1)[0]))
+                attn, attn_soft = gumbel_softmax(logits=attn, tau=2, hard=True, eps=1e-20)
+                attn = attn.unsqueeze(1)
+            else:
+                argmax = attn.argmax(dim=2, keepdim=True)
+                attn = torch.zeros_like(attn)
+                attn.scatter_(dim=2, index=argmax, value=1)
 
         # (batch, out_len, in_len) * (batch, in_len, dim) -> (batch, out_len, dim)
         context = torch.bmm(attn, encoder_states)
