@@ -160,7 +160,8 @@ class DecoderRNN(BaseRNN):
             # or to use in the context vector. This behaviour is hard-coded though in the Attention class.
             attention_method_kwargs['encoder_embeddings'] = encoder_embeddings
             # Calculate the temperature and pass to the attention mechanism
-            temperature = self.temperature_minimum + self.temperature_regressor_activation(self.temperature_regressor(output_1[:,0,:]))
+            inverse_temperature = self.temperature_minimum + self.temperature_regressor_activation(self.temperature_regressor(output_1[:,0,:]))
+            temperature = 1. / inverse_temperature
             attention_method_kwargs['temperature'] = temperature
             context, attn = self.attention(output_1, encoder_outputs, **attention_method_kwargs)
             output, self.decoder_2_hidden = self.rnn_2(context, self.decoder_2_hidden)
