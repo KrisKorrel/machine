@@ -16,8 +16,8 @@ BS=1
 EBS=1024
 ATTN='new'
 ATTN_METHOD='mlp'
-DROPOUT_ENCODER=0.5
-DROPOUT_DECODER=0.5
+DROPOUT_ENCODER=0
+DROPOUT_DECODER=0
 
 # Start training
 echo "Train model on example data"

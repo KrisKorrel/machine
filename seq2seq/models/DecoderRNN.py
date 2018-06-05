@@ -9,10 +9,7 @@ import torch.nn.functional as F
 from .attention import Attention, HardGuidance
 from .baseRNN import BaseRNN
 
-if torch.cuda.is_available():
-    import torch.cuda as device
-else:
-    import torch as device
+device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
 
 
 class DecoderRNN(BaseRNN):
@@ -86,6 +83,10 @@ class DecoderRNN(BaseRNN):
         if use_attention == 'pre-rnn' and not full_focus:
             input_size*=2
 
+        self.informative_input = False
+        if not self.informative_input:
+            input_size = 1
+
         self.rnn = self.rnn_cell(input_size, hidden_size, n_layers, batch_first=True, dropout=dropout_p)
         self.rnn_2 = self.rnn_cell(hidden_size, hidden_size, n_layers, batch_first=True, dropout=dropout_p)
 
@@ -133,8 +134,11 @@ class DecoderRNN(BaseRNN):
         """
         batch_size = input_var.size(0)
         output_size = input_var.size(1)
-        embedded = self.embedding(input_var)
-        embedded = self.input_dropout(embedded)
+        if self.informative_input:
+            embedded = self.embedding(input_var)
+            embedded = self.input_dropout(embedded)
+        else:
+            embedded = input_var
 
         if self.use_attention == 'pre-rnn':
             h = hidden
@@ -244,6 +248,9 @@ class DecoderRNN(BaseRNN):
                 # If we don't use teacher forcing (and we are beyond the first SOS step), we use the last output as new input
                 else:
                     decoder_input = symbols
+
+                if not self.informative_input:
+                    decoder_input = torch.zeros([batch_size, 1, 1], requires_grad=False, device=device)
 
                 # Perform one forward step
                 if self.attention and isinstance(self.attention.method, HardGuidance):
