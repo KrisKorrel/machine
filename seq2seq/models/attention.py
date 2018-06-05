@@ -78,15 +78,16 @@ class Attention(nn.Module):
             temperature = attention_method_kwargs['temperature']
             training_mode = True # Set to true to always use gumbel. Set to self.training to use argmax at inference instead
             if training_mode:
-                print(F.softmax(attn.squeeze(1)[0], dim=0))
+                print(F.softmax(attn.squeeze(1), dim=1)[0])
                 attn = F.log_softmax(attn.squeeze(1), dim=1)
                 attn, attn_soft = gumbel_softmax(logits=attn, tau=temperature, hard=True, eps=1e-20)
                 attn = attn.unsqueeze(1)
             else:
-                print(F.softmax(attn.squeeze(1)[0], dim=0))
+                print(F.softmax(attn.squeeze(1), dim=1)[0])
                 argmax = attn.argmax(dim=2, keepdim=True)
                 attn = torch.zeros_like(attn)
                 attn.scatter_(dim=2, index=argmax, value=1)
+
 
         # (batch, out_len, in_len) * (batch, in_len, dim) -> (batch, out_len, dim)
         # Use either embeddings or states in the context vector

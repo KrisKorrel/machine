@@ -241,9 +241,9 @@ class DecoderRNN(BaseRNN):
                     decoder_input = inputs[:, di].unsqueeze(1)
                     # Initialize decoder2 hidden state to zeroes
                     if isinstance(self.rnn_cell, nn.LSTM):
-                        self.decoder_2_hidden = (torch.zeros(1, inputs.size(0), self.hidden_size), torch.zeros(1, inputs.size(0), self.hidden_size))
+                        self.decoder_2_hidden = (torch.zeros(1, inputs.size(0), self.hidden_size, device=device), torch.zeros(1, inputs.size(0), self.hidden_size, device=device))
                     else:
-                        self.decoder_2_hidden = torch.zeros(1, inputs.size(0), self.hidden_size)
+                        self.decoder_2_hidden = torch.zeros(1, inputs.size(0), self.hidden_size, device=device)
 
                 # If we don't use teacher forcing (and we are beyond the first SOS step), we use the last output as new input
                 else:
