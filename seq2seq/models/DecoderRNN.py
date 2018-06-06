@@ -123,11 +123,11 @@ class DecoderRNN(BaseRNN):
         if self.init_exec_dec_with == 'new':
             if isinstance(self.rnn, nn.LSTM):
                 self.hidden0 = (
-                    nn.Parameter(torch.zeros([self.n_layers, 1, self.hidden_size])),
-                    nn.Parameter(torch.zeros([self.n_layers, 1, self.hidden_size])))
+                    nn.Parameter(torch.zeros([self.n_layers, 1, self.hidden_size], device=device)),
+                    nn.Parameter(torch.zeros([self.n_layers, 1, self.hidden_size], device=device)))
 
             elif isinstance(self.rnn, nn.GRU):
-                self.hidden0 = nn.Parameter(torch.zeros([self.n_layers, 1, self.hidden_size]))
+                self.hidden0 = nn.Parameter(torch.zeros([self.n_layers, 1, self.hidden_size], device=device))
 
         self.attn_vals = attn_vals
 
