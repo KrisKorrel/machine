@@ -230,7 +230,6 @@ class DecoderRNN(BaseRNN):
         attention_method_kwargs = {}
         if self.attention and isinstance(self.attention.method, HardGuidance):
             attention_method_kwargs['provided_attention'] = provided_attention
-            attention_method_kwargs['attn_vals'] = possible_attn_vals[self.attn_vals]
         if self.attention and isinstance(self.attention.method, ProvidedAttentionVectors):
             attention_method_kwargs['provided_attention_vectors'] = provided_attention_vectors
             attention_method_kwargs['attn_vals'] = possible_attn_vals[self.attn_vals]

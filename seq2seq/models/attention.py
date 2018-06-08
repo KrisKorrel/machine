@@ -64,7 +64,10 @@ class Attention(nn.Module):
         input_size = encoder_states.size(1)
 
         # Get attention values. and remove it from the dictionary
-        attn_vals = attention_method_kwargs.pop('attn_vals')
+        if 'attn_vals' in attention_method_kwargs:
+            attn_vals = attention_method_kwargs.pop('attn_vals')
+        else:
+            attn_vals = encoder_states
 
         # compute mask
         mask = encoder_states.eq(0.)[:, :, :1].transpose(1, 2)
