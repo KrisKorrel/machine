@@ -89,7 +89,7 @@ class Understander(nn.Module):
             max_decoding_length (int): Maximum length till which the decoder should run
 
         Returns:
-            torch.tensor: [batch_size x max_output_length x max_input_length] tensor containing the probabilities for each decoder step to attend to each encoder step
+            torch.tensor: [batch_size x max_output_length x max_input_length] tensor containing the log-probabilities for each decoder step to attend to each encoder step
         """
         encoder_embeddings, encoded_hidden, encoder_outputs = self.encoder(input_variable=state)
 
@@ -100,8 +100,7 @@ class Understander(nn.Module):
         # Pick the correct attention keys
         attn_keys = possible_attn_keys[self.attn_keys] 
 
-        action_probs, decoder_states = self.decoder(encoder_outputs=encoder_outputs, hidden=encoded_hidden,
-                                    output_length=max_decoding_length, valid_action_mask=valid_action_mask, attn_keys=attn_keys)
+        action_logits, decoder_states = self.decoder(encoder_outputs=encoder_outputs, hidden=encoded_hidden, output_length=max_decoding_length, valid_action_mask=valid_action_mask, attn_keys=attn_keys)
 
         if  (self.training and self.sample_train == 'gumbel') or \
             (not self.training and self.sample_infer == 'gumbel'):
@@ -121,7 +120,7 @@ class Understander(nn.Module):
                 inverse_temperature = self.inverse_temperature_activation(self.inverse_temperature_estimator(estimator_input))
                 self.current_temperature = 1. / inverse_temperature
 
-        return action_probs, possible_attn_keys
+        return action_logits, possible_attn_keys
 
     def get_valid_action_mask(self, state, input_lengths):
         """
@@ -174,23 +173,23 @@ class Understander(nn.Module):
         # First, we establish which encoder states are valid to attend to.
         valid_action_mask = self.get_valid_action_mask(state, input_lengths)
         
-        # We perform a forward pass to get the probability of attending to each
+        # We perform a forward pass to get the log-probability of attending to each
         # encoder for each decoder
-        probabilities, possible_attn_keys = self.forward(state, valid_action_mask, max_decoding_length, possible_attn_keys)
+        action_log_probs, possible_attn_keys = self.forward(state, valid_action_mask, max_decoding_length, possible_attn_keys)
 
         # In RL settings, we want to stochastically choose a single action.
         if self.train_method == 'rl':
             actions = []
             for decoder_step in range(max_decoding_length):
-                # Get the probabilities for a single decoder time step
+                # Get the log-probabilities for a single decoder time step
                 # (batch_size x max_encoder_states)
-                probabilities_current_step = probabilities[:, decoder_step, :]
+                action_log_probs_current_step = action_log_probs[:, decoder_step, :]
 
                 # In training mode:
                 # Chance epsilon: Stochastically sample action from the policy
                 # Chance 1-eps:   Stochastically sample action from uniform distribution
                 if self.training:
-                    categorical_distribution_policy = Categorical(probs=probabilities_current_step)
+                    categorical_distribution_policy = Categorical(logits=action_log_probs_current_step)
 
                     # Perform epsilon-greedy action sampling
                     sample = random.random()
@@ -200,19 +199,17 @@ class Understander(nn.Module):
                     # Else we sample the actions from a uniform distribution (over the valid actions)
                     else:
                         # We don't need to normalize these to probabilities, as this is already
-                        # done in Categorical()
+                        # done in Categorical
                         uniform_probability_current_step = valid_action_mask.float()
-                        categorical_distribution_uniform = Categorical(
-                            probs=uniform_probability_current_step)
+                        categorical_distribution_uniform = Categorical(probs=uniform_probability_current_step)
                         action = categorical_distribution_uniform.sample()
 
                     log_prob = categorical_distribution_policy.log_prob(action)
 
                 # In inference mode: Just use greedy policy (argmax)
                 else:
-                    prob, action = probabilities_current_step.max(dim=1)
+                    log_prob, action = action_log_probs_current_step.max(dim=1)
                     action = action.long()
-                    log_prob = torch.log(prob)
 
                 # Append the action to the list of actions and store the log-probabilities of the chosen actions
                 actions.append(action)
@@ -223,7 +220,7 @@ class Understander(nn.Module):
 
         # In supervised training, we need to have a differentiable sample (at train time)
         elif self.train_method == 'supervised':
-            attn = probabilities
+            attn = action_log_probs
 
             batch_size          = attn.size(0)
             n_decoder_states    = attn.size(1)
@@ -236,7 +233,7 @@ class Understander(nn.Module):
 
                 elif self.sample_train == 'gumbel':
                     invalid_action_mask = valid_action_mask.eq(0).unsqueeze(1).expand(batch_size, n_decoder_states, n_encoder_states).contiguous().view(-1, n_encoder_states)
-                    attn = F.log_softmax(attn.view(-1, n_encoder_states), dim=1)
+                    attn = attn.view(-1, n_encoder_states)
                     attn_hard, attn_soft = gumbel_softmax(logits=attn, invalid_action_mask=invalid_action_mask, hard=True, tau=self.current_temperature, eps=1e-20)
                     attn = attn_hard.view(batch_size, -1, n_encoder_states)
 
@@ -247,7 +244,7 @@ class Understander(nn.Module):
 
                 elif self.sample_infer == 'gumbel':
                     invalid_action_mask = valid_action_mask.eq(0).unsqueeze(1).expand(batch_size, n_decoder_states, n_encoder_states).contiguous().view(-1, n_encoder_states)
-                    attn = F.log_softmax(attn.view(-1, n_encoder_states), dim=1)
+                    attn = attn.view(-1, n_encoder_states)
                     attn_hard, attn_soft = gumbel_softmax(logits=attn, invalid_action_mask=invalid_action_mask, hard=True, tau=self.current_temperature, eps=1e-20)
                     attn = attn_hard.view(batch_size, -1, n_encoder_states)
 
@@ -397,7 +394,7 @@ class UnderstanderDecoder(nn.Module):
     """
     Decoder of the understander model. It will forward a concatenation of each combination of
     decoder state and encoder state through a MLP with 1 hidden layer to produce a score.
-    We take the soft-max of this to calculate the probabilities. All encoder states that are associated
+    We take the log-softmax of this to calculate the logits. All encoder states that are associated
     with <pad> inputs are not taken into account for calculations.
     """
 
@@ -430,9 +427,9 @@ class UnderstanderDecoder(nn.Module):
         self.hidden_layer = nn.Linear(hidden_dim + key_dim, hidden_dim)
         self.hidden_activation = nn.ReLU()
 
-        # Final layer that produces the probabilities
+        # Final layer that produces the log-probabilities
         self.output_layer = nn.Linear(hidden_dim, 1)
-        self.output_activation = nn.Softmax(dim=2)
+        self.output_activation = nn.LogSoftmax(dim=2)
 
     def forward(self, encoder_outputs, hidden, output_length, valid_action_mask, attn_keys):
         """
@@ -445,7 +442,7 @@ class UnderstanderDecoder(nn.Module):
             valid_action_mask (torch.tensor): ByteTensor with a 0 for each encoder state that is associated with <pad> input
 
         Returns:
-            torch.tensor: [batch_size x dec_len x enc_len] Probabilities of choosing each encoder state for each decoder state
+            torch.tensor: [batch_size x dec_len x enc_len] Log-probabilities of choosing each encoder state for each decoder state
         """
 
         action_scores_list = []
@@ -523,7 +520,7 @@ class UnderstanderDecoder(nn.Module):
         invalid_action_mask = valid_action_mask.ne(1).unsqueeze(1).expand(-1, output_length, -1)
         action_scores.masked_fill_(invalid_action_mask, -float('inf'))
 
-        # For each decoder step, take the softmax over all actions to get probs
-        action_probs = self.output_activation(action_scores)
+        # For each decoder step, take the log-softmax over all actions to get log-probabilities
+        action_logits = self.output_activation(action_scores)
 
-        return action_probs, decoder_states
+        return action_logits, decoder_states
