@@ -102,8 +102,8 @@ class Understander(nn.Module):
 
         action_logits, decoder_states = self.decoder(encoder_outputs=encoder_outputs, hidden=encoded_hidden, output_length=max_decoding_length, valid_action_mask=valid_action_mask, attn_keys=attn_keys)
 
-        if  (self.training and self.sample_train == 'gumbel') or \
-            (not self.training and self.sample_infer == 'gumbel'):
+        if  (self.training and 'gumbel' in self.sample_train) or \
+            (not self.training and 'gumbel' in self.sample_infer):
             if self.learn_temperature == 'no':
                 self.current_temperature = self.temperature
 
@@ -231,22 +231,30 @@ class Understander(nn.Module):
                 if self.sample_train == 'full':
                     attn = attn
 
-                elif self.sample_train == 'gumbel':
+                elif 'gumbel' in self.sample_train:
                     invalid_action_mask = valid_action_mask.eq(0).unsqueeze(1).expand(batch_size, n_decoder_states, n_encoder_states).contiguous().view(-1, n_encoder_states)
                     attn = attn.view(-1, n_encoder_states)
                     attn_hard, attn_soft = gumbel_softmax(logits=attn, invalid_action_mask=invalid_action_mask, hard=True, tau=self.current_temperature, eps=1e-20)
-                    attn = attn_hard.view(batch_size, -1, n_encoder_states)
+                    
+                    if self.sample_train == 'gumbel_soft':
+                        attn = attn_soft.view(batch_size, -1, n_encoder_states)
+                    elif self.sample_train == 'gumbel_hard':
+                        attn = attn_soft.view(batch_size, -1, n_encoder_states) 
 
             # Inference mode
             else:
                 if self.sample_infer == 'full':
                     attn = attn
 
-                elif self.sample_infer == 'gumbel':
+                elif 'gumbel' in self.sample_infer:
                     invalid_action_mask = valid_action_mask.eq(0).unsqueeze(1).expand(batch_size, n_decoder_states, n_encoder_states).contiguous().view(-1, n_encoder_states)
                     attn = attn.view(-1, n_encoder_states)
                     attn_hard, attn_soft = gumbel_softmax(logits=attn, invalid_action_mask=invalid_action_mask, hard=True, tau=self.current_temperature, eps=1e-20)
-                    attn = attn_hard.view(batch_size, -1, n_encoder_states)
+                    
+                    if self.sample_infer == 'gumbel_soft':
+                        attn = attn_soft.view(batch_size, -1, n_encoder_states)
+                    elif self.sample_infer == 'gumbel_hard':
+                        attn = attn_soft.view(batch_size, -1, n_encoder_states) 
 
                 elif self.sample_infer == 'argmax':
                     argmax = attn.argmax(dim=2, keepdim=True)
