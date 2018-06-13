@@ -239,7 +239,7 @@ class Understander(nn.Module):
                     if self.sample_train == 'gumbel_soft':
                         attn = attn_soft.view(batch_size, -1, n_encoder_states)
                     elif self.sample_train == 'gumbel_hard':
-                        attn = attn_soft.view(batch_size, -1, n_encoder_states) 
+                        attn = attn_hard.view(batch_size, -1, n_encoder_states) 
 
             # Inference mode
             else:
@@ -254,7 +254,7 @@ class Understander(nn.Module):
                     if self.sample_infer == 'gumbel_soft':
                         attn = attn_soft.view(batch_size, -1, n_encoder_states)
                     elif self.sample_infer == 'gumbel_hard':
-                        attn = attn_soft.view(batch_size, -1, n_encoder_states) 
+                        attn = attn_hard.view(batch_size, -1, n_encoder_states) 
 
                 elif self.sample_infer == 'argmax':
                     argmax = attn.argmax(dim=2, keepdim=True)

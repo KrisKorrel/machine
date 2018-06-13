@@ -95,8 +95,9 @@ class Attention(nn.Module):
             attn = F.softmax(attn.view(-1, input_size), dim=1).view(batch_size, -1, input_size)
 
         # TODO: Should be true, but currently not the case as gumbel-softmax does not take into account padded encoder outputs/embeddings, which might be set to 0 above
-        eps = 1e-3
-        assert abs(torch.sum(attn) - attn.size(0) * attn.size(1)) < eps, "Sum: {}, Number of attention vectors: {}".format(torch.sum(attn), attn.size(0) * attn.size(1))
+        number_of_attention_vectors = attn.size(0) * attn.size(1)
+        eps =  1e-6 * number_of_attention_vectors
+        assert abs(torch.sum(attn) - number_of_attention_vectors) < eps, "Sum: {}, Number of attention vectors: {}".format(torch.sum(attn), number_of_attention_vectors)
 
         # (batch, out_len, in_len) * (batch, in_len, dim) -> (batch, out_len, dim)
         context = torch.bmm(attn, attn_vals)

@@ -87,7 +87,8 @@ class SupervisedTrainer(object):
         if not self.pre_train:
             # If we are in training mode (of the understander) we should not use the provided attention
             # indices, but generate them ourselves.
-            del target_variable['attention_target']
+            if 'attention_target' in target_variable:
+                del target_variable['attention_target']
 
             # We should provide an attention target / action for each decoder output. The target
             # however also includes the SOS. Hence the -1
@@ -307,7 +308,7 @@ class SupervisedTrainer(object):
                         print_loss_total[name] = 0
 
                     m_logs = {}
-                    train_losses, train_metrics = self.evaluator.evaluate(model, data, self.get_batch_data)
+                    train_losses, train_metrics = self.evaluator.evaluate(model, understander_model, val_data, self.get_batch_data, pre_train=self.pre_train)
                     train_loss, train_log_msg, model_name = self.get_losses(train_losses, train_metrics, step)
                     logs.write_to_log('Train', train_losses, train_metrics, step)
                     logs.update_step(step)
@@ -315,8 +316,10 @@ class SupervisedTrainer(object):
                     m_logs['Train'] = train_log_msg
 
                     # compute vals for all monitored sets
+                    log.info("Example temperature: {}".format(understander_model.current_temperature[0].item()))
+
                     for m_data in monitor_data:
-                        losses, metrics = self.evaluator.evaluate(model, monitor_data[m_data], self.get_batch_data)
+                        losses, metrics = self.evaluator.evaluate(model, understander_model, monitor_data[m_data], self.get_batch_data, pre_train=self.pre_train)
                         total_loss, log_msg, model_name = self.get_losses(losses, metrics, step)
                         m_logs[m_data] = log_msg
                         logs.write_to_log(m_data, losses, metrics, step)

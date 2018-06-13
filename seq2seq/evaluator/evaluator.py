@@ -138,7 +138,8 @@ class Evaluator(object):
                 if not pre_train:
                     # If we are in training mode (of the understander) we should not use the provided attention
                     # indices, but generate them ourselves.
-                    del target_variable['attention_target']
+                    if 'attention_target' in target_variable:
+                        del target_variable['attention_target']
 
                     # max_len is the maximum number of action the understander has to produce. target_variable holds both SOS and EOS.
                     # Since we do not have to produce action for SOS we substract 1. Note that some examples in the batch might need less actions
