@@ -24,10 +24,16 @@ def _gumbel_softmax_sample(logits, invalid_action_mask, tau, eps):
     dims = logits.dim()
     gumbel_noise = _sample_gumbel(logits.size(), eps=eps, out=logits.data.new())
     y = logits + gumbel_noise
-    temperature_normalized_gumbel_probs = y / tau
-    temperature_normalized_gumbel_probs.masked_fill_(mask=invalid_action_mask, value=-float('inf'))
 
-    return softmax(temperature_normalized_gumbel_probs, dims - 1)
+    # Make temperature same dimensions as y and make certain values non-differentiable by filling their content
+    # Otherwise, pytorch would try to differentiate, y would contain -inf values, making y/tau produce NaN gradients
+    # We need to use contiguous to make sure that masked_fill_ does not fill all copied values, but only the ones indicated
+    # by the mask.
+    # We expect here that y has already been masked with -inf with the same mask
+    tau = tau.expand_as(y).contiguous()
+    tau.masked_fill_(mask=invalid_action_mask, value=1)
+
+    return softmax(y / tau, dims - 1)
 
 
 def gumbel_softmax(logits, invalid_action_mask, tau, hard, eps):
