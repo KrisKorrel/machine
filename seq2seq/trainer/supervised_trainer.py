@@ -308,7 +308,7 @@ class SupervisedTrainer(object):
                         print_loss_total[name] = 0
 
                     m_logs = {}
-                    train_losses, train_metrics = self.evaluator.evaluate(model, understander_model, val_data, self.get_batch_data, pre_train=self.pre_train)
+                    train_losses, train_metrics = self.evaluator.evaluate(model, understander_model, data, self.get_batch_data, pre_train=self.pre_train)
                     train_loss, train_log_msg, model_name = self.get_losses(train_losses, train_metrics, step)
                     logs.write_to_log('Train', train_losses, train_metrics, step)
                     logs.update_step(step)
