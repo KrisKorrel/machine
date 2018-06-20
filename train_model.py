@@ -79,6 +79,8 @@ parser.add_argument('--train_regime', type=str, choices=['two-stage', 'simultane
 parser.add_argument('--attn_keys', type=str, choices=['understander_encoder_embeddings', 'understander_encoder_outputs', 'executor_encoder_embeddings', 'executor_encoder_outputs'])
 parser.add_argument('--attn_vals', type=str, choices=['understander_encoder_embeddings', 'understander_encoder_outputs', 'executor_encoder_embeddings', 'executor_encoder_outputs'])
 
+parser.add_argument('--add_k_grammar_metric', action='store_true')
+
 opt = parser.parse_args()
 IGNORE_INDEX=-1
 use_output_eos = not opt.ignore_output_eos
@@ -258,21 +260,22 @@ for loss in losses:
 metrics = [WordAccuracy(ignore_index=pad), SequenceAccuracy(ignore_index=pad), FinalTargetAccuracy(ignore_index=pad, eos_id=tgt.eos_id)]
 # Since we need the actual tokens to determine k-grammar accuracy,
 # we also provide the input and output vocab and relevant special symbols
-metrics.append(SymbolRewritingAccuracy(
-    input_vocab=input_vocab,
-    output_vocab=output_vocab,
-    use_output_eos=use_output_eos,
-    input_pad_symbol=src.pad_token,
-    output_sos_symbol=tgt.SYM_SOS,
-    output_pad_symbol=tgt.pad_token,
-    output_eos_symbol=tgt.SYM_EOS,
-    output_unk_symbol=tgt.unk_token))
+if opt.add_k_grammar_metric:
+    metrics.append(SymbolRewritingAccuracy(
+        input_vocab=input_vocab,
+        output_vocab=output_vocab,
+        use_output_eos=use_output_eos,
+        input_pad_symbol=src.pad_token,
+        output_sos_symbol=tgt.SYM_SOS,
+        output_pad_symbol=tgt.pad_token,
+        output_eos_symbol=tgt.SYM_EOS,
+        output_unk_symbol=tgt.unk_token))
 
 checkpoint_path = os.path.join(opt.output_dir, opt.load_checkpoint) if opt.resume else None
 
 # create trainer
 t = SupervisedTrainer(loss=losses,
-                      metrics=metrics, 
+                      metrics=metrics,
                       loss_weights=loss_weights,
                       batch_size=opt.batch_size,
                       eval_batch_size=opt.eval_batch_size,
