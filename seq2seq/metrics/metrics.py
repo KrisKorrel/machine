@@ -226,7 +226,7 @@ class SymbolRewritingAccuracy(Metric):
     _SHORTNAME = "sym_rwr_acc"
     _INPUT = "seqlist"
 
-    def __init__(self, input_vocab, output_vocab, use_output_eos, input_pad_symbol, output_sos_symbol, output_pad_symbol, output_eos_symbol, output_unk_symbol):
+    def __init__(self, input_vocab, output_vocab, use_output_eos, input_pad_symbol, output_sos_symbol, output_pad_symbol, output_eos_symbol, output_unk_symbol, remove_eos):
         self.input_vocab = input_vocab
         self.output_vocab = output_vocab
 
@@ -238,6 +238,7 @@ class SymbolRewritingAccuracy(Metric):
         self.output_pad_symbol = output_pad_symbol
         self.output_eos_symbol = output_eos_symbol
         self.output_unk_symbol = output_unk_symbol
+        self.remove_eos = remove_eos
 
         self.seq_correct = 0
         self.seq_total = 0
@@ -331,6 +332,9 @@ class SymbolRewritingAccuracy(Metric):
             grammar = [self.input_vocab.itos[token] for token in grammar if token !=
                        self.input_vocab.itos[token] != self.input_pad_symbol]
             prediction = [self.output_vocab.itos[token] for token in prediction]
+
+            if self.remove_eos:
+                grammar = grammar[:-1]
 
             # Each input symbol has to produce exactly three outputs
             required_output_length = 3 * len(grammar)

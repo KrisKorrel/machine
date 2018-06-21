@@ -82,6 +82,7 @@ parser.add_argument('--attn_vals', type=str, choices=['understander_encoder_embe
 parser.add_argument('--add_k_grammar_metric', action='store_true')
 parser.add_argument('--dropout_enc_dec', default='0', type=float)
 parser.add_argument('--print_attn', action='store_true')
+parser.add_argument('--remove_eos_k_grammar', action='store_true')
 
 opt = parser.parse_args()
 IGNORE_INDEX=-1
@@ -272,7 +273,8 @@ if opt.add_k_grammar_metric:
         output_sos_symbol=tgt.SYM_SOS,
         output_pad_symbol=tgt.pad_token,
         output_eos_symbol=tgt.SYM_EOS,
-        output_unk_symbol=tgt.unk_token))
+        output_unk_symbol=tgt.unk_token,
+        remove_eos=opt.remove_eos_k_grammar))
 
 checkpoint_path = os.path.join(opt.output_dir, opt.load_checkpoint) if opt.resume else None
 
