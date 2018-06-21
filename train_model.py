@@ -80,6 +80,8 @@ parser.add_argument('--attn_keys', type=str, choices=['understander_encoder_embe
 parser.add_argument('--attn_vals', type=str, choices=['understander_encoder_embeddings', 'understander_encoder_outputs', 'executor_encoder_embeddings', 'executor_encoder_outputs'])
 
 parser.add_argument('--add_k_grammar_metric', action='store_true')
+parser.add_argument('--dropout_enc_dec', default='0', type=float)
+parser.add_argument('--print_attn', action='store_true')
 
 opt = parser.parse_args()
 IGNORE_INDEX=-1
@@ -209,8 +211,9 @@ else:
                          sos_id=tgt.sos_id,
                          init_exec_dec_with=opt.init_exec_dec_with,
                          attn_vals=opt.attn_vals,
-                         embedding_dim=opt.embedding_size)
-    seq2seq = Seq2seq(encoder, decoder)
+                         embedding_dim=opt.embedding_size,
+                         print_attn=opt.print_attn)
+    seq2seq = Seq2seq(encoder, decoder, dropout=opt.dropout_enc_dec)
     seq2seq.to(device)
 
     for param in seq2seq.named_parameters():

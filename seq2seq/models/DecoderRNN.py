@@ -64,13 +64,14 @@ class DecoderRNN(BaseRNN):
     def __init__(self, vocab_size, max_len, hidden_size,
             sos_id, eos_id, init_exec_dec_with, attn_vals, embedding_dim,
             n_layers=1, rnn_cell='gru', bidirectional=False,
-            input_dropout_p=0, dropout_p=0, use_attention=False, attention_method=None, full_focus=False):
+            input_dropout_p=0, dropout_p=0, use_attention=False, attention_method=None, full_focus=False, print_attn=False):
         super(DecoderRNN, self).__init__(vocab_size, max_len, hidden_size,
                 input_dropout_p, dropout_p,
                 n_layers, rnn_cell)
 
         self.bidirectional_encoder = bidirectional
         input_size = hidden_size
+        self.print_attn = print_attn
 
         if use_attention != False and attention_method == None:
                 raise ValueError("Method for computing attention should be provided")
@@ -134,13 +135,13 @@ class DecoderRNN(BaseRNN):
     def forward_step(self, input_var, hidden, encoder_outputs, function, **attention_method_kwargs):
         """
         Performs one or multiple forward decoder steps.
-        
+
         Args:
             input_var (torch.tensor): Variable containing the input(s) to the decoder RNN
             hidden (torch.tensor): Variable containing the previous decoder hidden state.
             encoder_outputs (torch.tensor): Variable containing the target outputs of the decoder RNN
             function (torch.tensor): Activation function over the last output of the decoder RNN at every time step.
-        
+
         Returns:
             predicted_softmax: The output softmax distribution at every time step of the decoder RNN
             hidden: The hidden state at every time step of the decoder RNN
@@ -182,7 +183,7 @@ class DecoderRNN(BaseRNN):
         # If the understander is trained using supervised learning, we need a different attention method. One that accepts full attention
         # vectors instead of single indices. As soon as we see that the understander has provided these full vectors, we change the attention method
         # Must be solved more nicely in the future.
-        if provided_attention_vectors is not None: 
+        if provided_attention_vectors is not None:
             self.attention.method = self.attention.get_method(
                 dim=self.hidden_size,
                 method='provided_attention_vectors')
@@ -203,7 +204,7 @@ class DecoderRNN(BaseRNN):
 
         inputs, batch_size, max_length = self._validate_args(inputs, encoder_hidden, encoder_outputs,
                                                              function, teacher_forcing_ratio)
-        
+
         decoder_hidden = self._init_state(encoder_hidden)
 
         use_teacher_forcing = True if random.random() < teacher_forcing_ratio else False
@@ -282,8 +283,9 @@ class DecoderRNN(BaseRNN):
                     step_attn = None
                 decode(di, step_output, step_attn)
 
-        # print(torch.stack(ret_dict[DecoderRNN.KEY_ATTN_SCORE]).squeeze().transpose(0,1)[0])
-        # print("\n")
+        if self.print_attn:
+            print(torch.stack(ret_dict[DecoderRNN.KEY_ATTN_SCORE]).squeeze().transpose(0,1)[0])
+            print("\n")
 
         ret_dict[DecoderRNN.KEY_SEQUENCE] = sequence_symbols
         ret_dict[DecoderRNN.KEY_LENGTH] = lengths.tolist()
