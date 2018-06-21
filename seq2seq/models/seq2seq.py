@@ -46,7 +46,10 @@ class Seq2seq(nn.Module):
 
     def forward_encoder(self, input_variable, input_lengths=None):
         executor_encoder_embeddings, encoder_hidden, executor_encoder_outputs = self.encoder(input_variable, input_lengths)
-        encoder_hidden = self.enc_dec_dropout(encoder_hidden)
+        if isinstance(encoder_hidden, tuple):
+            encoder_hidden = self.enc_dec_dropout(encoder_hidden[0]), self.enc_dec_dropout(encoder_hidden[1])
+        else:
+            encoder_hidden = self.enc_dec_dropout(encoder_hidden)
         return executor_encoder_embeddings, encoder_hidden, executor_encoder_outputs
 
     def forward_decoder(self, target_variables, teacher_forcing_ratio, executor_encoder_embeddings, encoder_hidden, executor_encoder_outputs):
