@@ -282,7 +282,7 @@ class DecoderRNN(BaseRNN):
                 else:
                     step_attn = None
                 decode(di, step_output, step_attn)
-
+                
         if self.print_attn:
             print(torch.stack(ret_dict[DecoderRNN.KEY_ATTN_SCORE]).squeeze().transpose(0,1)[0])
             print("\n")

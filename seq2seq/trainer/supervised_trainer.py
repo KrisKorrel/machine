@@ -106,7 +106,7 @@ class SupervisedTrainer(object):
                 # Prepend -1 to the actions for the SOS step
                 batch_size = actions.size(0)
                 actions = torch.cat([torch.full([batch_size, 1], -1, dtype=torch.long, device=device), actions], dim=1)
-                
+
                 # In pre-training mode, the attention targets are provided (by the data set)
                 # However in training mode, we overwrite this with the actions of the understander
                 target_variable['attention_target'] = actions
@@ -127,7 +127,7 @@ class SupervisedTrainer(object):
             # As keys and/or values in the attentino mechanism
             target_variable['understander_encoder_embeddings'] = understander_other['understander_encoder_embeddings']
             target_variable['understander_encoder_outputs'] = understander_other['understander_encoder_outputs']
-            
+
         # Now we perform forward propagation of the model / executor. Attention (targets) are provided
         # by the data or by the understander, depending on the train mode.
         decoder_outputs, decoder_hidden, other = model.forward_decoder(
@@ -180,7 +180,7 @@ class SupervisedTrainer(object):
                         prediction = decoder_outputs[action_iter]
                         # +1 because target_variable includes SOS which the prediction of course doesn't
                         ground_truth = target_variable['decoder_output'][:,action_iter+1]
-                        
+
                         # Since loss is usually in range [0-3], where a loss of 0 should give the highest reward to the undestander,
                         # we use as reward function: (1/3) * (3-loss).
                         # This is because RL seems to be very unstable when we allow negative rewards. We even clip the rewards
@@ -326,7 +326,7 @@ class SupervisedTrainer(object):
 
                     all_losses = ' '.join(['%s:\t %s\n' % (os.path.basename(name), m_logs[name]) for name in m_logs])
 
-                    log_msg = 'Progress %d%%, %s' % (
+                    log_msg = 'Progress %d%%, %s\n' % (
                             step / total_steps * 100,
                             all_losses)
 
@@ -368,7 +368,7 @@ class SupervisedTrainer(object):
                 losses, metrics = self.evaluator.evaluate(model, understander_model, dev_data, self.get_batch_data, pre_train=self.pre_train)
                 loss_total, log_, model_name = self.get_losses(losses, metrics, step)
 
-                # TODO: Add understander_optimzer? 
+                # TODO: Add understander_optimzer?
                 self.optimizer.update(loss_total, epoch)    # TODO check if this makes sense!
                 log_msg += ", Dev set: " + log_
 
@@ -472,7 +472,7 @@ class SupervisedTrainer(object):
                 # We need this if there are attentions of multiple lengths in a bath
                 attn_eos_indices = input_lengths.unsqueeze(1) + 1
                 attention_target = attention_target.scatter_(dim=1, index=attn_eos_indices, value=-1)
-                
+
                 # Next we also make sure that the longest attention sequence in the batch is truncated
                 attention_target = attention_target[:, :-1]
 
