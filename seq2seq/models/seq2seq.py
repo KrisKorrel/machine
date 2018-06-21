@@ -37,6 +37,7 @@ class Seq2seq(nn.Module):
         super(Seq2seq, self).__init__()
         self.encoder = encoder
         self.decoder = decoder
+        self.enc_dec_dropout = nn.Dropout(p=0.5)
         self.decode_function = decode_function
 
     def flatten_parameters(self):
@@ -45,17 +46,17 @@ class Seq2seq(nn.Module):
 
     def forward_encoder(self, input_variable, input_lengths=None):
         executor_encoder_embeddings, encoder_hidden, executor_encoder_outputs = self.encoder(input_variable, input_lengths)
+        encoder_hidden = self.enc_dec_dropout(encoder_hidden)
         return executor_encoder_embeddings, encoder_hidden, executor_encoder_outputs
 
     def forward_decoder(self, target_variables, teacher_forcing_ratio, executor_encoder_embeddings, encoder_hidden, executor_encoder_outputs):
         # Unpack target variables
         target_output = target_variables.get('decoder_output', None)
         # The attention target is preprended with an extra SOS step. We must remove this
-        provided_attention = target_variables['attention_target'][:,1:] if 'attention_target' in target_variables else None
+        provided_attention = target_variables['attention_target'][:, 1:] if 'attention_target' in target_variables else None
         provided_attention_vectors = target_variables.get('provided_attention_vectors', None)
         understander_encoder_embeddings = target_variables.get('understander_encoder_embeddings', None)
         understander_encoder_outputs = target_variables.get('understander_encoder_outputs', None)
-
 
         possible_attn_vals = {
             'understander_encoder_embeddings': understander_encoder_embeddings,
