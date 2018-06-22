@@ -1,7 +1,7 @@
 #PBS -S /bin/bash
 #PBS -lnodes=1
 #PBS -qgpu
-#PBS -lwalltime=0:01:00:00
+#PBS -lwalltime=1:00:00:00
 
 cd ~/machine
 
@@ -21,7 +21,7 @@ EMB_SIZE=128
 H_SIZE=128
 N_LAYERS=1
 CELL='lstm'
-EPOCH=20
+EPOCH=50
 PRINT_EVERY=200
 SAVE_EVERY=99999999999999999
 TF=1
