@@ -42,10 +42,10 @@ class Understander(nn.Module):
 
         # The attention scores are calculated from a concatenation of the decoder hidden state and the keys.
         # So we must pass the dimensions of the keys to the decoder
-        if 'embeddings' in attn_keys:
-            key_dim = embedding_dim
-        elif 'outputs' in attn_keys:
-            key_dim = hidden_dim
+        # if 'embeddings' in attn_keys:
+        #     key_dim = embedding_dim
+        # elif 'outputs' in attn_keys:
+        #     key_dim = hidden_dim
 
         self.decoder = UnderstanderDecoder(
             rnn_cell=rnn_cell,
@@ -98,7 +98,7 @@ class Understander(nn.Module):
         possible_attn_keys['understander_encoder_outputs'] = encoder_outputs
 
         # Pick the correct attention keys
-        attn_keys = possible_attn_keys[self.attn_keys] 
+        attn_keys = possible_attn_keys[self.attn_keys]
 
         action_logits, decoder_states = self.decoder(encoder_outputs=encoder_outputs, hidden=encoded_hidden, output_length=max_decoding_length, valid_action_mask=valid_action_mask, attn_keys=attn_keys)
 
@@ -126,11 +126,11 @@ class Understander(nn.Module):
         """
         Get a bytetensor that indicates which encoder states are valid to attend to.
         All <pad> steps are invalid
-        
+
         Args:
             state (torch.tensor): [batch_size x max_input_length] input variable
             input_lengths (torch.tensor): [batch_size] tensor containing the input length of each sequence in the batch
-        
+
         Returns:
             torch.tensor: [batch_size x max_input_length] ByteTensor with a 0 for all <pad> elements
         """
@@ -172,7 +172,7 @@ class Understander(nn.Module):
 
         # First, we establish which encoder states are valid to attend to.
         valid_action_mask = self.get_valid_action_mask(state, input_lengths)
-        
+
         # We perform a forward pass to get the log-probability of attending to each
         # encoder for each decoder
         action_log_probs, possible_attn_keys = self.forward(state, valid_action_mask, max_decoding_length, possible_attn_keys)
@@ -214,7 +214,7 @@ class Understander(nn.Module):
                 # Append the action to the list of actions and store the log-probabilities of the chosen actions
                 actions.append(action)
                 self._saved_log_probs.append(log_prob)
-        
+
             # Convert list into tensor and make it batch-first
             actions = torch.stack(actions).transpose(0, 1)
 
@@ -235,11 +235,11 @@ class Understander(nn.Module):
                     invalid_action_mask = valid_action_mask.eq(0).unsqueeze(1).expand(batch_size, n_decoder_states, n_encoder_states).contiguous().view(-1, n_encoder_states)
                     attn = attn.view(-1, n_encoder_states)
                     attn_hard, attn_soft = gumbel_softmax(logits=attn, invalid_action_mask=invalid_action_mask, hard=True, tau=self.current_temperature, eps=1e-20)
-                    
+
                     if self.sample_train == 'gumbel_soft':
                         attn = attn_soft.view(batch_size, -1, n_encoder_states)
                     elif self.sample_train == 'gumbel_hard':
-                        attn = attn_hard.view(batch_size, -1, n_encoder_states) 
+                        attn = attn_hard.view(batch_size, -1, n_encoder_states)
 
             # Inference mode
             else:
@@ -250,11 +250,11 @@ class Understander(nn.Module):
                     invalid_action_mask = valid_action_mask.eq(0).unsqueeze(1).expand(batch_size, n_decoder_states, n_encoder_states).contiguous().view(-1, n_encoder_states)
                     attn = attn.view(-1, n_encoder_states)
                     attn_hard, attn_soft = gumbel_softmax(logits=attn, invalid_action_mask=invalid_action_mask, hard=True, tau=self.current_temperature, eps=1e-20)
-                    
+
                     if self.sample_infer == 'gumbel_soft':
                         attn = attn_soft.view(batch_size, -1, n_encoder_states)
                     elif self.sample_infer == 'gumbel_hard':
-                        attn = attn_hard.view(batch_size, -1, n_encoder_states) 
+                        attn = attn_hard.view(batch_size, -1, n_encoder_states)
 
                 elif self.sample_infer == 'argmax':
                     argmax = attn.argmax(dim=2, keepdim=True)
@@ -313,7 +313,7 @@ class Understander(nn.Module):
         # Calculate policy loss
         # Multiply each reward with it's negative log-probability element-wise
         policy_loss = -saved_log_probs * discounted_rewards
-        
+
         # Sum over rewards, take mean over batch
         # TODO: Should we take mean over rewards?
         policy_loss = policy_loss.sum(dim=1).mean()
@@ -407,7 +407,7 @@ class UnderstanderDecoder(nn.Module):
     """
 
     def __init__(self, rnn_cell, hidden_dim, key_dim):
-        """      
+        """
         Args:
             hidden_dim (int): Size of the RNN cells
         """
@@ -492,27 +492,27 @@ class UnderstanderDecoder(nn.Module):
             # (batch, enc_seqlen, hl_size) -> (batch, dec_seqlen, enc_seqlen, hl_size)
             encoder_states_exp = encoder_states.unsqueeze(1)
             encoder_states_exp = encoder_states_exp.expand(batch_size, dec_seqlen, enc_seqlen, hl_size_enc)
-            
+
             # For the decoder states we add extra dimension with enc_seqlen
             # (batch, dec_seqlen, hl_size) -> (batch, dec_seqlen, enc_seqlen, hl_size)
             decoder_states_exp = decoder_states.unsqueeze(2)
             decoder_states_exp = decoder_states_exp.expand(batch_size, dec_seqlen, enc_seqlen, hl_size_dec)
-            
+
             # reshape encoder and decoder states to allow batchwise computation. We will have
             # in total batch_size x enc_seqlen x dec_seqlen batches. So we apply the Linear
             # layer for each of them
             decoder_states_tr = decoder_states_exp.contiguous().view(-1, hl_size_dec)
             encoder_states_tr = encoder_states_exp.contiguous().view(-1, hl_size_enc)
-            
+
             # tensor with two dimensions. The first dimension is the number of batchs which is:
             # batch_size x enc_seqlen x dec_seqlen
             # the second dimension is enc_hidden_dim + dec_hidden_dim
             mlp_input = torch.cat((encoder_states_tr, decoder_states_tr), dim=1)
-            
+
             # apply mlp and reshape to get back in correct shape
             mlp_hidden = self.hidden_layer(mlp_input)
             mlp_hidden = self.hidden_activation(mlp_hidden)
-            
+
             mlp_out = self.output_layer(mlp_hidden)
             mlp_out = mlp_out.view(batch_size, dec_seqlen, enc_seqlen)
 

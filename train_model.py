@@ -229,20 +229,21 @@ output_vocabulary = output_vocab.itos
 #################################
 ##### PREPARE Understander MODEL #####
 #################################
-understander_model = Understander(
-    rnn_cell=opt.rnn_cell,
-    input_vocab_size=len(src.vocab),
-    embedding_dim=opt.embedding_size,
-    hidden_dim=hidden_size,
-    gamma=opt.gamma,
-    train_method=opt.understander_train_method,
-    sample_train=opt.sample_train,
-    sample_infer=opt.sample_infer,
-    initial_temperature=opt.initial_temperature,
-    learn_temperature=opt.learn_temperature,
-    attn_keys=opt.attn_keys)
-if torch.cuda.is_available():
-  understander_model.cuda()
+# understander_model = Understander(
+#     rnn_cell=opt.rnn_cell,
+#     input_vocab_size=len(src.vocab),
+#     embedding_dim=opt.embedding_size,
+#     hidden_dim=hidden_size,
+#     gamma=opt.gamma,
+#     train_method=opt.understander_train_method,
+#     sample_train=opt.sample_train,
+#     sample_infer=opt.sample_infer,
+#     initial_temperature=opt.initial_temperature,
+#     learn_temperature=opt.learn_temperature,
+#     attn_keys=opt.attn_keys)
+# if torch.cuda.is_available():
+#   understander_model.cuda()
+understander_model = None
 
 ##############################################################################
 # train model

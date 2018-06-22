@@ -100,9 +100,9 @@ class Evaluator(object):
         # If the model was in train mode before this method was called, we make sure it still is
         # after this method.
         previous_model_mode        = model.training
-        previous_understander_mode = understander_model.training
+        # previous_understander_mode = understander_model.training
         model.eval()
-        understander_model.eval()
+        # understander_model.eval()
 
         losses = self.losses
         for loss in losses:
@@ -135,7 +135,7 @@ class Evaluator(object):
 
                 # If pre-training: Use the provided attention indices in the data set for the model.
                 # Else: Use the actions of the understander as attention vectors. (prepend -1 for SOS)
-                if not pre_train:
+                if not pre_train and False:
                     # If we are in training mode (of the understander) we should not use the provided attention
                     # indices, but generate them ourselves.
                     if 'attention_target' in target_variable:
@@ -180,12 +180,12 @@ class Evaluator(object):
                     executor_encoder_outputs=executor_encoder_outputs)
 
                 # Compute metric(s) over one batch
-                metrics = self.update_batch_metrics(metrics, other, target_variable)  
+                metrics = self.update_batch_metrics(metrics, other, target_variable)
 
                 # Compute loss(es) over one batch
                 losses = self.update_loss(losses, decoder_outputs, decoder_hidden, other, target_variable)
 
         model.train(previous_model_mode)
-        understander_model.train(previous_understander_mode)
+        # understander_model.train(previous_understander_mode)
 
         return losses, metrics

@@ -84,7 +84,7 @@ class SupervisedTrainer(object):
         }
 
         # First we perform the forward pass for the understander (if we are not in pre-training)
-        if not self.pre_train:
+        if not self.pre_train and False:
             # If we are in training mode (of the understander) we should not use the provided attention
             # indices, but generate them ourselves.
             if 'attention_target' in target_variable:
@@ -121,12 +121,12 @@ class SupervisedTrainer(object):
                     possible_attn_keys=possible_attn_keys)
 
                 # Add the probabilities to target_variable so that they can be used in the decoder (attention)
-                target_variable['provided_attention_vectors'] = attn
+                # target_variable['provided_attention_vectors'] = attn
 
             # Add understander encoder's embeddings and outputs, such that they can possibly be used
             # As keys and/or values in the attentino mechanism
-            target_variable['understander_encoder_embeddings'] = understander_other['understander_encoder_embeddings']
-            target_variable['understander_encoder_outputs'] = understander_other['understander_encoder_outputs']
+            # target_variable['understander_encoder_embeddings'] = understander_other['understander_encoder_embeddings']
+            # target_variable['understander_encoder_outputs'] = understander_other['understander_encoder_outputs']
 
         # Now we perform forward propagation of the model / executor. Attention (targets) are provided
         # by the data or by the understander, depending on the train mode.
@@ -140,19 +140,18 @@ class SupervisedTrainer(object):
         # Calculate the losses of the executor
         losses = self.evaluator.compute_batch_loss(decoder_outputs, decoder_hidden, other, target_variable)
 
-
         # Now we perform backpropagation.
         # In the case of simultaneous learning, we just backprop the losses once, and update both models's parameters
         if self.train_regime == 'simultaneous':
             model.zero_grad()
-            understander_model.zero_grad()
+            # understander_model.zero_grad()
             for i, loss in enumerate(losses):
                 loss.scale_loss(self.loss_weights[i])
                 loss.backward(retain_graph=True)
             self.optimizer.step()
-            self.understander_optimizer.step()
+            # self.understander_optimizer.step()
 
-            understander_model.finish_episode()
+            # understander_model.finish_episode()
 
         elif self.train_regime == 'two-stage':
             # In the case of pre-training mode, we update only the executor.
@@ -203,7 +202,7 @@ class SupervisedTrainer(object):
                     understander_model.finish_episode()
 
                 # Update understander
-                self.understander_optimizer.step()
+                # self.understander_optimizer.step()
 
         return losses
 
@@ -256,8 +255,6 @@ class SupervisedTrainer(object):
 
 
         for epoch in range(start_epoch, n_epochs + 1):
-            if understander_model.current_temperature is not None:
-                log.info("Example temperature: {}".format(understander_model.current_temperature[0].item()))
 
             log.info("Epoch: %d, Step: %d" % (epoch, step))
 
@@ -285,7 +282,7 @@ class SupervisedTrainer(object):
                 self.pre_train = False
 
             model.train(True)
-            understander_model.train(True)
+            # understander_model.train(True)
             for batch in batch_generator:
                 step += 1
                 step_elapsed += 1
@@ -316,7 +313,6 @@ class SupervisedTrainer(object):
                     m_logs['Train'] = train_log_msg
 
                     # compute vals for all monitored sets
-                    log.info("Example temperature: {}".format(understander_model.current_temperature[0].item()))
 
                     for m_data in monitor_data:
                         losses, metrics = self.evaluator.evaluate(model, understander_model, monitor_data[m_data], self.get_batch_data, pre_train=self.pre_train)
@@ -437,10 +433,10 @@ class SupervisedTrainer(object):
                 return optims[optim_name]
 
             self.optimizer = Optimizer(get_optim(optimizer)(model.parameters(), lr=learning_rate),max_grad_norm=5)
-            self.understander_optimizer = Optimizer(get_optim(optimizer)(understander_model.parameters(), lr=learning_rate), max_grad_norm=5)
+            self.understander_optimizer = None  # Optimizer(get_optim(optimizer)(understander_model.parameters(), lr=learning_rate), max_grad_norm=5)
 
         self.logger.info("Optimizer: %s, Scheduler: %s" % (self.optimizer.optimizer, self.optimizer.scheduler))
-        self.logger.info("Understander optimizer: %s, scheduler: %s" % (self.understander_optimizer.optimizer, self.understander_optimizer.scheduler))
+        # self.logger.info("Understander optimizer: %s, scheduler: %s" % (self.understander_optimizer.optimizer, self.understander_optimizer.scheduler))
 
         logs = self._train_epoches(data, model, understander_model, num_epochs,
                             start_epoch, step, pre_train=pre_train, dev_data=dev_data,

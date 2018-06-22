@@ -82,10 +82,11 @@ class DecoderRNN(BaseRNN):
         # increase input size decoder if attention is applied before decoder rnn
         if use_attention == 'pre-rnn' and not full_focus:
             # Input size is hidden_size + context vector size, which depends on the type of attention value
-            if 'embeddings' in attn_vals:
-                input_size = hidden_size + embedding_dim
-            elif 'outputs' in attn_vals:
-                input_size = hidden_size + hidden_size
+            input_size = 2*hidden_size
+            # if 'embeddings' in attn_vals:
+            #     input_size = hidden_size + embedding_dim
+            # elif 'outputs' in attn_vals:
+            #     input_size = hidden_size + hidden_size
 
         self.rnn = self.rnn_cell(input_size, hidden_size, n_layers, batch_first=True, dropout=dropout_p)
 
@@ -282,7 +283,7 @@ class DecoderRNN(BaseRNN):
                 else:
                     step_attn = None
                 decode(di, step_output, step_attn)
-                
+
         if self.print_attn:
             print(torch.stack(ret_dict[DecoderRNN.KEY_ATTN_SCORE]).squeeze().transpose(0,1)[0])
             print("\n")
