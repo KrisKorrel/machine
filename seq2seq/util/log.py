@@ -2,6 +2,7 @@ from __future__ import print_function
 
 import torch
 import os
+import numpy as np
 
 import matplotlib.pyplot as plt
 import matplotlib.lines as mlines
@@ -130,7 +131,8 @@ class LogCollection(object):
                           restrict_data=lambda x: True,
                           data_name_parser=None,
                           color_group=False,
-                          title='', eor=-1):
+                          title='', eor=-1,
+                          ylabel='ylabel'):
 
         """
         Plot all values for a specific metrics. A function restrict can be
@@ -159,11 +161,12 @@ class LogCollection(object):
                 for dataset in log.data.keys():
                     if restrict_data(dataset):
                         label_name = data_name_parser(dataset, name) if data_name_parser else dataset
-                        steps = [step/float(232) for step in log.steps[:eor]]
+                        steps = [step/float(1) for step in log.steps]
                         if color_group:
-                            steps, data = self.prune_data(steps, log.data[dataset][metric_name][:eor])
+                            steps, data = self.prune_data(steps, log.data[dataset][metric_name])
+                            c,l=color_group(name, dataset)
                             ax.plot(steps, data,
-                                     color_group(name, dataset),
+                                     color=c, linestyle=l,
                                      label=label+label_name, linewidth=3.0)
                         else:
                             ax.plot(steps,
@@ -171,19 +174,20 @@ class LogCollection(object):
                                      label=label+label_name)
                         ax.tick_params(axis='both', which='major', labelsize=20)
                         plt.xlabel("Epochs", fontsize=24)
-                        plt.ylabel("Sequence Accuracy", fontsize=24)
+                        plt.ylabel(ylabel, fontsize=24)
                         plt.title(title)
 
-        k_line  = mlines.Line2D([], [], color='black', linestyle='--', label='Baseline, training loss', linewidth=3)
-        k_line2 = mlines.Line2D([], [], color='black', label='Attention Guidance, training loss', linewidth=3)
-        m_line  = mlines.Line2D([], [], color='m', label='Baseline, test loss', linewidth=3)
-        g_line  = mlines.Line2D([], [], color='g', label='Attention Guidance, test loss', linewidth=3)
+        # k_line  = mlines.Line2D([], [], color='black', linestyle='--', label='Baseline, training loss', linewidth=3)
+        # k_line2 = mlines.Line2D([], [], color='black', label='Attention Guidance, training loss', linewidth=3)
+        # m_line  = mlines.Line2D([], [], color='m', label='Baseline, test loss', linewidth=3)
+        # g_line  = mlines.Line2D([], [], color='g', label='Attention Guidance, test loss', linewidth=3)
 
-        baseline = mlines.Line2D([], [], color='m', linewidth=3.0, label='Baseline')
-        guided = mlines.Line2D([], [], color='g', linewidth=3.0, label='Guided')
+        # baseline = mlines.Line2D([], [], color='m', linewidth=3.0, label='Baseline')
+        # guided = mlines.Line2D([], [], color='g', linewidth=3.0, label='Guided')
 
         # plt.legend([k_line, k_line2, m_line, g_line], ['Baseline training', 'Guided, training', 'Baseline, test', 'Guided, test'], fontsize=24) 
-        plt.legend([baseline, guided], ['Baseline', 'Guided'], fontsize=24)
+        # plt.legend([baseline, guided], ['Baseline', 'Guided'], fontsize=24)
+        plt.legend()
         plt.show()
 
         return fig
@@ -232,6 +236,72 @@ class LogCollection(object):
 
         return max_scores
 
+    def find_highest_average_val(self, metric_name, find_basename,
+                             restrict_model=lambda x: True,
+                             restrict_data=lambda x: True,
+                             find_data_name=lambda x: x):
+        """
+        Find the highest average over runs, things that have the same
+        basename (as returned by 'find_basename') will be averaged.
+        """
+
+        data = dict()
+        counts = dict() 
+
+        for i, name in enumerate(self.log_names):
+            if restrict_model(name):
+                log = self.logs[i]
+                basename = find_basename(name)
+                for dataset in log.data.keys():
+                    if 'val' not in dataset:
+                        continue
+
+                    dataname = find_data_name(dataset)
+                    if restrict_data(dataset):
+                        log_max = max(log.data[dataset][metric_name])
+                        index = log.data[dataset][metric_name].index(log_max)
+                        print(name, index)
+
+                for dataset in log.data.keys():
+                    dataname = find_data_name(dataset)
+                    if restrict_data(dataset):
+                        log_max = log.data[dataset][metric_name][index]
+
+                        if basename in data:
+                            if dataname in data[basename]:
+                                data[basename][dataname].append(log_max)
+                                counts[basename][dataname]+=1
+                            else:
+                                data[basename][dataname]=[log_max]
+                                counts[basename][dataname]=1
+                        else:
+                            data[basename] = dict()
+                            data[basename][dataname]=[log_max]
+                            counts[basename] = dict()
+                            counts[basename][dataname]=1
+
+        # find max
+        mean_avg = {}
+        min_avg = {}
+        max_avg = {}
+        std_avg = {}
+
+        for basename, datasets in data.items():
+            mean_avg[basename] = dict()
+            min_avg[basename] = dict()
+            max_avg[basename] = dict()
+            std_avg[basename] = dict()
+            
+            for dataset in datasets:
+                c = counts[basename][dataset]
+
+                min_avg[basename][dataset] = min(data[basename][dataset])
+                max_avg[basename][dataset] = max(data[basename][dataset])
+                mean_avg[basename][dataset] = np.mean(data[basename][dataset])
+                std_avg[basename][dataset] = np.std(data[basename][dataset])
+
+        return mean_avg, min_avg, max_avg, std_avg
+
     def group_data(self, metric_name, find_basename,
                    restrict_model=lambda x: True,
                    restrict_data=lambda x: True,
@@ -259,6 +329,7 @@ class LogCollection(object):
                    restrict_model=lambda x: True,
                    restrict_data=lambda x: True,
                    find_data_name=lambda x: x,
+                   data_name_parser=None,ylabel=None,
                    color_group=False, eor=-1):
 
         import numpy as np
@@ -273,21 +344,34 @@ class LogCollection(object):
                                      find_data_name=find_data_name,
                                      restrict_data=restrict_data)
 
-        steps = [step/float(232) for step in self.logs[0].steps[:eor]]
+        steps = [step/516. for step in self.logs[0].steps[:]]
         for model, data in group_data.items():
             for dataset in data:
-                av = np.mean(data[dataset], axis=0)[:eor]
+                av = np.mean(data[dataset], axis=0)[:]
                 if color_group:
+                    c,l = color_group(model, dataset)
                     print(dataset, model, color_group(model, dataset))
-                    ax.plot(steps, av, color_group(model, dataset), label=model+dataset, linewidth=3.0)
+                    ax.plot(steps, av, color=c,linestyle=l, label=data_name_parser(model,dataset), linewidth=5.0)
                 else:
-                    ax.plot(steps, av, dataset, label=model+dataset)
+                    ax.plot(steps, av, dataset, label=data_name_parser(model,dataset))
+        
+        handles, labels = ax.get_legend_handles_labels()
 
+        # reverse the order
+        ax.legend(handles[::-1], labels[::-1])
+
+        # or sort them by labels
+        import operator
+        hl = sorted(zip(handles, labels),
+                    key=operator.itemgetter(1), reverse=True)
+        handles2, labels2 = zip(*hl)
+
+        plt.legend(handles2, labels2, fontsize=38)
 
         ax.tick_params(axis='both', which='major', labelsize=20)
         plt.xlabel("Epochs", fontsize=24)
-        plt.ylabel("Loss", fontsize=24)
-        plt.legend()
+        plt.ylabel(ylabel, fontsize=24)
+        # plt.legend()
         plt.show()
 
         return fig

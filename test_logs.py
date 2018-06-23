@@ -2,242 +2,308 @@ from seq2seq.util.log import LogCollection
 import re
 
 def name_parser(filename, subdir):
+    subdir = subdir.split('/')[0]
     splits = filename.split('/')
-    return splits[1]+'_'+splits[-2]
+    index = splits[1].index('_')
+    return splits[1]
+    # if '64' in subdir:
+    #     return splits[1][:index] + '_E64' + splits[1][index:]
+    # else:
+    #     return splits[1][:index] + '_E32' + splits[1][index:]
 
+log = LogCollection()
+# log.add_log_from_folder('dumps', ext='LOG', name_parser=name_parser)
+# log.add_log_from_folder('dumps_64', ext='LOG', name_parser=name_parser)
+# log.add_log_from_folder('dump_final', ext='LOG', name_parser=name_parser)
+# log.add_log_from_folder('dumps_temp', ext='LOG', name_parser=name_parser)
+log.add_log_from_folder('logs_baseline', ext='LOG', name_parser=name_parser)
 
 ############################
 # helper funcs
 
-def natural_sort(l): 
-    convert = lambda text: int(text) if text.isdigit() else text.lower() 
-    alphanum_key = lambda key: [ convert(c) for c in re.split('([0-9]+)', key) ] 
+def natural_sort(l):
+    convert = lambda text: int(text) if text.isdigit() else text.lower()
+    alphanum_key = lambda key: [ convert(c) for c in re.split('([0-9]+)', key) ]
     return sorted(l, key = alphanum_key)
 
-
-def func(input_str):
-    if 'full_focus' in input_str and 'hard' not in input_str and 'baseline' not in input_str:
-        return True
-    return False
-
-def f64_256(input_str):
-    if 'E64xH128' in input_str and 'run_1' in input_str:
-        return True
-    return False
-
-def pre_rnn(input_str):
-    if 'pre_rnn' in input_str\
-            and 'baseline' not in input_str and 'hard' not in input_str:
-        return True
-    return False
-
-def full_focus(input_str):
-    if 'full_focus' in input_str\
-            and 'baseline' not in input_str and 'hard' not in input_str:
-            # and 'E64xH512' in input_str:
-        return True
-    return False
-
-def pre_ff_baseline(input_str):
-    if 'hard' not in input_str:
-        return True
-    return False
-
-def ff_and_baseline(input_str):
-    if ('focus' in input_str and 'baseline' in input_str) or \
-            ('focus' in input_str and 'hard' not in input_str):
-        return True
-    return False
-
-def pre_and_baseline(input_str):
-    if 'pre_rnn' in input_str and 'hard' not in input_str\
-            and 'H16' not in input_str and 'H32' not in input_str:
-        return True
-    return False
-
-def best_pre_and_baseline(input_str):
-    if 'pre_rnn' in input_str and ( \
-            ('hard' not in input_str and 'E16xH512' in input_str \
-            and 'baseline' not in input_str) \
-            or ('baseline' in input_str and 'E128xH512' in input_str)):
-        return True
-    return False
-
-def hard(input_str):
-    if 'hard' in input_str and 'pre_rnn' in input_str:
-        return True
-    return False
-
-def baseline(model):
-    if 'baseline' in model and 'pre_rnn' in model:
-            # and ('E16xH256' in model or 'E62xH256'  in model or 'E64xH512' in model):
-        return True
-    return False
-
 def data_name_parser(data_name, model_name):
-    return input_str.split('/')[-1].split('.')[0]
-
-def data_name_parser(data_name, model_name):
-    if 'Train' in data_name and 'baseline' in model_name:
-        label = 'Baseline, training loss'
-    elif 'Train' in model_name:
-        label = 'Attention Guidance, Train'
-    elif 'baseline' in model_name:
-        label = 'Baseline, test loss'
+    if 'baseline_E3' in model_name:
+        label = 'Baseline (32x256)'
+    elif 'baseline_E6' in model_name:
+        label = 'Baseline (32x256)'
+    elif 'hard' in model_name:
+        label = 'Guided'
     else:
-        label = 'Attention Guidance, test loss'
+        label = 'Learned'
+    label=''
+
+    if 'Train' in data_name:
+        label = 'Train'
+    elif 'val' in data_name:
+        label = 'Validation'
+
     return label
 
-def heldout_tables(input_str):
-    if 'heldout_tables' in input_str:
-        return True
-    return False
-
-def heldout_inputs(input_str):
-    if 'heldout_inputs' in input_str:
-        return True
-    return False
-
-def heldout_compositions(input_str):
-    if 'heldout_compositions' in input_str:
-        return True
-    return False
-
-def not_longer(input_str):
-    if 'longer' not in input_str:
-        return True
-    return False
-
-def not_train(dataset):
-    if 'Train' not in dataset:
-        return True
-    return False
-
-def color_train(model_name, data_name):
-    if 'Train' in data_name and 'baseline' in model_name:
-        c = 'k--'
-    elif 'Train' in data_name:
-        c = 'k'
-    elif 'baseline' in model_name:
-        c = 'm:'
-    else:
-        c = 'g'
-
-    return c
-
 def color_groups(model_name, data_name):
-    if 'baseline' in model_name:
-        c = 'b'
-    elif 'hard' in model_name:
-        c = 'm'
+    if 'train' in data_name:
+        c = 'black'
     else:
-        c = 'g'
+        c = 'green'
 
-    if 'pre_rnn' in model_name:
-        l = ':'
-    elif 'full_focus' in model_name:
+    if 'baseline' in model_name:
         l = '-'
-    elif 'post_rnn' in model_name:
-        l = '--'
+    elif 'learned' in model_name:
+        l='--'
+    else:
+        l =':'
 
-    return c+l
+    return c,l
 
-def find_basename(model_name):
+
+def basename_without_run(model_name):
     all_parts = model_name.split('_')
-    basename = '_'.join(all_parts[2:])
+    basename = '_'.join(all_parts[:-1])
+    return basename
+def basename_with_run(model_name):
+    all_parts = model_name.split('_')
+    basename = '_'.join(all_parts[:])
     return basename
 
-def no_basename(model_name):
-    return model_name
-
-def find_data_name(dataset):
+def no_restriction(input_str):
+    return True
+def k_base_name(input_str):
+    return "_".join(input_str.split("_")[:-2])
+def k_parse_data_set_name(dataset):
     dataname = dataset.split('/')[-1].split('.')[0]
-    if 'longer' in dataname:
-        splits = dataname.split('_')
-        elements = [splits[0],splits[2]]
-        dataname = '_'.join(elements)
-    return dataname
+    if 'long' in dataname:
+        return 'long'
+    elif 'short' in dataname:
+        return 'short'
+    if 'repeat' in dataname:
+        return 'repeat'
+    if 'Train' in dataname:
+        return 'train'
+    if 'std' in dataname:
+        return 'standard'
+    return 'validation'
 
-def color_baseline(model_name, data_name):
-    if 'baseline' in model_name:
-        c = 'm'
+def group_rest(dataset):
+    dataname = dataset.split('/')[-1].split('.')[0]
+    if 'Train' in dataname:
+        return 'train'
     else:
-        c = 'g'
-    return c
+        return 'tests'
 
-def color_conditions(model_name, data_name):
-    if 'baseline' in model_name:
+mean_avg, min_avg, max_avg, std_avg = log.find_highest_average_val('sym_rwr_acc', find_basename=k_base_name, find_data_name=k_parse_data_set_name, restrict_data=no_restriction)
+
+print("\nMin:")
+for model in natural_sort(min_avg):
+    datadict = min_avg[model]
+    print('%s:\t%s' % (model, '\t'.join(['%s %.4f' % (d, datadict[d]) for d in datadict])))
+
+print("\nMax:")
+for model in natural_sort(max_avg):
+    datadict = max_avg[model]
+    print('%s:\t%s' % (model, '\t'.join(['%s %.4f' % (d, datadict[d]) for d in datadict])))
+
+print("\nMean:")
+for model in natural_sort(mean_avg):
+    datadict = mean_avg[model]
+    print('%s:\t%s' % (model, '\t'.join(['%s %.4f' % (d, datadict[d]) for d in datadict])))
+
+print("\nStd:")
+for model in natural_sort(std_avg):
+    datadict = std_avg[model]
+    print('%s:\t%s' % (model, '\t'.join(['%s %.4f' % (d, datadict[d]) for d in datadict])))
+
+
+def k_restrict(input_str):
+    return True
+    if 'learned' in input_str:
+        return True
+    if 'learned_E32_H256_SCALE1_run_' in input_str:
+        return False
+    if 'baseline_E64_H64_run_' in input_str:
+        return False
+    if 'baseline' in input_str:
+        return False
+    return False
+def only_train(input_str):
+    if 'Train' in input_str:
+        return True
+    return False
+def only_validation(input_str):
+    if 'val' in input_str:
+        return True
+    return False
+def no_validation(input_str):
+    if 'val' not in input_str and 'Train' not in input_str:
+        return True
+    return False
+def only_long(input_str):
+    if 'long' in input_str:
+        return True
+    return False
+def train_and_val(input_str):
+    return only_train(input_str) or only_validation(input_str)
+
+def k_best_model_filter(input_str):
+    return True
+    if 'full' not in input_str and 'hard' not in input_str:
+        return True
+    return False
+
+def k_color_one(model_name, data_name):
+    if 'baseline_E6' in model_name:
+        c = 'black'
+    elif 'baseline_E3' in model_name:
         c = 'm'
-    elif 'focus' in model_name:
+    elif 'hard' in model_name:
+        c = 'g'
+    elif 'learned' in model_name:
         c = 'b'
 
     if 'Train' in data_name:
-        c = 'k'
         l = '-'
-    elif 'inputs' in data_name:
-        l = '-'
-    elif 'tables' in data_name:
+    else:
         l = '--'
-    elif 'compositions' in data_name and 'heldout' in data_name:
-        l = '-.'
-    elif 'new' in data_name:
-        l = ':'
 
-    return c+l
+    return c,l
 
-def color_size(model_name, data_name):
-    if 'H16' in model_name:
-        c = 'b'
-    elif 'H32' in model_name:
-        c = 'g'
-    elif 'H64' in model_name:
-        c = 'k'
-    elif 'H128' in model_name:
-        c = 'r'
-    elif 'H256' in model_name:
+def k_color_one_new(model_name, data_name):
+    if 'baseline' and 'with_' in model_name:
+        c = 'black'
+    elif 'baseline' in model_name:
         c = 'm'
-    elif 'H512' in model_name:
-        c = 'c'
-    return c
+    elif 'hard' in model_name:
+        c = 'g'
+    elif 'learned' in model_name:
+        c = 'b'
 
+    if 'Train' in data_name:
+        l = '-'
+    else:
+        l = '--'
 
-# max_averages = log.find_highest_average('seq_acc', find_basename=no_basename, find_data_name=find_data_name, restrict_data=not_longer, restrict_model=baseline)
-# 
-# for model in natural_sort(max_averages):
-#     datadict = max_averages[model]
-#     print('%s:\t%s' % (model, '\t'.join(['%s %.2f' % (d, datadict[d]) for d in datadict])))
-# 
-# log.plot_metric('seq_acc', restrict_model=full_focus, restrict_data=not_longer)
+    return c,l
 
-def plot_size_correlation():
-    fig = log.plot_metric('seq_acc', restrict_model=baseline, restrict_data=heldout_tables, data_name_parser=data_name_parser, color_group=color_size, eor=400)
+# Train loss
+fig = log.plot_metric('nll_loss', restrict_model=k_best_model_filter, restrict_data=train_and_val, data_name_parser=data_name_parser, color_group=k_color_one_new, eor=-1, ylabel='Loss')
+fig.savefig('/home/kris/Desktop/Results plots/train_and_val_loss.png')
 
+# Train accuracy
+fig = log.plot_metric('sym_rwr_acc', restrict_model=k_best_model_filter, restrict_data=only_train, data_name_parser=data_name_parser, color_group=k_color_one_new, eor=-1, ylabel='Accuracy')
+fig.savefig('/home/kris/Desktop/Results plots/train_acc.png')
 
-def plot_pre_and_baseline():
-    # plot accuracy of all validation sets for best configuration for learned
-    # attention (pre) and baseline models to show overfitting
-    fig = log.plot_metric('nll_loss', restrict_model=best_pre_and_baseline, restrict_data=not_longer, data_name_parser=data_name_parser, color_group=color_train, eor=-165)
-    fig.savefig('/home/dieuwke/Documents/papers/AttentionGuidance/figures/best_config_all_sets_loss.png')
+# Validation accuracy
+fig = log.plot_metric('sym_rwr_acc', restrict_model=k_best_model_filter, restrict_data=only_validation, data_name_parser=data_name_parser, color_group=k_color_one_new, eor=-1, ylabel='Accuracy')
+fig.savefig('/home/kris/Desktop/Results plots/validation_acc.png')
 
-def plot_val_loss():
-    # plot accuracy of all validation sets for best configuration for learned
-    # attention (pre) and baseline models to show overfitting
-    fig = log.plot_metric('nll_loss', restrict_model=best_pre_and_baseline, restrict_data=heldout_tables, data_name_parser=data_name_parser, color_group=color_train)
-    # fig.savefig('/home/dieuwke/Documents/papers/AttentionGuidance/figures/best_config_all_sets_loss.png')
+# Long accuracy
+fig = log.plot_metric('sym_rwr_acc', restrict_model=k_best_model_filter, restrict_data=only_long, data_name_parser=data_name_parser, color_group=k_color_one_new, eor=-1, ylabel='Accuracy')
+fig.savefig('/home/kris/Desktop/Results plots/longer_acc.png')
 
-def plot_heldout_tables_all():
-    # all_models_heldout_tables
-    fig = log.plot_metric('seq_acc', restrict_model=pre_and_baseline, restrict_data=heldout_tables, color_group=color_baseline, eor=-165)
-    fig.savefig('/home/dieuwke/Documents/papers/AttentionGuidance/figures/all_models_heldout_tables.png')
+def second_parser(model_name, data_name):
+    m = None
+    if 'baseline' in model_name and 'with_' in model_name:
+        m = 'Baseline with EOS'
+    if 'baseline' in model_name and 'without' in model_name:
+        m = 'Baseline (64x64)'
+    if 'learned' in model_name:
+        m = 'Guided'
+    if 'hard' in model_name:
+        m = 'Hard guidance'
 
+    if 'long' in data_name:
+        d = 'Long'
+    elif 'short' in data_name:
+        d = 'Short'
+    elif 'repeat' in data_name:
+        d = 'Repeat'
+    elif 'train' in data_name:
+        d = 'Train'
+    elif 'standard' in data_name:
+        d = 'Standard'
+    elif 'val' in data_name:
+        d = 'Validation'
+    else:
+        d = 'Tests combined'
 
-log = LogCollection()
-log.add_log_from_folder('chosens_dump', ext='.dump', name_parser=name_parser)
+    # return m
+    return m + ', ' + d
 
-fig = log.plot_groups('nll_loss', restrict_model=ff_and_baseline, find_basename=find_basename, find_data_name=find_data_name, restrict_data=not_longer, color_group=color_conditions, eor=-135)
-fig.savefig('/home/dieuwke/Documents/papers/AttentionGuidance/figures/lookup_loss_convergence.png')
-# plot_pre_and_baseline()
+fig = log.plot_groups('sym_rwr_acc', restrict_model=k_best_model_filter, find_basename=basename_without_run, data_name_parser=second_parser, find_data_name=group_rest, restrict_data=no_validation, color_group=color_groups, ylabel='Accuracy')
+fig.savefig('/home/kris/Desktop/Results plots/average_acc_train_combined_tests.png')
+fig = log.plot_groups('nll_loss', restrict_model=k_best_model_filter, find_basename=basename_without_run, data_name_parser=second_parser, find_data_name=group_rest, restrict_data=no_validation, color_group=color_groups, ylabel='Loss')
+fig.savefig('/home/kris/Desktop/Results plots/average_loss_train_combined_tests.png')
 
-# plot_heldout_tables_all()
-# plot_size_correlation()
-# plot_val_loss()
+fig = log.plot_groups('sym_rwr_acc', restrict_model=k_best_model_filter, find_basename=basename_without_run, data_name_parser=second_parser, find_data_name=k_parse_data_set_name, restrict_data=no_validation, color_group=color_groups)
+fig.savefig('/home/kris/Desktop/Results plots/average_acc_train_individual_tests.png')
+fig = log.plot_groups('nll_loss', restrict_model=k_best_model_filter, find_basename=basename_without_run, data_name_parser=second_parser, find_data_name=k_parse_data_set_name, restrict_data=no_validation, color_group=color_groups)
+fig.savefig('/home/kris/Desktop/Results plots/average_loss_train_individual_tests.png')
+
+def train_and_standard(input_str):
+    if 'Train' in input_str or 'std' in input_str:
+        return True
+    return False
+def train_and_repeat(input_str):
+    if 'Train' in input_str or 'repeat' in input_str:
+        return True
+    return False
+def train_and_short(input_str):
+    if 'Train' in input_str or 'short' in input_str:
+        return True
+    return False
+def train_and_long(input_str):
+    if 'Train' in input_str or 'long' in input_str:
+        return True
+    return False
+
+def only_repeat(input_str):
+    return 'repeat' in input_str
+def only_standard(input_str):
+    return 'std' in input_str
+def only_short(input_str):
+    return 'short' in input_str
+def only_long(input_str):
+    return 'long' in input_str
+
+def color_groups2(model_name, data_name):
+    if 'train' in data_name:
+        c = 'black'
+        l = '--'
+    elif '64' in model_name:
+        c = 'm'
+        l = '-'
+    elif '32' in model_name:
+        c = 'b'
+        l = '-'
+    elif 'learned' in model_name:
+        l = '-'
+        c = 'g'
+    else:
+        l = '-'
+        c = 'black'
+
+    return c,l
+
+fig = log.plot_groups('nll_loss', restrict_model=k_best_model_filter, find_basename=basename_without_run, data_name_parser=second_parser, find_data_name=k_parse_data_set_name, restrict_data=only_standard, color_group=color_groups2, ylabel='Loss')
+fig.savefig('/home/kris/Desktop/Results plots/average_loss_train_standard.png')
+fig = log.plot_groups('nll_loss', restrict_model=k_best_model_filter, find_basename=basename_without_run, data_name_parser=second_parser, find_data_name=k_parse_data_set_name, restrict_data=only_repeat, color_group=color_groups2, ylabel='Loss')
+fig.savefig('/home/kris/Desktop/Results plots/average_loss_train_repeat.png')
+fig = log.plot_groups('nll_loss', restrict_model=k_best_model_filter, find_basename=basename_without_run, data_name_parser=second_parser, find_data_name=k_parse_data_set_name, restrict_data=only_short, color_group=color_groups2, ylabel='Loss')
+fig.savefig('/home/kris/Desktop/Results plots/average_loss_train_short.png')
+fig = log.plot_groups('nll_loss', restrict_model=k_best_model_filter, find_basename=basename_without_run, data_name_parser=second_parser, find_data_name=k_parse_data_set_name, restrict_data=only_long, color_group=color_groups2, ylabel='Loss')
+fig.savefig('/home/kris/Desktop/Results plots/average_loss_train_long.png')
+
+# fig = log.plot_groups('k_grammar_acc', restrict_model=k_best_model_filter, find_basename=basename_without_run, data_name_parser=second_parser, find_data_name=k_parse_data_set_name, restrict_data=only_standard, color_group=color_groups2, ylabel='Accuracy')
+# fig.savefig('/home/kris/Desktop/Results plots/average_acc_train_standard.png')
+# fig = log.plot_groups('k_grammar_acc', restrict_model=k_best_model_filter, find_basename=basename_without_run, data_name_parser=second_parser, find_data_name=k_parse_data_set_name, restrict_data=only_repeat, color_group=color_groups2, ylabel='Accuracy')
+# fig.savefig('/home/kris/Desktop/Results plots/average_acc_train_repeat.png')
+# fig = log.plot_groups('k_grammar_acc', restrict_model=k_best_model_filter, find_basename=basename_without_run, data_name_parser=second_parser, find_data_name=k_parse_data_set_name, restrict_data=only_short, color_group=color_groups2, ylabel='Accuracy')
+# fig.savefig('/home/kris/Desktop/Results plots/average_acc_train_short.png')
+# fig = log.plot_groups('k_grammar_acc', restrict_model=k_best_model_filter, find_basename=basename_without_run, data_name_parser=second_parser, find_data_name=k_parse_data_set_name, restrict_data=only_long, color_group=color_groups2, ylabel='accuracy')
+# fig.savefig('/home/kris/Desktop/Results plots/average_acc_train_long.png')
+
+# fig = log.plot_groups('k_grammar_acc', restrict_model=k_best_model_filter, find_basename=basename_without_run, data_name_parser=second_parser, find_data_name=group_rest, restrict_data=no_validation, color_group=color_groups2, ylabel='accuracy')
+# fig.savefig('/home/kris/Desktop/Results plots/average.png')
