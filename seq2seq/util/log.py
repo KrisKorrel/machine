@@ -110,7 +110,7 @@ class LogCollection(object):
 
     def add_log_from_folder(self, folder_path, ext='', name_parser=None):
         """
-        Recursively loop through a folder and add all its 
+        Recursively loop through a folder and add all its
         the files with appropriate extension to self.logs.
         """
 
@@ -127,7 +127,7 @@ class LogCollection(object):
 
 
 
-    def plot_metric(self, metric_name, restrict_model=lambda x: True, 
+    def plot_metric(self, metric_name, restrict_model=lambda x: True,
                           restrict_data=lambda x: True,
                           data_name_parser=None,
                           color_group=False,
@@ -185,7 +185,7 @@ class LogCollection(object):
         # baseline = mlines.Line2D([], [], color='m', linewidth=3.0, label='Baseline')
         # guided = mlines.Line2D([], [], color='g', linewidth=3.0, label='Guided')
 
-        # plt.legend([k_line, k_line2, m_line, g_line], ['Baseline training', 'Guided, training', 'Baseline, test', 'Guided, test'], fontsize=24) 
+        # plt.legend([k_line, k_line2, m_line, g_line], ['Baseline training', 'Guided, training', 'Baseline, test', 'Guided, test'], fontsize=24)
         # plt.legend([baseline, guided], ['Baseline', 'Guided'], fontsize=24)
         plt.legend()
         plt.show()
@@ -202,7 +202,7 @@ class LogCollection(object):
         """
 
         data = dict()
-        counts = dict() 
+        counts = dict()
 
         for i, name in enumerate(self.log_names):
             if restrict_model(name):
@@ -246,7 +246,7 @@ class LogCollection(object):
         """
 
         data = dict()
-        counts = dict() 
+        counts = dict()
 
         for i, name in enumerate(self.log_names):
             if restrict_model(name):
@@ -265,7 +265,7 @@ class LogCollection(object):
                 for dataset in log.data.keys():
                     dataname = find_data_name(dataset)
                     if restrict_data(dataset):
-                        log_max = log.data[dataset][metric_name][index]
+                        log_max = log.data[dataset][metric_name][index] * 100
 
                         if basename in data:
                             if dataname in data[basename]:
@@ -291,7 +291,7 @@ class LogCollection(object):
             min_avg[basename] = dict()
             max_avg[basename] = dict()
             std_avg[basename] = dict()
-            
+
             for dataset in datasets:
                 c = counts[basename][dataset]
 
@@ -339,8 +339,8 @@ class LogCollection(object):
         ax.spines['right'].set_visible(False)
 
         group_data = self.group_data(metric_name=metric_name,
-                                     restrict_model=restrict_model, 
-                                     find_basename=find_basename, 
+                                     restrict_model=restrict_model,
+                                     find_basename=find_basename,
                                      find_data_name=find_data_name,
                                      restrict_data=restrict_data)
 
@@ -354,7 +354,7 @@ class LogCollection(object):
                     ax.plot(steps, av, color=c,linestyle=l, label=data_name_parser(model,dataset), linewidth=5.0)
                 else:
                     ax.plot(steps, av, dataset, label=data_name_parser(model,dataset))
-        
+
         handles, labels = ax.get_legend_handles_labels()
 
         # reverse the order
