@@ -188,7 +188,14 @@ else:
     # Initialize model
     hidden_size = opt.hidden_size
     decoder_hidden_size = hidden_size*2 if opt.bidirectional else hidden_size
-    encoder = EncoderRNN(len(src.vocab), max_len, hidden_size,
+    understander_encoder = EncoderRNN(len(src.vocab), max_len, hidden_size,
+                         opt.embedding_size,
+                         dropout_p=opt.dropout_p_encoder,
+                         n_layers=opt.n_layers,
+                         bidirectional=opt.bidirectional,
+                         rnn_cell=opt.rnn_cell,
+                         variable_lengths=True)
+    executor_encoder = EncoderRNN(len(src.vocab), max_len, hidden_size,
                          opt.embedding_size,
                          dropout_p=opt.dropout_p_encoder,
                          n_layers=opt.n_layers,
@@ -208,7 +215,7 @@ else:
                          init_exec_dec_with=opt.init_exec_dec_with,
                          attn_vals=opt.attn_vals,
                          embedding_dim=opt.embedding_size)
-    seq2seq = Seq2seq(encoder, decoder)
+    seq2seq = Seq2seq(understander_encoder, executor_encoder, decoder)
     seq2seq.to(device)
 
     for param in seq2seq.named_parameters():

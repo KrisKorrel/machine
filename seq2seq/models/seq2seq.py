@@ -33,19 +33,26 @@ class Seq2seq(nn.Module):
 
     """
 
-    def __init__(self, encoder, decoder, decode_function=F.log_softmax):
+    def __init__(self, understander_encoder, executor_encoder, decoder, decode_function=F.log_softmax):
         super(Seq2seq, self).__init__()
-        self.encoder = encoder
+        self.understander_encoder = understander_encoder
+        self.executor_encoder = executor_encoder
         self.decoder = decoder
         self.decode_function = decode_function
 
     def flatten_parameters(self):
-        self.encoder.rnn.flatten_parameters()
+        self.understander_encoder.rnn.flatten_parameters()
+        self.executor_encoder.rnn.flatten_parameters()
         self.decoder.rnn.flatten_parameters()
 
-    def forward_encoder(self, input_variable, input_lengths=None):
-        executor_encoder_embeddings, encoder_hidden, executor_encoder_outputs = self.encoder(input_variable, input_lengths)
-        return executor_encoder_embeddings, encoder_hidden, executor_encoder_outputs
+    def forward_understander_encoder(self, input_variable, input_lengths=None):
+        understander_encoder_embeddings, understander_encoder_hidden, understander_encoder_outputs = self.understander_encoder(input_variable, input_lengths)
+        return understander_encoder_embeddings, understander_encoder_hidden, understander_encoder_outputs
+
+    def forward_executor_encoder(self, input_variable, input_lengths=None):
+        executor_encoder_embeddings, executor_encoder_hidden, executor_encoder_outputs = self.executor_encoder(input_variable, input_lengths)
+        return executor_encoder_embeddings, executor_encoder_hidden, executor_encoder_outputs
+
 
     def forward_decoder(self, target_variables, teacher_forcing_ratio, executor_encoder_embeddings, encoder_hidden, executor_encoder_outputs):
         # Unpack target variables
@@ -78,7 +85,9 @@ class Seq2seq(nn.Module):
     def forward(self, input_variable, input_lengths=None, target_variables=None,
                 teacher_forcing_ratio=0):
 
-        executor_encoder_embeddings, encoder_hidden, executor_encoder_outputs = self.forward_encoder(input_variable, input_lengths)
+        understander_encoder_embeddings, understander_encoder_hidden, understander_encoder_outputs = self.forward_understander_encoder(input_variable, input_lengths)
+        executor_encoder_embeddings, executor_encoder_hidden, executor_encoder_outputs = self.forward_executor_encoder(input_variable, input_lengths)
+
         result = self.forward_decoder(target_variables, teacher_forcing_ratio, executor_encoder_embeddings, encoder_hidden, executor_encoder_outputs)
 
         return result

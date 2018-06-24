@@ -126,7 +126,7 @@ class Evaluator(object):
 
                 # We first only do the forward pass of the executor's encoder.
                 # This way, we can use the encoder embeddings and outputs as input to the understander. To use as attn keys
-                executor_encoder_embeddings, executor_encoder_hidden, executor_encoder_outputs = model.forward_encoder(input_variable, input_lengths.tolist())
+                executor_encoder_embeddings, executor_encoder_hidden, executor_encoder_outputs = model.forward_executor_encoder(input_variable, input_lengths.tolist())
 
                 possible_attn_keys = {
                     'executor_encoder_embeddings': executor_encoder_embeddings,
