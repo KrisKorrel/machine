@@ -49,6 +49,7 @@ class SupervisedTrainer(object):
         self.evaluator = Evaluator(understander_train_method=understander_train_method, loss=self.loss, metrics=self.metrics, batch_size=eval_batch_size)
         self.optimizer = None
         self.understander_optimizer = None
+        self.total_optimizer = None
         self.checkpoint_every = checkpoint_every
         self.print_every = print_every
 
@@ -156,8 +157,7 @@ class SupervisedTrainer(object):
             for i, loss in enumerate(losses):
                 loss.scale_loss(self.loss_weights[i])
                 loss.backward(retain_graph=True)
-            self.optimizer.step()
-            self.understander_optimizer.step()
+            self.total_optimizer.step()
 
             understander_model.finish_episode()
 
@@ -445,8 +445,9 @@ class SupervisedTrainer(object):
 
             self.optimizer = Optimizer(get_optim(optimizer)(model.parameters(), lr=learning_rate),max_grad_norm=5)
             self.understander_optimizer = Optimizer(get_optim(optimizer)(understander_model.parameters(), lr=learning_rate), max_grad_norm=5)
-
+            self.total_optimizer = Optimizer(get_optim(optimizer)(list(model.parameters()) + list(understander_model.parameters()), lr=learning_rate), max_grad_norm=5)
         self.logger.info("Optimizer: %s, Scheduler: %s" % (self.optimizer.optimizer, self.optimizer.scheduler))
+        self.logger.info("Total optimizer: %s, Scheduler: %s" % (self.total_optimizer.optimizer, self.total_optimizer.scheduler))
         self.logger.info("Understander optimizer: %s, scheduler: %s" % (self.understander_optimizer.optimizer, self.understander_optimizer.scheduler))
 
         logs = self._train_epoches(data, model, understander_model, num_epochs,
