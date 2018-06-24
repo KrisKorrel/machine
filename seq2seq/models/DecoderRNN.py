@@ -79,12 +79,15 @@ class DecoderRNN(BaseRNN):
         self.full_focus = full_focus
 
         # increase input size decoder if attention is applied before decoder rnn
-        if use_attention == 'pre-rnn' and not full_focus:
+        if use_attention == 'seq2attn' and not full_focus:
             # Input size is hidden_size + context vector size, which depends on the type of attention value
             if 'embeddings' in attn_vals:
                 input_size = hidden_size + embedding_dim
             elif 'outputs' in attn_vals:
                 input_size = hidden_size + hidden_size
+
+            self.understander_decoder = self.rnn_cell(hidden_size, hidden_size, n_layers, batch_first=True, dropout=dropout_p)
+            self.executor_decoder = self.rnn_cell(input_size, hidden_size, n_layers, batch_first=True, dropout=dropout_p)
 
         self.rnn = self.rnn_cell(input_size, hidden_size, n_layers, batch_first=True, dropout=dropout_p)
 
@@ -121,17 +124,17 @@ class DecoderRNN(BaseRNN):
         # We initialize it as parameter here.
         self.init_exec_dec_with = init_exec_dec_with
         if self.init_exec_dec_with == 'new':
-            if isinstance(self.rnn, nn.LSTM):
-                self.hidden0 = (
+            if isinstance(self.executor_decoder, nn.LSTM):
+                self.executor_hidden0 = (
                     nn.Parameter(torch.zeros([self.n_layers, 1, self.hidden_size], device=device)),
                     nn.Parameter(torch.zeros([self.n_layers, 1, self.hidden_size], device=device)))
 
-            elif isinstance(self.rnn, nn.GRU):
-                self.hidden0 = nn.Parameter(torch.zeros([self.n_layers, 1, self.hidden_size], device=device))
+            elif isinstance(self.executor_decoder, nn.GRU):
+                self.executor_hidden0 = nn.Parameter(torch.zeros([self.n_layers, 1, self.hidden_size], device=device))
 
         self.attn_vals = attn_vals
 
-    def forward_step(self, input_var, hidden, encoder_outputs, function, **attention_method_kwargs):
+    def forward_step(self, input_var, understander_decoder_hidden, executor_decoder_hidden, understander_encoder_outputs, function, **attention_method_kwargs):
         """
         Performs one or multiple forward decoder steps.
         
@@ -169,16 +172,29 @@ class DecoderRNN(BaseRNN):
             context, attn = self.attention(output, encoder_outputs, **attention_method_kwargs)
             output = torch.cat((context, output), dim=2)
 
+        elif self.use_attention == 'seq2attn':
+            output_understander_decoder, understander_decoder_hidden = self.understander_decoder(embedded, understander_decoder_hidden)
+
+            # TODO: Should we provide encoder_outputs or how are key-values passed?
+            context, attn = self.attention(output_understander_decoder, understander_encoder_outputs, **attention_method_kwargs)
+
+            executor_input = torch.cat((context, embedded), dim=2)
+
+            output_executor_decoder, executor_decoder_hidden = self.executor_decoder(executor_input, executor_decoder_hidden)
+            output = output_executor_decoder
+
         elif not self.use_attention:
             attn = None
             output, hidden = self.rnn(embedded, hidden)
 
         predicted_softmax = function(self.out(output.contiguous().view(-1, self.out.in_features)), dim=1).view(batch_size, output_size, -1)
 
-        return predicted_softmax, hidden, attn
+        return predicted_softmax, understander_decoder_hidden, executor_decoder_hidden, attn
 
-    def forward(self, inputs=None, encoder_hidden=None, encoder_outputs=None,
-                    function=F.log_softmax, teacher_forcing_ratio=0, provided_attention=None, provided_attention_vectors=None, possible_attn_vals=None):
+    def forward(self, inputs=None,
+                understander_encoder_embeddings=None, understander_encoder_hidden=None, understander_encoder_outputs=None,
+                executor_encoder_embeddings=None, executor_encoder_hidden=None, executor_encoder_outputs=None,
+                function=F.log_softmax, teacher_forcing_ratio=0, provided_attention=None, provided_attention_vectors=None, possible_attn_vals=None):
         # If the understander is trained using supervised learning, we need a different attention method. One that accepts full attention
         # vectors instead of single indices. As soon as we see that the understander has provided these full vectors, we change the attention method
         # Must be solved more nicely in the future.
@@ -201,10 +217,11 @@ class DecoderRNN(BaseRNN):
         if self.use_attention:
             ret_dict[DecoderRNN.KEY_ATTN_SCORE] = list()
 
-        inputs, batch_size, max_length = self._validate_args(inputs, encoder_hidden, encoder_outputs,
+        inputs, batch_size, max_length = self._validate_args(inputs, understander_encoder_hidden, understander_encoder_outputs,
                                                              function, teacher_forcing_ratio)
         
-        decoder_hidden = self._init_state(encoder_hidden)
+        understander_decoder_hidden = self._init_state(understander_encoder_hidden, 'encoder')
+        executor_decoder_hidden = self._init_state(executor_encoder_hidden, self.init_exec_dec_with)
 
         use_teacher_forcing = True if random.random() < teacher_forcing_ratio else False
 
@@ -238,7 +255,7 @@ class DecoderRNN(BaseRNN):
         # the previous hidden state, before we can calculate the next hidden state.
         # We also need to unroll when we don't use teacher forcing. We need perform the decoder steps
         # one-by-one since the output needs to be copied to the input of the next step.
-        if self.use_attention == 'pre-rnn' or not use_teacher_forcing:
+        if self.use_attention == 'pre-rnn' or self.use_attention == 'seq2attn' or not use_teacher_forcing:
             unrolling = True
         else:
             unrolling = False
@@ -257,10 +274,10 @@ class DecoderRNN(BaseRNN):
                 # Perform one forward step
                 if self.attention and (isinstance(self.attention.method, HardGuidance) or isinstance(self.attention.method, ProvidedAttentionVectors)):
                     attention_method_kwargs['step'] = di
-                decoder_output, decoder_hidden, step_attn = self.forward_step(decoder_input, decoder_hidden, encoder_outputs,
+                executor_decoder_output, understander_decoder_hidden, executor_decoder_hidden, step_attn = self.forward_step(decoder_input, understander_decoder_hidden, executor_decoder_hidden, understander_encoder_outputs,
                                                                          function=function, **attention_method_kwargs)
                 # Remove the unnecessary dimension.
-                step_output = decoder_output.squeeze(1)
+                step_output = executor_decoder_output.squeeze(1)
                 # Get the actual symbol
                 symbols = decode(di, step_output, step_attn)
 
@@ -288,10 +305,10 @@ class DecoderRNN(BaseRNN):
         ret_dict[DecoderRNN.KEY_SEQUENCE] = sequence_symbols
         ret_dict[DecoderRNN.KEY_LENGTH] = lengths.tolist()
 
-        return decoder_outputs, decoder_hidden, ret_dict
+        return decoder_outputs, executor_decoder_hidden, ret_dict
 
-    def _init_state(self, encoder_hidden):
-        if self.init_exec_dec_with == 'encoder':
+    def _init_state(self, encoder_hidden, init_dec_with):
+        if init_dec_with == 'encoder':
             """ Initialize the encoder hidden state. """
             if encoder_hidden is None:
                 return None
@@ -300,15 +317,15 @@ class DecoderRNN(BaseRNN):
             else:
                 encoder_hidden = self._cat_directions(encoder_hidden)
 
-        elif self.init_exec_dec_with == 'new':
-            if isinstance(self.hidden0, tuple):
+        elif init_dec_with == 'new':
+            if isinstance(self.executor_hidden0, tuple):
                 batch_size = encoder_hidden[0].size(1)
                 encoder_hidden = (
-                    self.hidden0[0].repeat(1, batch_size, 1),
-                    self.hidden0[1].repeat(1, batch_size, 1))
+                    self.executor_hidden0[0].repeat(1, batch_size, 1),
+                    self.executor_hidden0[1].repeat(1, batch_size, 1))
             else:
                 batch_size = encoder_hidden.size(1)
-                encoder_hidden = self.hidden0.repeat(1, batch_size, 1)
+                encoder_hidden = self.executor_hidden0.repeat(1, batch_size, 1)
 
         return encoder_hidden
 

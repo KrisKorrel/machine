@@ -75,91 +75,23 @@ class SupervisedTrainer(object):
     def _train_batch(self, input_variable, input_lengths, target_variable, model, understander_model, teacher_forcing_ratio):
         loss = self.loss
 
-        # We first only do the forward pass of the executor's encoder.
-        # This way, we can use the encoder embeddings and outputs as input to the understander. To use as attn keys
-        understander_encoder_embeddings, understander_encoder_hidden, understander_encoder_outputs = model.forward_understander_encoder(input_variable, input_lengths.tolist())
-        executor_encoder_embeddings, executor_encoder_hidden, executor_encoder_outputs = model.forward_executor_encoder(input_variable, input_lengths.tolist())
-
-        possible_attn_keys = {
-            'executor_encoder_embeddings': executor_encoder_embeddings,
-            'executor_encoder_outputs': executor_encoder_outputs
-        }
-
-        # First we perform the forward pass for the understander (if we are not in pre-training)
-        if not self.pre_train:
-            # If we are in training mode (of the understander) we should not use the provided attention
-            # indices, but generate them ourselves.
-            if 'attention_target' in target_variable:
-                del target_variable['attention_target']
-
-            # We should provide an attention target / action for each decoder output. The target
-            # however also includes the SOS. Hence the -1
-            max_len = target_variable['decoder_output'].size(1) - 1
-
-            if self.understander_train_method == 'rl':
-                # Make understander select actions
-                actions, understander_other = understander_model.select_actions(
-                    state=input_variable,
-                    input_lengths=input_lengths,
-                    max_decoding_length=max_len,
-                    epsilon=self.epsilon,
-                    possible_attn_keys=possible_attn_keys,
-                    encoder_embeddings=understander_encoder_embeddings,
-                    encoder_hidden=understander_encoder_hidden,
-                    encoder_outputs=understander_encoder_outputs)
-
-                # Prepend -1 to the actions for the SOS step
-                batch_size = actions.size(0)
-                actions = torch.cat([torch.full([batch_size, 1], -1, dtype=torch.long, device=device), actions], dim=1)
-                
-                # In pre-training mode, the attention targets are provided (by the data set)
-                # However in training mode, we overwrite this with the actions of the understander
-                target_variable['attention_target'] = actions
-
-            elif self.understander_train_method == 'supervised':
-                # Make understander select actions (attention vectors)
-                attn, understander_other = understander_model.select_actions(
-                    state=input_variable,
-                    input_lengths=input_lengths,
-                    max_decoding_length=max_len,
-                    epsilon=self.epsilon,
-                    possible_attn_keys=possible_attn_keys,
-                    encoder_embeddings=understander_encoder_embeddings,
-                    encoder_hidden=understander_encoder_hidden,
-                    encoder_outputs=understander_encoder_outputs)
-
-                # Add the probabilities to target_variable so that they can be used in the decoder (attention)
-                target_variable['provided_attention_vectors'] = attn
-
-            # Add understander encoder's embeddings and outputs, such that they can possibly be used
-            # As keys and/or values in the attentino mechanism
-            target_variable['understander_encoder_embeddings'] = understander_other['understander_encoder_embeddings']
-            target_variable['understander_encoder_outputs'] = understander_other['understander_encoder_outputs']
-            
-        # Now we perform forward propagation of the model / executor. Attention (targets) are provided
-        # by the data or by the understander, depending on the train mode.
-        decoder_outputs, decoder_hidden, other = model.forward_decoder(
+        decoder_outputs, decoder_hidden, other = model.forward(
+            input_variable=input_variable,
+            input_lengths=input_lengths.tolist(),
             target_variables=target_variable,
-            teacher_forcing_ratio=teacher_forcing_ratio,
-            executor_encoder_embeddings=executor_encoder_embeddings,
-            encoder_hidden=executor_encoder_hidden,
-            executor_encoder_outputs=executor_encoder_outputs)
+            teacher_forcing_ratio=teacher_forcing_ratio)
 
         # Calculate the losses of the executor
         losses = self.evaluator.compute_batch_loss(decoder_outputs, decoder_hidden, other, target_variable)
-
 
         # Now we perform backpropagation.
         # In the case of simultaneous learning, we just backprop the losses once, and update both models's parameters
         if self.train_regime == 'simultaneous':
             model.zero_grad()
-            understander_model.zero_grad()
             for i, loss in enumerate(losses):
                 loss.scale_loss(self.loss_weights[i])
                 loss.backward(retain_graph=True)
-            self.total_optimizer.step()
-
-            understander_model.finish_episode()
+            self.optimizer.step()
 
         elif self.train_regime == 'two-stage':
             # In the case of pre-training mode, we update only the executor.

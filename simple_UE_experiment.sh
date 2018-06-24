@@ -30,8 +30,8 @@ OPTIM='adam'
 LR=0.001
 SAVE_EVERY=9999999999999999
 PRINT_EVERY=99999999999999
-ATTENTION='pre-rnn'
-ATTTENTION_METHOD='hard'
+ATTENTION='seq2attn'
+ATTTENTION_METHOD='mlp'
 
 EPOCHS=2000 # first 50% of epochs, only the executor is trained with hard guidance. Second half, the understander is trained
 GAMMA=0.1 # Discount factor for rewards. Since we don't have sparse rewards, we can keep this low
@@ -77,7 +77,7 @@ python train_model.py \
     --attention_method $ATTTENTION_METHOD \
     --gamma $GAMMA \
     --epsilon $EPSILON \
-    --understander_train_metho $TRAIN_METHOD \
+    --understander_train_method $TRAIN_METHOD \
     --sample_train $SAMPLE_TRAIN \
     --sample_infer $SAMPLE_INFER \
     --initial_temperature $INIT_TEMP \

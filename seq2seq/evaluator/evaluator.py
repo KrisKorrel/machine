@@ -100,9 +100,7 @@ class Evaluator(object):
         # If the model was in train mode before this method was called, we make sure it still is
         # after this method.
         previous_model_mode        = model.training
-        previous_understander_mode = understander_model.training
         model.eval()
-        understander_model.eval()
 
         losses = self.losses
         for loss in losses:
@@ -124,64 +122,11 @@ class Evaluator(object):
             for batch in batch_iterator:
                 input_variable, input_lengths, target_variable = get_batch_data(batch)
 
-                # We first only do the forward pass of the executor's encoder.
-                # This way, we can use the encoder embeddings and outputs as input to the understander. To use as attn keys
-                understander_encoder_embeddings, understander_encoder_hidden, understander_encoder_outputs = model.forward_understander_encoder(input_variable, input_lengths.tolist())        
-                executor_encoder_embeddings, executor_encoder_hidden, executor_encoder_outputs = model.forward_executor_encoder(input_variable, input_lengths.tolist())
-
-                possible_attn_keys = {
-                    'executor_encoder_embeddings': executor_encoder_embeddings,
-                    'executor_encoder_outputs': executor_encoder_outputs
-                }
-
-                # If pre-training: Use the provided attention indices in the data set for the model.
-                # Else: Use the actions of the understander as attention vectors. (prepend -1 for SOS)
-                if not pre_train:
-                    # If we are in training mode (of the understander) we should not use the provided attention
-                    # indices, but generate them ourselves.
-                    if 'attention_target' in target_variable:
-                        del target_variable['attention_target']
-
-                    # max_len is the maximum number of action the understander has to produce. target_variable holds both SOS and EOS.
-                    # Since we do not have to produce action for SOS we substract 1. Note that some examples in the batch might need less actions
-                    # then produced. These should however be ignored for loss/metrics
-                    max_decoding_length = target_variable['decoder_output'].size(1) - 1
-
-                    actions, possible_attn_keys = understander_model.select_actions(
-                        state=input_variable,
-                        input_lengths=input_lengths,
-                        max_decoding_length=max_decoding_length,
-                        epsilon=1,
-                        possible_attn_keys=possible_attn_keys,
-                        encoder_embeddings=understander_encoder_embeddings,
-                        encoder_hidden=understander_encoder_hidden,
-                        encoder_outputs=understander_encoder_outputs)
-                    understander_model.finish_episode()
-
-                    # Depending of the train method, we either need single actions, or full attention vectors
-                    if self.understander_train_method == 'rl':
-                        # Prepend -1 to the actions for the SOS step
-                        batch_size = actions.size(0)
-                        target_variable['attention_target'] = torch.cat([torch.full([batch_size, 1], -1, dtype=torch.long, device=device), actions], dim=1)
-
-                    elif self.understander_train_method == 'supervised':
-                        attn = actions
-                        # Add the probabilities to target_variable so that they can be used in the decoder (attention)
-                        target_variable['provided_attention_vectors'] = attn
-
-                    # Add understander encoder's embeddings and outputs, such that they can possibly be used
-                    # As keys and/or values in the attentino mechanism
-                    target_variable['understander_encoder_embeddings'] = possible_attn_keys['understander_encoder_embeddings']
-                    target_variable['understander_encoder_outputs'] = possible_attn_keys['understander_encoder_outputs']
-                    target_variable['executor_encoder_embeddings'] = possible_attn_keys['executor_encoder_embeddings']
-                    target_variable['executor_encoder_outputs'] = possible_attn_keys['executor_encoder_outputs']
-
-                decoder_outputs, decoder_hidden, other = model.forward_decoder(
+                decoder_outputs, decoder_hidden, other = model.forward(
+                    input_variable=input_variable,
+                    input_lengths=input_lengths.tolist(),
                     target_variables=target_variable,
-                    teacher_forcing_ratio=0,
-                    executor_encoder_embeddings=executor_encoder_embeddings,
-                    encoder_hidden=executor_encoder_hidden,
-                    executor_encoder_outputs=executor_encoder_outputs)
+                    teacher_forcing_ratio=0)
 
                 # Compute metric(s) over one batch
                 metrics = self.update_batch_metrics(metrics, other, target_variable)  
@@ -190,6 +135,5 @@ class Evaluator(object):
                 losses = self.update_loss(losses, decoder_outputs, decoder_hidden, other, target_variable)
 
         model.train(previous_model_mode)
-        understander_model.train(previous_understander_mode)
 
         return losses, metrics
