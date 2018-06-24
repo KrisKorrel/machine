@@ -34,12 +34,6 @@ class Understander(nn.Module):
 
         rnn_cell = rnn_cell.lower()
 
-        self.encoder = UnderstanderEncoder(
-            rnn_cell=rnn_cell,
-            input_vocab_size=input_vocab_size,
-            embedding_dim=embedding_dim,
-            hidden_dim=hidden_dim)
-
         # The attention scores are calculated from a concatenation of the decoder hidden state and the keys.
         # So we must pass the dimensions of the keys to the decoder
         if 'embeddings' in attn_keys:
@@ -79,7 +73,7 @@ class Understander(nn.Module):
 
         self.attn_keys = attn_keys
 
-    def forward(self, state, valid_action_mask, max_decoding_length, possible_attn_keys):
+    def forward(self, state, valid_action_mask, max_decoding_length, possible_attn_keys, encoder_embeddings, encoder_hidden, encoder_outputs):
         """
         Perform a forward pass through the seq2seq model
 
@@ -91,7 +85,6 @@ class Understander(nn.Module):
         Returns:
             torch.tensor: [batch_size x max_output_length x max_input_length] tensor containing the log-probabilities for each decoder step to attend to each encoder step
         """
-        encoder_embeddings, encoded_hidden, encoder_outputs = self.encoder(input_variable=state)
 
         # Create dict with both understander and executor's encoder embeddings and outputs
         possible_attn_keys['understander_encoder_embeddings'] = encoder_embeddings
@@ -100,7 +93,7 @@ class Understander(nn.Module):
         # Pick the correct attention keys
         attn_keys = possible_attn_keys[self.attn_keys] 
 
-        action_logits, decoder_states = self.decoder(encoder_outputs=encoder_outputs, hidden=encoded_hidden, output_length=max_decoding_length, valid_action_mask=valid_action_mask, attn_keys=attn_keys)
+        action_logits, decoder_states = self.decoder(encoder_outputs=encoder_outputs, hidden=encoder_hidden, output_length=max_decoding_length, valid_action_mask=valid_action_mask, attn_keys=attn_keys)
 
         if  (self.training and 'gumbel' in self.sample_train) or \
             (not self.training and 'gumbel' in self.sample_infer):
@@ -154,7 +147,7 @@ class Understander(nn.Module):
 
         return valid_action_mask
 
-    def select_actions(self, state, input_lengths, max_decoding_length, epsilon, possible_attn_keys):
+    def select_actions(self, state, input_lengths, max_decoding_length, epsilon, possible_attn_keys, encoder_embeddings, encoder_hidden, encoder_outputs):
         """
         Perform forward pass and stochastically select actions using epsilon-greedy RL
 
@@ -175,7 +168,7 @@ class Understander(nn.Module):
         
         # We perform a forward pass to get the log-probability of attending to each
         # encoder for each decoder
-        action_log_probs, possible_attn_keys = self.forward(state, valid_action_mask, max_decoding_length, possible_attn_keys)
+        action_log_probs, possible_attn_keys = self.forward(state, valid_action_mask, max_decoding_length, possible_attn_keys, encoder_embeddings, encoder_hidden, encoder_outputs)
 
         # In RL settings, we want to stochastically choose a single action.
         if self.train_method == 'rl':
@@ -323,79 +316,6 @@ class Understander(nn.Module):
         del self._saved_log_probs[:]
 
         return policy_loss
-
-
-class UnderstanderEncoder(nn.Module):
-    def __init__(self, rnn_cell, input_vocab_size, embedding_dim, hidden_dim):
-        """
-        Args:
-            input_vocab_size (int): Total size of the input vocabulary
-            embedding_dim (int): Number of units to use for the input symbol embeddings
-            hidden_dim (int): Size of the RNN cells
-
-        """
-        super(UnderstanderEncoder, self).__init__()
-
-        self.rnn_cell = rnn_cell
-        self.input_vocab_size = input_vocab_size
-        self.embedding_dim = embedding_dim
-        self.hidden_dim = hidden_dim
-        self.n_layers = 1
-
-        self.input_embedding = nn.Embedding(input_vocab_size, embedding_dim)
-
-        # We will learn the initial hidden state
-        if self.rnn_cell == 'lstm':
-            h_0 = torch.zeros(self.n_layers, 1, self.hidden_dim, device=device)
-            c_0 = torch.zeros(self.n_layers, 1, self.hidden_dim, device=device)
-
-            self.h_0 = nn.Parameter(h_0, requires_grad=True)
-            self.c_0 = nn.Parameter(c_0, requires_grad=True)
-
-            rnn_cell = nn.LSTM
-
-        elif self.rnn_cell == 'gru':
-            h_0 = torch.zeros(self.n_layers, 1, self.hidden_dim, device=device)
-
-            self.h_0 = nn.Parameter(h_0, requires_grad=True)
-
-            rnn_cell = nn.GRU
-
-        self.encoder = rnn_cell(
-            input_size=embedding_dim,
-            hidden_size=hidden_dim,
-            num_layers=self.n_layers,
-            batch_first=True)
-
-
-    def forward(self, input_variable):
-        """
-        Forward propagation
-
-        Args:
-            input_variable (torch.tensor): [batch_size x max_input_length] tensor containing indices of the input sequence
-
-        Returns:
-            torch.tensor: The outputs of all encoder states
-            torch.tensor: The hidden state of the last encoder state
-        """
-        input_embedding = self.input_embedding(input_variable)
-
-        # Expand learned initial states to the batch size
-        batch_size = input_embedding.size(0)
-        if self.rnn_cell == 'lstm':
-            h_0_batch = self.h_0.repeat(1, batch_size, 1)
-            c_0_batch = self.c_0.repeat(1, batch_size, 1)
-            hidden0 = (h_0_batch, c_0_batch)
-
-        elif self.rnn_cell == 'gru':
-            h_0_batch = self.h_0.repeat(1, batch_size, 1)
-            hidden0 = h_0_batch
-
-        out, hidden = self.encoder(input_embedding, hidden0)
-
-        return input_embedding, hidden, out
-
 
 class UnderstanderDecoder(nn.Module):
 

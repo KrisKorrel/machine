@@ -76,6 +76,7 @@ class SupervisedTrainer(object):
 
         # We first only do the forward pass of the executor's encoder.
         # This way, we can use the encoder embeddings and outputs as input to the understander. To use as attn keys
+        understander_encoder_embeddings, understander_encoder_hidden, understander_encoder_outputs = model.forward_understander_encoder(input_variable, input_lengths.tolist())
         executor_encoder_embeddings, executor_encoder_hidden, executor_encoder_outputs = model.forward_executor_encoder(input_variable, input_lengths.tolist())
 
         possible_attn_keys = {
@@ -101,7 +102,10 @@ class SupervisedTrainer(object):
                     input_lengths=input_lengths,
                     max_decoding_length=max_len,
                     epsilon=self.epsilon,
-                    possible_attn_keys=possible_attn_keys)
+                    possible_attn_keys=possible_attn_keys,
+                    encoder_embeddings=understander_encoder_embeddings,
+                    encoder_hidden=understander_encoder_hidden,
+                    encoder_outputs=understander_encoder_outputs)
 
                 # Prepend -1 to the actions for the SOS step
                 batch_size = actions.size(0)
@@ -118,7 +122,10 @@ class SupervisedTrainer(object):
                     input_lengths=input_lengths,
                     max_decoding_length=max_len,
                     epsilon=self.epsilon,
-                    possible_attn_keys=possible_attn_keys)
+                    possible_attn_keys=possible_attn_keys,
+                    encoder_embeddings=understander_encoder_embeddings,
+                    encoder_hidden=understander_encoder_hidden,
+                    encoder_outputs=understander_encoder_outputs)
 
                 # Add the probabilities to target_variable so that they can be used in the decoder (attention)
                 target_variable['provided_attention_vectors'] = attn

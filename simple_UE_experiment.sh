@@ -31,7 +31,7 @@ LR=0.001
 SAVE_EVERY=9999999999999999
 PRINT_EVERY=99999999999999
 ATTENTION='pre-rnn'
-ATTTENTION_METHOD='mlp'
+ATTTENTION_METHOD='hard'
 
 EPOCHS=2000 # first 50% of epochs, only the executor is trained with hard guidance. Second half, the understander is trained
 GAMMA=0.1 # Discount factor for rewards. Since we don't have sparse rewards, we can keep this low
@@ -39,7 +39,7 @@ EPSILON=0.99 # Sample stochastically from policy 99% of times, sample unifomly 1
 TRAIN_METHOD='supervised' # Train understander with either 'supervised' or 'rl'
 SAMPLE_TRAIN='gumbel_hard' # In supervised setting we can either use the 'full' attention vector, sample using 'gumbel_soft', or sample using gumbel ST ('gumbel_hard')
 SAMPLE_INFER='gumbel_hard' # In supervised setting we can either use the 'full' attention vector, sample using 'gumbel_soft', sample using gumbel ST ('gumbel_hard'),  or use 'argmax' ar inference
-INIT_TEMP=2 # (Initial) temperature for gumbel-softmax
+INIT_TEMP=5 # (Initial) temperature for gumbel-softmax
 LEARN_TEMP='unconditioned' # Fix temperature with 'no', make it a latent, unconditioned, learnable parameter with 'unconditioned', learn it conditioned on encoder-decoder concatenation with 'conditioned'
 INIT_EXEC_DEC_WITH='new' # Initialize the executor's decoder with it's last encoder, or with a new learable vector
 TRAIN_REGIME='simultaneous' # In 'two-stage' training we first train the executor with hard guidance for n/2 epochs and then the understander for n/2 epochs

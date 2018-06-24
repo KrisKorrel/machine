@@ -126,6 +126,7 @@ class Evaluator(object):
 
                 # We first only do the forward pass of the executor's encoder.
                 # This way, we can use the encoder embeddings and outputs as input to the understander. To use as attn keys
+                understander_encoder_embeddings, understander_encoder_hidden, understander_encoder_outputs = model.forward_understander_encoder(input_variable, input_lengths.tolist())        
                 executor_encoder_embeddings, executor_encoder_hidden, executor_encoder_outputs = model.forward_executor_encoder(input_variable, input_lengths.tolist())
 
                 possible_attn_keys = {
@@ -151,7 +152,10 @@ class Evaluator(object):
                         input_lengths=input_lengths,
                         max_decoding_length=max_decoding_length,
                         epsilon=1,
-                        possible_attn_keys=possible_attn_keys)
+                        possible_attn_keys=possible_attn_keys,
+                        encoder_embeddings=understander_encoder_embeddings,
+                        encoder_hidden=understander_encoder_hidden,
+                        encoder_outputs=understander_encoder_outputs)
                     understander_model.finish_episode()
 
                     # Depending of the train method, we either need single actions, or full attention vectors
