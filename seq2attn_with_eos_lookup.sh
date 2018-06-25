@@ -20,12 +20,12 @@ TEST_PATH_6="${DATA_PATH}/longer_compositions_incremental.tsv"
 TEST_PATH_7="${DATA_PATH}/longer_compositions_seen.tsv"
 
 # set values
-EMB_SIZE=128
-H_SIZE=128
+EMB_SIZE=512
+H_SIZE=512
 N_LAYERS=1
 CELL='lstm'
 EPOCH=500
-PRINT_EVERY=100
+PRINT_EVERY=50
 SAVE_EVERY=99999999999999999
 TF=0
 ATTN='pre-rnn'
@@ -37,7 +37,7 @@ BATCH_SIZE=16
 EVAL_BATCH_SIZE=10000
 ATTN_SCALE=1
 
-NAME='lookup_seq2attn_without_eos'
+NAME='lookup_seq2attn_with_eos'
 SAMPLE_TRAIN='gumbel_hard'
 SAMPLE_INFER='gumbel_hard'
 INIT_TEMP=2
