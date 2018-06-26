@@ -86,7 +86,7 @@ class Evaluator(object):
 
         return losses
 
-    def evaluate(self, model, understander_model, data, get_batch_data, pre_train):
+    def evaluate(self, model, data, get_batch_data, pre_train):
         """ Evaluate a model on given dataset and return performance.
 
         Args:

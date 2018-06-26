@@ -48,7 +48,6 @@ class SupervisedTrainer(object):
         self.loss_weights = loss_weights or len(loss)*[1.]
         self.evaluator = Evaluator(understander_train_method=understander_train_method, loss=self.loss, metrics=self.metrics, batch_size=eval_batch_size)
         self.optimizer = None
-        self.understander_optimizer = None
         self.total_optimizer = None
         self.checkpoint_every = checkpoint_every
         self.print_every = print_every
@@ -72,7 +71,7 @@ class SupervisedTrainer(object):
         else:
             self.pre_train = False
 
-    def _train_batch(self, input_variable, input_lengths, target_variable, model, understander_model, teacher_forcing_ratio):
+    def _train_batch(self, input_variable, input_lengths, target_variable, model, teacher_forcing_ratio):
         loss = self.loss
 
         decoder_outputs, decoder_hidden, other = model.forward(
@@ -102,11 +101,8 @@ class SupervisedTrainer(object):
                     loss.backward(retain_graph=True)
                 self.optimizer.step()
 
-                understander_model.finish_episode()
-
             # In the case of training mode, we update only the understander
             if not self.pre_train:
-                understander_model.zero_grad()
 
                 if self.understander_train_method == 'rl':
                     # TODO: This loss metric should be initialized in train_model and passed to the trainer. (And we shouldn't hard-code the ignore_index value)
@@ -128,25 +124,16 @@ class SupervisedTrainer(object):
                         step_reward = list(numpy.clip((3-loss_func(prediction, ground_truth).detach().cpu().numpy())/3, 0, 1))
                         rewards.append(step_reward)
 
-                    understander_model.set_rewards(rewards)
-
                     # Calculate discounted rewards and policy loss
-                    policy_loss = understander_model.finish_episode()
-                    policy_loss.backward()
 
                 elif self.understander_train_method == 'supervised':
                     for i, loss in enumerate(losses):
                         loss.scale_loss(self.loss_weights[i])
                         loss.backward(retain_graph=True)
 
-                    understander_model.finish_episode()
-
-                # Update understander
-                self.understander_optimizer.step()
-
         return losses
 
-    def _train_epoches(self, data, model, understander_model, n_epochs, start_epoch, start_step, pre_train=None,
+    def _train_epoches(self, data, model, n_epochs, start_epoch, start_step, pre_train=None,
                        dev_data=None, monitor_data=[], teacher_forcing_ratio=0, top_k=5):
         log = self.logger
 
@@ -176,7 +163,7 @@ class SupervisedTrainer(object):
 
         # store initial model to be sure at least one model is stored
         val_data = dev_data or data
-        losses, metrics = self.evaluator.evaluate(model, understander_model, val_data, self.get_batch_data, pre_train=self.pre_train)
+        losses, metrics = self.evaluator.evaluate(model, val_data, self.get_batch_data, pre_train=self.pre_train)
 
         total_loss, log_msg, model_name = self.get_losses(losses, metrics, step)
         log.info(log_msg)
@@ -186,7 +173,6 @@ class SupervisedTrainer(object):
         best_checkpoints = top_k*[None]
         best_checkpoints[0] = model_name
 
-        # TODO: Add understander_optimzer
         Checkpoint(model=model,
                    optimizer=self.optimizer,
                    epoch=start_epoch, step=start_step,
@@ -195,8 +181,8 @@ class SupervisedTrainer(object):
 
 
         for epoch in range(start_epoch, n_epochs + 1):
-            if understander_model.current_temperature is not None:
-                log.info("Example temperature: {}".format(understander_model.current_temperature[0].item()))
+            if model.decoder.understander.attention.current_temperature is not None:
+                log.info("Example temperature: {}".format(model.decoder.understander.attention.current_temperature[0].item()))
 
             log.info("Epoch: %d, Step: %d" % (epoch, step))
 
@@ -224,14 +210,13 @@ class SupervisedTrainer(object):
                 self.pre_train = False
 
             model.train(True)
-            understander_model.train(True)
             for batch in batch_generator:
                 step += 1
                 step_elapsed += 1
 
                 input_variables, input_lengths, target_variables = self.get_batch_data(batch)
 
-                losses = self._train_batch(input_variables, input_lengths, target_variables, model, understander_model, teacher_forcing_ratio)
+                losses = self._train_batch(input_variables, input_lengths, target_variables, model, teacher_forcing_ratio)
 
                 # Record average loss
                 for loss in losses:
@@ -247,7 +232,7 @@ class SupervisedTrainer(object):
                         print_loss_total[name] = 0
 
                     m_logs = {}
-                    train_losses, train_metrics = self.evaluator.evaluate(model, understander_model, data, self.get_batch_data, pre_train=self.pre_train)
+                    train_losses, train_metrics = self.evaluator.evaluate(model, data, self.get_batch_data, pre_train=self.pre_train)
                     train_loss, train_log_msg, model_name = self.get_losses(train_losses, train_metrics, step)
                     logs.write_to_log('Train', train_losses, train_metrics, step)
                     logs.update_step(step)
@@ -255,10 +240,8 @@ class SupervisedTrainer(object):
                     m_logs['Train'] = train_log_msg
 
                     # compute vals for all monitored sets
-                    log.info("Example temperature: {}".format(understander_model.current_temperature[0].item()))
-
                     for m_data in monitor_data:
-                        losses, metrics = self.evaluator.evaluate(model, understander_model, monitor_data[m_data], self.get_batch_data, pre_train=self.pre_train)
+                        losses, metrics = self.evaluator.evaluate(model, monitor_data[m_data], self.get_batch_data, pre_train=self.pre_train)
                         total_loss, log_msg, model_name = self.get_losses(losses, metrics, step)
                         m_logs[m_data] = log_msg
                         logs.write_to_log(m_data, losses, metrics, step)
@@ -274,7 +257,7 @@ class SupervisedTrainer(object):
                 # check if new model should be saved
                 if step % self.checkpoint_every == 0 or step == total_steps:
                     # compute dev loss
-                    losses, metrics = self.evaluator.evaluate(model, understander_model, val_data, self.get_batch_data, pre_train=self.pre_train)
+                    losses, metrics = self.evaluator.evaluate(model, val_data, self.get_batch_data, pre_train=self.pre_train)
                     total_loss, log_msg, model_name = self.get_losses(losses, metrics, step)
 
                     max_eval_loss = max(loss_best)
@@ -287,7 +270,6 @@ class SupervisedTrainer(object):
                             loss_best[index_max] = total_loss
 
                             # save model
-                            # TODO: Add understander_optimzer
                             Checkpoint(model=model,
                                        optimizer=self.optimizer,
                                        epoch=epoch, step=step,
@@ -302,31 +284,31 @@ class SupervisedTrainer(object):
 
             loss_msg = ' '.join(['%s: %.4f' % (loss.log_name, loss.get_loss()) for loss in losses])
             log_msg = "Finished epoch %d: Train %s" % (epoch, loss_msg)
+            if epoch % 50 == 0:
+                input("Fin")
 
             if dev_data is not None:
-                losses, metrics = self.evaluator.evaluate(model, understander_model, dev_data, self.get_batch_data, pre_train=self.pre_train)
+                losses, metrics = self.evaluator.evaluate(model, dev_data, self.get_batch_data, pre_train=self.pre_train)
                 loss_total, log_, model_name = self.get_losses(losses, metrics, step)
 
-                # TODO: Add understander_optimzer? 
                 self.optimizer.update(loss_total, epoch)    # TODO check if this makes sense!
                 log_msg += ", Dev set: " + log_
 
 
-                losses, metrics = self.evaluator.evaluate(model, understander_model, data, self.get_batch_data, pre_train=self.pre_train)
+                losses, metrics = self.evaluator.evaluate(model, data, self.get_batch_data, pre_train=self.pre_train)
                 loss_total, log_, model_name = self.get_losses(losses, metrics, step)
 
                 log_msg += ", Train set: " + log_
 
                 model.train(mode=True)
             else:
-                # TODO: Add understander optimzer?
                 self.optimizer.update(epoch_loss_avg, epoch) # TODO check if this makes sense!
 
             log.info(log_msg)
 
         return logs
 
-    def train(self, model, data, pre_train=None, understander_model=None, num_epochs=5,
+    def train(self, model, data, pre_train=None, num_epochs=5,
               resume=False, dev_data=None, optimizer=None,
               teacher_forcing_ratio=0, monitor_data={},
               learning_rate=0.001, checkpoint_path=None, top_k=5):
@@ -360,7 +342,6 @@ class SupervisedTrainer(object):
             defaults.pop('params', None)
             defaults.pop('initial_lr', None)
             self.optimizer.optimizer = resume_optim.__class__(model.parameters(), **defaults)
-            # TODO: How to init understander_optimizer?
 
             start_epoch = resume_checkpoint.epoch
             step = resume_checkpoint.step
@@ -376,13 +357,9 @@ class SupervisedTrainer(object):
                 return optims[optim_name]
 
             self.optimizer = Optimizer(get_optim(optimizer)(model.parameters(), lr=learning_rate),max_grad_norm=5)
-            self.understander_optimizer = Optimizer(get_optim(optimizer)(understander_model.parameters(), lr=learning_rate), max_grad_norm=5)
-            self.total_optimizer = Optimizer(get_optim(optimizer)(list(model.parameters()) + list(understander_model.parameters()), lr=learning_rate), max_grad_norm=5)
         self.logger.info("Optimizer: %s, Scheduler: %s" % (self.optimizer.optimizer, self.optimizer.scheduler))
-        self.logger.info("Total optimizer: %s, Scheduler: %s" % (self.total_optimizer.optimizer, self.total_optimizer.scheduler))
-        self.logger.info("Understander optimizer: %s, scheduler: %s" % (self.understander_optimizer.optimizer, self.understander_optimizer.scheduler))
 
-        logs = self._train_epoches(data, model, understander_model, num_epochs,
+        logs = self._train_epoches(data, model, num_epochs,
                             start_epoch, step, pre_train=pre_train, dev_data=dev_data,
                             monitor_data=monitor_data,
                             teacher_forcing_ratio=teacher_forcing_ratio,

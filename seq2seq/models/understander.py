@@ -8,7 +8,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.distributions import Categorical
 
-from ..util.gumbel import gumbel_softmax
+from .attention import Attention
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -22,7 +22,8 @@ class Understander(nn.Module):
     Finally, call `finish_episod()` to calculate the discounted rewards and policy loss.
     """
 
-    def __init__(self, rnn_cell, input_vocab_size, embedding_dim, hidden_dim, gamma, train_method, sample_train, sample_infer, initial_temperature, learn_temperature, attn_keys):
+    # TODO: Do we need attn_keys and vals here? Can't they just only be passed as variables in forward()?
+    def __init__(self, rnn_cell, embedding_dim, n_layers, hidden_dim, dropout_p, gamma, sample_train, sample_infer, initial_temperature, learn_temperature, attn_keys, attn_vals):
         """
         Args:
             input_vocab_size (int): Total size of the input vocabulary
@@ -33,47 +34,24 @@ class Understander(nn.Module):
         super(Understander, self).__init__()
 
         rnn_cell = rnn_cell.lower()
+        if rnn_cell == 'lstm':
+            self.rnn_cell = nn.LSTM
+        elif rnn_cell == 'gru':
+            self.rnn_cell = nn.GRU
 
-        # The attention scores are calculated from a concatenation of the decoder hidden state and the keys.
-        # So we must pass the dimensions of the keys to the decoder
-        if 'embeddings' in attn_keys:
+        # Input size is hidden_size + context vector size, which depends on the type of attention value
+        # TODO: As Yann pointed out, we should have different embedding size for decoder.
+        if 'embeddings' in attn_vals:
             key_dim = embedding_dim
-        elif 'outputs' in attn_keys:
+        elif 'outputs' in attn_vals:
             key_dim = hidden_dim
+        input_size = hidden_dim + key_dim
 
-        self.decoder = UnderstanderDecoder(
-            rnn_cell=rnn_cell,
-            hidden_dim=hidden_dim,
-            key_dim=key_dim)
+        self.understander_decoder = self.rnn_cell(hidden_dim, hidden_dim, n_layers, batch_first=True, dropout=dropout_p)
+        self.attention = Attention(dim=key_dim, method='mlp', apply_softmax=True, sample_train=sample_train, sample_infer=sample_infer, learn_temperature=learn_temperature, initial_temperature=initial_temperature) # TODO: Don't hardcode attention method. What about apply_softmax?
+        self.executor_decoder = self.rnn_cell(input_size, hidden_dim, n_layers, batch_first=True, dropout=dropout_p)
 
-        self.gamma = gamma
-
-        self._saved_log_probs = []
-        self._rewards = []
-
-        self.train_method = train_method
-        self.sample_train = sample_train
-        self.sample_infer = sample_infer
-
-        self.learn_temperature = learn_temperature
-        if learn_temperature == 'no':
-            self.temperature = torch.tensor(initial_temperature, requires_grad=False, device=device)
-
-        elif learn_temperature == 'unconditioned':
-            self.temperature = nn.Parameter(torch.log(torch.tensor(initial_temperature, device=device)), requires_grad=True)
-            self.temperature_activation = torch.exp
-
-        elif learn_temperature == 'conditioned':
-            max_temperature = initial_temperature
-
-            inverse_max_temperature = 1. / max_temperature
-            self.inverse_temperature_estimator = nn.Linear(hidden_dim,1)
-            self.inverse_temperature_activation = lambda inv_temp: torch.log(1 + torch.exp(inv_temp)) + inverse_max_temperature
-        self.current_temperature = None
-
-        self.attn_keys = attn_keys
-
-    def forward(self, state, valid_action_mask, max_decoding_length, possible_attn_keys, encoder_embeddings, encoder_hidden, encoder_outputs):
+    def forward(self, embedded, understander_decoder_hidden, executor_decoder_hidden, attn_keys, attn_vals):
         """
         Perform a forward pass through the seq2seq model
 
@@ -86,14 +64,13 @@ class Understander(nn.Module):
             torch.tensor: [batch_size x max_output_length x max_input_length] tensor containing the log-probabilities for each decoder step to attend to each encoder step
         """
 
-        # Create dict with both understander and executor's encoder embeddings and outputs
-        possible_attn_keys['understander_encoder_embeddings'] = encoder_embeddings
-        possible_attn_keys['understander_encoder_outputs'] = encoder_outputs
+        understander_decoder_output, understander_decoder_hidden = self.understander_decoder(embedded, understander_decoder_hidden)
+        context, attn = self.attention(queries=understander_decoder_output,keys=attn_keys,values=attn_vals)
+        executor_decoder_input = torch.cat((context, embedded), dim=2)
+        executor_decoder_output, executor_decoder_hidden = self.executor_decoder(executor_decoder_input, executor_decoder_hidden)
 
-        # Pick the correct attention keys
-        attn_keys = possible_attn_keys[self.attn_keys] 
+        return executor_decoder_output, understander_decoder_hidden, executor_decoder_hidden, attn
 
-        action_logits, decoder_states = self.decoder(encoder_outputs=encoder_outputs, hidden=encoder_hidden, output_length=max_decoding_length, valid_action_mask=valid_action_mask, attn_keys=attn_keys)
 
         if  (self.training and 'gumbel' in self.sample_train) or \
             (not self.training and 'gumbel' in self.sample_infer):
@@ -316,139 +293,3 @@ class Understander(nn.Module):
         del self._saved_log_probs[:]
 
         return policy_loss
-
-class UnderstanderDecoder(nn.Module):
-
-    """
-    Decoder of the understander model. It will forward a concatenation of each combination of
-    decoder state and encoder state through a MLP with 1 hidden layer to produce a score.
-    We take the log-softmax of this to calculate the logits. All encoder states that are associated
-    with <pad> inputs are not taken into account for calculations.
-    """
-
-    def __init__(self, rnn_cell, hidden_dim, key_dim):
-        """      
-        Args:
-            hidden_dim (int): Size of the RNN cells
-        """
-        super(UnderstanderDecoder, self).__init__()
-
-        self.embedding_dim = 1
-        self.hidden_dim = hidden_dim
-        self.n_layers = 1
-
-        # TODO: We don't have an embedding layer for now, as I'm not sure what the input to the
-        # decoder should be. Maybe the last output? Maybe the hidden state of the executor?
-        # For now I use a constant zero vector
-        # self.input_embedding = nn.Embedding(1, embedding_dim)
-        self.embedding = torch.zeros(1, self.n_layers, self.embedding_dim, requires_grad=False, device=device)
-
-        self.rnn_cell = rnn_cell
-        if self.rnn_cell == 'lstm':
-            rnn_cell = nn.LSTM
-        elif self.rnn_cell == 'gru':
-            rnn_cell = nn.GRU
-
-        self.decoder = rnn_cell(1, hidden_dim, batch_first=True)
-
-        # Hidden layer of the MLP. Goes from dec_state_dim + key_dim to hidden dim
-        self.hidden_layer = nn.Linear(hidden_dim + key_dim, hidden_dim)
-        self.hidden_activation = nn.ReLU()
-
-        # Final layer that produces the log-probabilities
-        self.output_layer = nn.Linear(hidden_dim, 1)
-        self.output_activation = nn.LogSoftmax(dim=2)
-
-    def forward(self, encoder_outputs, hidden, output_length, valid_action_mask, attn_keys):
-        """
-        Forward propagation
-
-        Args:
-            encoder_outputs (torch.tensor): [batch_size x enc_len x enc_hidden_dim] output of all encoder states
-            hidden (torch.tensor): ([batch_size x enc_hidden_dim] [batch_size x enc_hidden_dim]) h,c of last encoder state
-            output_length (int): Predefined decoder length
-            valid_action_mask (torch.tensor): ByteTensor with a 0 for each encoder state that is associated with <pad> input
-
-        Returns:
-            torch.tensor: [batch_size x dec_len x enc_len] Log-probabilities of choosing each encoder state for each decoder state
-        """
-
-        action_scores_list = []
-        batch_size = encoder_outputs.size(0)
-
-        # First decoder state should have as prev_hidden th hidden state of the encoder
-        decoder_hidden = hidden
-
-        decoder_states_list = []
-
-        # TODO: We use rolled out version. If we actually won't use any (informative) input to the decoder
-        # we should roll it to save computation time and have cleaner code.
-        for decoder_step in range(output_length):
-            # Expand the embedding to the batch
-            embedding = self.embedding.expand(batch_size, self.n_layers, self.embedding_dim)
-
-            # Forward propagate the decoder
-            _, decoder_hidden = self.decoder(embedding, decoder_hidden)
-
-            # We use the same MLP method as in attention.py
-            encoder_states = attn_keys
-            if self.rnn_cell == 'lstm':
-                h, c = decoder_hidden # Unpack LSTM state
-            elif self.rnn_cell == 'gru':
-                h = decoder_hidden
-            h = h.transpose(0, 1) # make it batch-first
-            decoder_states = h
-
-            # Store decoder state to return. Since we have unrolled decoder, we can squeeze the second dimension
-            decoder_states_list.append(decoder_states.squeeze(1))
-
-            # apply mlp to all encoder states for current decoder
-            # decoder_states --> (batch, dec_seqlen, hl_size)
-            # encoder_states --> (batch, enc_seqlen, hl_size)
-            batch_size, enc_seqlen, hl_size_enc = encoder_states.size()
-            _,          dec_seqlen, hl_size_dec       = decoder_states.size()
-
-            # For the encoder states we add extra dimension with dec_seqlen
-            # (batch, enc_seqlen, hl_size) -> (batch, dec_seqlen, enc_seqlen, hl_size)
-            encoder_states_exp = encoder_states.unsqueeze(1)
-            encoder_states_exp = encoder_states_exp.expand(batch_size, dec_seqlen, enc_seqlen, hl_size_enc)
-            
-            # For the decoder states we add extra dimension with enc_seqlen
-            # (batch, dec_seqlen, hl_size) -> (batch, dec_seqlen, enc_seqlen, hl_size)
-            decoder_states_exp = decoder_states.unsqueeze(2)
-            decoder_states_exp = decoder_states_exp.expand(batch_size, dec_seqlen, enc_seqlen, hl_size_dec)
-            
-            # reshape encoder and decoder states to allow batchwise computation. We will have
-            # in total batch_size x enc_seqlen x dec_seqlen batches. So we apply the Linear
-            # layer for each of them
-            decoder_states_tr = decoder_states_exp.contiguous().view(-1, hl_size_dec)
-            encoder_states_tr = encoder_states_exp.contiguous().view(-1, hl_size_enc)
-            
-            # tensor with two dimensions. The first dimension is the number of batchs which is:
-            # batch_size x enc_seqlen x dec_seqlen
-            # the second dimension is enc_hidden_dim + dec_hidden_dim
-            mlp_input = torch.cat((encoder_states_tr, decoder_states_tr), dim=1)
-            
-            # apply mlp and reshape to get back in correct shape
-            mlp_hidden = self.hidden_layer(mlp_input)
-            mlp_hidden = self.hidden_activation(mlp_hidden)
-            
-            mlp_out = self.output_layer(mlp_hidden)
-            mlp_out = mlp_out.view(batch_size, dec_seqlen, enc_seqlen)
-
-            action_scores_list.append(mlp_out)
-
-        # Combine the action scores for each decoder step into 1 variable
-        action_scores = torch.cat(action_scores_list, dim=1)
-
-        # Combine the decoder state for each decoder step into 1 variable
-        decoder_states = torch.stack(decoder_states_list, dim=1)
-
-        # Fill all invalid <pad> encoder states with 0 probability (-inf pre-softmax score)
-        invalid_action_mask = valid_action_mask.ne(1).unsqueeze(1).expand(-1, output_length, -1)
-        action_scores.masked_fill_(invalid_action_mask, -float('inf'))
-
-        # For each decoder step, take the log-softmax over all actions to get log-probabilities
-        action_logits = self.output_activation(action_scores)
-
-        return action_logits, decoder_states

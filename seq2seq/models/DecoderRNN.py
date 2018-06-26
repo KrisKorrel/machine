@@ -8,6 +8,7 @@ import torch.nn.functional as F
 
 from .attention import Attention, HardGuidance, ProvidedAttentionVectors
 from .baseRNN import BaseRNN
+from .understander import Understander
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -62,9 +63,16 @@ class DecoderRNN(BaseRNN):
     KEY_SEQUENCE = 'sequence'
 
     def __init__(self, vocab_size, max_len, hidden_size,
-            sos_id, eos_id, init_exec_dec_with, attn_vals, embedding_dim,
+            sos_id, eos_id, embedding_dim,
             n_layers=1, rnn_cell='gru', bidirectional=False,
-            input_dropout_p=0, dropout_p=0, use_attention=False, attention_method=None, full_focus=False):
+            input_dropout_p=0, dropout_p=0, use_attention=False, attention_method=None, full_focus=False,
+            sample_train=None,
+            sample_infer=None,
+            initial_temperature=None,
+            learn_temperature=None,
+            init_exec_dec_with=None,
+            attn_keys=None,
+            attn_vals=None):
         super(DecoderRNN, self).__init__(vocab_size, max_len, hidden_size,
                 input_dropout_p, dropout_p,
                 n_layers, rnn_cell)
@@ -80,16 +88,26 @@ class DecoderRNN(BaseRNN):
 
         # increase input size decoder if attention is applied before decoder rnn
         if use_attention == 'seq2attn' and not full_focus:
-            # Input size is hidden_size + context vector size, which depends on the type of attention value
-            if 'embeddings' in attn_vals:
-                input_size = hidden_size + embedding_dim
-            elif 'outputs' in attn_vals:
-                input_size = hidden_size + hidden_size
+            # TODO: Arguments
+            self.understander = Understander(
+                rnn_cell=rnn_cell,
+                embedding_dim=embedding_dim,
+                hidden_dim=hidden_size,
+                n_layers=n_layers,
+                dropout_p=dropout_p,
+                gamma=0.9,
+                sample_train=sample_train,
+                sample_infer=sample_infer,
+                initial_temperature=initial_temperature,
+                learn_temperature=learn_temperature,
+                attn_keys=attn_keys,
+                attn_vals=attn_vals)
 
-            self.understander_decoder = self.rnn_cell(hidden_size, hidden_size, n_layers, batch_first=True, dropout=dropout_p)
-            self.executor_decoder = self.rnn_cell(input_size, hidden_size, n_layers, batch_first=True, dropout=dropout_p)
+            self.attn_keys = attn_keys
+            self.attn_vals = attn_vals
 
-        self.rnn = self.rnn_cell(input_size, hidden_size, n_layers, batch_first=True, dropout=dropout_p)
+        else:
+            self.rnn = self.rnn_cell(input_size, hidden_size, n_layers, batch_first=True, dropout=dropout_p)
 
         self.output_size = vocab_size
         self.max_length = max_len
@@ -124,17 +142,18 @@ class DecoderRNN(BaseRNN):
         # We initialize it as parameter here.
         self.init_exec_dec_with = init_exec_dec_with
         if self.init_exec_dec_with == 'new':
-            if isinstance(self.executor_decoder, nn.LSTM):
+            # TODO: Does this still work correct?
+            if isinstance(self.understander.executor_decoder, nn.LSTM):
                 self.executor_hidden0 = (
                     nn.Parameter(torch.zeros([self.n_layers, 1, self.hidden_size], device=device)),
                     nn.Parameter(torch.zeros([self.n_layers, 1, self.hidden_size], device=device)))
 
-            elif isinstance(self.executor_decoder, nn.GRU):
+            elif isinstance(self.understander.executor_decoder, nn.GRU):
                 self.executor_hidden0 = nn.Parameter(torch.zeros([self.n_layers, 1, self.hidden_size], device=device))
 
         self.attn_vals = attn_vals
 
-    def forward_step(self, input_var, understander_decoder_hidden, executor_decoder_hidden, understander_encoder_outputs, function, **attention_method_kwargs):
+    def forward_step(self, input_var, understander_decoder_hidden, executor_decoder_hidden, attn_keys, attn_vals, function, **attention_method_kwargs):
         """
         Performs one or multiple forward decoder steps.
         
@@ -173,15 +192,12 @@ class DecoderRNN(BaseRNN):
             output = torch.cat((context, output), dim=2)
 
         elif self.use_attention == 'seq2attn':
-            output_understander_decoder, understander_decoder_hidden = self.understander_decoder(embedded, understander_decoder_hidden)
-
-            # TODO: Should we provide encoder_outputs or how are key-values passed?
-            context, attn = self.attention(output_understander_decoder, understander_encoder_outputs, **attention_method_kwargs)
-
-            executor_input = torch.cat((context, embedded), dim=2)
-
-            output_executor_decoder, executor_decoder_hidden = self.executor_decoder(executor_input, executor_decoder_hidden)
-            output = output_executor_decoder
+            output, understander_decoder_hidden, executor_decoder_hidden, attn = self.understander(
+                embedded=embedded,
+                understander_decoder_hidden=understander_decoder_hidden,
+                executor_decoder_hidden=executor_decoder_hidden,
+                attn_keys=attn_keys,
+                attn_vals=attn_vals)
 
         elif not self.use_attention:
             attn = None
@@ -274,7 +290,12 @@ class DecoderRNN(BaseRNN):
                 # Perform one forward step
                 if self.attention and (isinstance(self.attention.method, HardGuidance) or isinstance(self.attention.method, ProvidedAttentionVectors)):
                     attention_method_kwargs['step'] = di
-                executor_decoder_output, understander_decoder_hidden, executor_decoder_hidden, step_attn = self.forward_step(decoder_input, understander_decoder_hidden, executor_decoder_hidden, understander_encoder_outputs,
+
+                # Get local variable out of locals() dictionary by string key
+                attn_keys = locals()[self.attn_keys]
+                attn_vals = locals()[self.attn_vals]
+
+                executor_decoder_output, understander_decoder_hidden, executor_decoder_hidden, step_attn = self.forward_step(decoder_input, understander_decoder_hidden, executor_decoder_hidden, attn_keys, attn_vals,
                                                                          function=function, **attention_method_kwargs)
                 # Remove the unnecessary dimension.
                 step_output = executor_decoder_output.squeeze(1)
@@ -299,8 +320,8 @@ class DecoderRNN(BaseRNN):
                     step_attn = None
                 decode(di, step_output, step_attn)
 
-        # print(torch.stack(ret_dict[DecoderRNN.KEY_ATTN_SCORE]).squeeze().transpose(0,1)[0])
-        # print("\n")
+        print(torch.stack(ret_dict[DecoderRNN.KEY_ATTN_SCORE]).squeeze().transpose(0,1)[0])
+        print("\n")
 
         ret_dict[DecoderRNN.KEY_SEQUENCE] = sequence_symbols
         ret_dict[DecoderRNN.KEY_LENGTH] = lengths.tolist()
@@ -349,6 +370,7 @@ class DecoderRNN(BaseRNN):
             if inputs is not None:
                 batch_size = inputs.size(0)
             else:
+                # TODO: Will this work with understander model?
                 if self.rnn_cell is nn.LSTM:
                     batch_size = encoder_hidden[0].size(1)
                 elif self.rnn_cell is nn.GRU:

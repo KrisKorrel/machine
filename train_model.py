@@ -212,38 +212,24 @@ else:
                          rnn_cell=opt.rnn_cell,
                          eos_id=tgt.eos_id,
                          sos_id=tgt.sos_id,
+                         embedding_dim=opt.embedding_size,
+                         sample_train=opt.sample_train,
+                         sample_infer=opt.sample_infer,
+                         initial_temperature=opt.initial_temperature,
+                         learn_temperature=opt.learn_temperature,
                          init_exec_dec_with=opt.init_exec_dec_with,
-                         attn_vals=opt.attn_vals,
-                         embedding_dim=opt.embedding_size)
+                         attn_keys=opt.attn_keys,
+                         attn_vals=opt.attn_vals)
     seq2seq = Seq2seq(understander_encoder, executor_encoder, decoder)
     seq2seq.to(device)
 
     for param in seq2seq.named_parameters():
         # Don't reinitialize the gumbel temperature
-        if param[0] != 'decoder.attention.temperature':
+        if 'temperature' not in param[0]:
             param[1].data.uniform_(-0.08, 0.08)
 
 input_vocabulary = input_vocab.itos
 output_vocabulary = output_vocab.itos
-
-
-#################################
-##### PREPARE Understander MODEL #####
-#################################
-understander_model = Understander(
-    rnn_cell=opt.rnn_cell,
-    input_vocab_size=len(src.vocab),
-    embedding_dim=opt.embedding_size,
-    hidden_dim=hidden_size,
-    gamma=opt.gamma,
-    train_method=opt.understander_train_method,
-    sample_train=opt.sample_train,
-    sample_infer=opt.sample_infer,
-    initial_temperature=opt.initial_temperature,
-    learn_temperature=opt.learn_temperature,
-    attn_keys=opt.attn_keys)
-if torch.cuda.is_available():
-  understander_model.cuda()
 
 ##############################################################################
 # train model
@@ -291,17 +277,16 @@ t = SupervisedTrainer(loss=losses,
                       train_regime=opt.train_regime)
 
 seq2seq, logs = t.train(model=seq2seq,
-                  understander_model=understander_model,
-                  data=train,
-                  dev_data=dev,
-                  monitor_data=monitor_data,
-                  pre_train=pre_train,
-                  num_epochs=opt.epochs,
-                  optimizer=opt.optim,
-                  teacher_forcing_ratio=opt.teacher_forcing_ratio,
-                  learning_rate=opt.lr,
-                  resume=opt.resume,
-                  checkpoint_path=checkpoint_path)
+                    data=train,
+                    dev_data=dev,
+                    monitor_data=monitor_data,
+                    pre_train=pre_train,
+                    num_epochs=opt.epochs,
+                    optimizer=opt.optim,
+                    teacher_forcing_ratio=opt.teacher_forcing_ratio,
+                    learning_rate=opt.lr,
+                    resume=opt.resume,
+                    checkpoint_path=checkpoint_path)
 
 if opt.write_logs:
     output_path = os.path.join(opt.output_dir, opt.write_logs)

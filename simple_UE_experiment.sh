@@ -18,8 +18,8 @@ OUTPUT_DIR=example
 
 MAX_LEN=50
 RNN_CELL='lstm'
-EMBEDDING_SIZE=256
-HIDDEN_SIZE=256
+EMBEDDING_SIZE=512
+HIDDEN_SIZE=512
 N_LAYERS=1
 DROPOUT_P_ENCODER=0
 DROPOUT_P_DECODER=0
@@ -53,7 +53,7 @@ ATTN_KEYS='understander_encoder_outputs'
 ATTN_VALS='understander_encoder_embeddings'
 
 echo "Start training"
-python train_model.py \
+python3 train_model.py \
     --train $TRAIN \
     --pre_train $TRAIN \
     --dev $DEV \
