@@ -5,6 +5,8 @@ def name_parser(filename, subdir):
     subdir = subdir.split('/')[0]
     splits = filename.split('/')
     index = splits[1].index('_')
+    if splits[0] == '..':
+        return splits[2]
     return splits[1]
     # if '64' in subdir:
     #     return splits[1][:index] + '_E64' + splits[1][index:]
@@ -16,7 +18,7 @@ log = LogCollection()
 # log.add_log_from_folder('dumps_64', ext='LOG', name_parser=name_parser)
 # log.add_log_from_folder('dump_final', ext='LOG', name_parser=name_parser)
 # log.add_log_from_folder('dumps_temp', ext='LOG', name_parser=name_parser)
-log.add_log_from_folder('logs_baseline', ext='LOG', name_parser=name_parser)
+log.add_log_from_folder('../logs_kgrammar_512', ext='LOG', name_parser=name_parser)
 
 ############################
 # helper funcs
