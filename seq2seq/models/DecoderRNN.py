@@ -88,7 +88,6 @@ class DecoderRNN(BaseRNN):
 
         # increase input size decoder if attention is applied before decoder rnn
         if use_attention == 'seq2attn' and not full_focus:
-            # TODO: Arguments
             self.understander = Understander(
                 rnn_cell=rnn_cell,
                 embedding_dim=embedding_dim,
@@ -96,6 +95,7 @@ class DecoderRNN(BaseRNN):
                 n_layers=n_layers,
                 dropout_p=dropout_p,
                 gamma=0.9,
+                attention_method=attention_method,
                 sample_train=sample_train,
                 sample_infer=sample_infer,
                 initial_temperature=initial_temperature,
@@ -121,8 +121,7 @@ class DecoderRNN(BaseRNN):
         if use_attention:
             self.attention = Attention(
                 dim=self.hidden_size,
-                method=self.attention_method,
-                apply_softmax=True)
+                method=self.attention_method)
         else:
             self.attention = None
 
@@ -142,13 +141,12 @@ class DecoderRNN(BaseRNN):
         # We initialize it as parameter here.
         self.init_exec_dec_with = init_exec_dec_with
         if self.init_exec_dec_with == 'new':
-            # TODO: Does this still work correct?
-            if isinstance(self.understander.executor_decoder, nn.LSTM):
+            if self.rnn_cell is nn.LSTM:
                 self.executor_hidden0 = (
                     nn.Parameter(torch.zeros([self.n_layers, 1, self.hidden_size], device=device)),
                     nn.Parameter(torch.zeros([self.n_layers, 1, self.hidden_size], device=device)))
 
-            elif isinstance(self.understander.executor_decoder, nn.GRU):
+            elif self.rnn_cell is nn.GRU:
                 self.executor_hidden0 = nn.Parameter(torch.zeros([self.n_layers, 1, self.hidden_size], device=device))
 
         self.attn_vals = attn_vals
@@ -370,7 +368,6 @@ class DecoderRNN(BaseRNN):
             if inputs is not None:
                 batch_size = inputs.size(0)
             else:
-                # TODO: Will this work with understander model?
                 if self.rnn_cell is nn.LSTM:
                     batch_size = encoder_hidden[0].size(1)
                 elif self.rnn_cell is nn.GRU:

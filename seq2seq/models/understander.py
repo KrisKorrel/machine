@@ -23,7 +23,7 @@ class Understander(nn.Module):
     """
 
     # TODO: Do we need attn_keys and vals here? Can't they just only be passed as variables in forward()?
-    def __init__(self, rnn_cell, embedding_dim, n_layers, hidden_dim, dropout_p, gamma, sample_train, sample_infer, initial_temperature, learn_temperature, attn_keys, attn_vals):
+    def __init__(self, rnn_cell, embedding_dim, n_layers, hidden_dim, dropout_p, gamma, attention_method, sample_train, sample_infer, initial_temperature, learn_temperature, attn_keys, attn_vals):
         """
         Args:
             input_vocab_size (int): Total size of the input vocabulary
@@ -48,7 +48,7 @@ class Understander(nn.Module):
         input_size = hidden_dim + key_dim
 
         self.understander_decoder = self.rnn_cell(hidden_dim, hidden_dim, n_layers, batch_first=True, dropout=dropout_p)
-        self.attention = Attention(dim=key_dim, method='mlp', apply_softmax=True, sample_train=sample_train, sample_infer=sample_infer, learn_temperature=learn_temperature, initial_temperature=initial_temperature) # TODO: Don't hardcode attention method. What about apply_softmax?
+        self.attention = Attention(dim=key_dim, method=attention_method, sample_train=sample_train, sample_infer=sample_infer, learn_temperature=learn_temperature, initial_temperature=initial_temperature)
         self.executor_decoder = self.rnn_cell(input_size, hidden_dim, n_layers, batch_first=True, dropout=dropout_p)
 
     def forward(self, embedded, understander_decoder_hidden, executor_decoder_hidden, attn_keys, attn_vals):

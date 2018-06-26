@@ -44,7 +44,7 @@ class Attention(nn.Module):
 
     """
 
-    def __init__(self, dim, method, apply_softmax, sample_train='full', sample_infer='full', learn_temperature='no', initial_temperature=0.):
+    def __init__(self, dim, method, sample_train='full', sample_infer='full', learn_temperature='no', initial_temperature=0.):
         super(Attention, self).__init__()
         self.mask = None
         self.method = self.get_method(method, dim)
@@ -68,10 +68,6 @@ class Attention(nn.Module):
                 self.inverse_temperature_activation = lambda inv_temp: torch.log(1 + torch.exp(inv_temp)) + inverse_max_temperature
             self.current_temperature = None
 
-        # TODO: Do we need this?
-        # We need it if attention vectors are provided. So only in two-stage training?
-        self.apply_softmax = apply_softmax
-
     def set_mask(self, mask):
         """
         Sets indices to be masked
@@ -89,7 +85,6 @@ class Attention(nn.Module):
             self.current_temperature = self.temperature_activation(self.temperature)
 
         elif self.learn_temperature == 'conditioned':
-            # TODO: (max) decoder length?
             batch_size          = decoder_states.size(0)
             max_decoder_length  = decoder_states.size(1)
             hidden_dim          = decoder_states.size(2)
@@ -152,24 +147,18 @@ class Attention(nn.Module):
         attn = self.method(queries, keys, **attention_method_kwargs).clone()
 
         if self.mask is not None:
-            if self.apply_softmax:
-                attn.masked_fill_(self.mask, -float('inf'))
-            else:
-                attn.masked_fill_(mask, 0.)
+            attn.masked_fill_(self.mask, -float('inf'))
 
         # apply local mask
-        if self.apply_softmax:
-            attn.masked_fill_(mask, -float('inf'))
-        else:
-            attn.masked_fill_(mask, 0.)
+        attn.masked_fill_(mask, -float('inf'))
 
         if  (self.training and 'gumbel' in self.sample_train) or \
             (not self.training and 'gumbel' in self.sample_infer):
             self.update_temperature()
 
+        # TODO: Double, triple quadruple check whether the mask is correct, we don't take softmax more than once, etc.
         attn = self.sample(attn, mask)
 
-        # TODO: Should be true, but currently not the case as gumbel-softmax does not take into account padded encoder outputs/embeddings, which might be set to 0 above
         number_of_attention_vectors = attn.size(0) * attn.size(1)
         eps =  1e-6 * number_of_attention_vectors
         assert abs(torch.sum(attn) - number_of_attention_vectors) < eps, "Sum: {}, Number of attention vectors: {}".format(torch.sum(attn), number_of_attention_vectors)
