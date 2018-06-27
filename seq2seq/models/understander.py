@@ -293,3 +293,13 @@ class Understander(nn.Module):
         del self._saved_log_probs[:]
 
         return policy_loss
+
+    def train_understander(self, train=True):
+        parameters = list(self.understander_decoder.parameters()) + list(self.attention.parameters())
+        for p in parameters:
+            p.requires_grad = train
+
+    def train_executor(self, train=True):
+        parameters = self.executor_decoder.parameters()
+        for p in parameters:
+            p.requires_grad = train

@@ -21,6 +21,11 @@ from seq2seq.util.log import Log
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
+try:
+    raw_input          # Python 2
+except NameError:
+    raw_input = input  # Python 3
+
 class SupervisedTrainer(object):
     """ The SupervisedTrainer class helps in setting up a training framework in a
     supervised setting.
@@ -188,13 +193,17 @@ class SupervisedTrainer(object):
 
             if self.train_regime == 'two-stage':
                 # First 50% of epochs we are in pre-train. The next we are in train mode
-                if epoch < n_epochs/2:
+                if epoch < n_epochs / 2:
                     self.pre_train = True
                     batch_generator = batch_iterator_pre_train.__iter__()
 
                 else:
                     if self.pre_train:
                         raw_input("Pre-training is done. Press enter to start training the undestander")
+                        # Disable training updates for the executor
+                        model.decoder.understander.train_understander(train=True)
+                        model.decoder.understander.train_executor(train=False)
+                        
                     self.pre_train = False
                     batch_generator = batch_iterator_train.__iter__()
 
