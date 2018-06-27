@@ -180,6 +180,7 @@ class Understander(nn.Module):
             self._saved_log_probs.append(log_prob)
 
             # Create one-hot vector from discrete actions indices
+            # TODO: Can't we use the hard guidance module?
             batch_size, dec_seqlen, enc_seqlen = attn.size()
             action = action.unsqueeze(1).unsqueeze(2)
             attn = torch.full([batch_size, dec_seqlen, enc_seqlen], fill_value=0, device=device)
@@ -250,13 +251,3 @@ class Understander(nn.Module):
         del self._saved_log_probs[:]
 
         return policy_loss
-
-    def train_understander(self, train=True):
-        parameters = list(self.understander_decoder.parameters()) + list(self.attention.parameters())
-        for p in parameters:
-            p.requires_grad = train
-
-    def train_executor(self, train=True):
-        parameters = self.executor_decoder.parameters()
-        for p in parameters:
-            p.requires_grad = train

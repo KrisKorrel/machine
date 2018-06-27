@@ -186,8 +186,8 @@ class SupervisedTrainer(object):
 
         if self.pre_train:
             # Disable training updates for the understander
-            model.decoder.understander.train_understander(train=False)
-            model.decoder.understander.train_executor(train=True)
+            model.train_understander(train=False)
+            model.train_executor(train=True)
 
         for epoch in range(start_epoch, n_epochs + 1):
             if model.decoder.understander.attention.current_temperature is not None:
@@ -205,8 +205,8 @@ class SupervisedTrainer(object):
                     if self.pre_train:
                         raw_input("Pre-training is done. Press enter to start training the undestander")
                         # Disable training updates for the executor
-                        model.decoder.understander.train_understander(train=True)
-                        model.decoder.understander.train_executor(train=False)
+                        model.train_understander(train=True)
+                        model.train_executor(train=False)
                         
                     self.pre_train = False
                     batch_generator = batch_iterator_train.__iter__()
@@ -297,8 +297,6 @@ class SupervisedTrainer(object):
 
             loss_msg = ' '.join(['%s: %.4f' % (loss.log_name, loss.get_loss()) for loss in losses])
             log_msg = "Finished epoch %d: Train %s" % (epoch, loss_msg)
-            if epoch % 50 == 0:
-                input("Fin")
 
             if dev_data is not None:
                 losses, metrics = self.evaluator.evaluate(model, dev_data, self.get_batch_data, pre_train=self.pre_train)

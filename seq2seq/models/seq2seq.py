@@ -92,3 +92,23 @@ class Seq2seq(nn.Module):
           executor_encoder_outputs=executor_encoder_outputs)
 
         return result
+
+    def train_understander(self, train=True):
+        input("Und")
+        parameters = \
+            list(self.understander_encoder.parameters()) + \
+            list(self.decoder.understander.understander_decoder.parameters()) + \
+            list(self.decoder.attention.parameters())
+
+        for p in parameters:
+            p.requires_grad = train
+
+    def train_executor(self, train=True):
+        input("Exec")
+        parameters = \
+            list(self.executor_encoder) + \
+            list(self.decoder.understander.executor_decoder.parameters()) + \
+            list(self.decoder.out.parameters())
+
+        for p in parameters:
+            p.requires_grad = train
