@@ -90,6 +90,7 @@ for RUN in {1,2,3,4}; do
         --train_regime simultaneous \
         --attn_keys $KEYS \
         --attn_vals $VALS \
+        --ignore_output_eos \
         > "${EXPT_DIR}_out.txt" 2> "${EXPT_DIR}_err.txt" &
 
     CUDA=$((CUDA+1))
