@@ -66,7 +66,7 @@ class Attention(nn.Module):
                 inverse_max_temperature = 1. / max_temperature
                 self.inverse_temperature_estimator = nn.Linear(hidden_dim,1)
                 self.inverse_temperature_activation = lambda inv_temp: torch.log(1 + torch.exp(inv_temp)) + inverse_max_temperature
-            self.current_temperature = None
+        self.current_temperature = None
 
     def set_mask(self, mask):
         """
