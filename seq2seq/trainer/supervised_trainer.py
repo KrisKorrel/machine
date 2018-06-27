@@ -73,9 +73,6 @@ class SupervisedTrainer(object):
         # Start either in 'pre-train' or 'train' mode
         if self.train_regime == 'two-stage':
             self.pre_train = True
-            # Disable training updates for the understander
-            model.decoder.understander.train_understander(train=False)
-            model.decoder.understander.train_executor(train=True)
         else:
             self.pre_train = False
 
@@ -187,6 +184,10 @@ class SupervisedTrainer(object):
                    input_vocab=data.fields[seq2seq.src_field_name].vocab,
                    output_vocab=data.fields[seq2seq.tgt_field_name].vocab).save(self.expt_dir, name=model_name)
 
+        if self.pre_train:
+            # Disable training updates for the understander
+            model.decoder.understander.train_understander(train=False)
+            model.decoder.understander.train_executor(train=True)
 
         for epoch in range(start_epoch, n_epochs + 1):
             if model.decoder.understander.attention.current_temperature is not None:
