@@ -73,6 +73,9 @@ class SupervisedTrainer(object):
         # Start either in 'pre-train' or 'train' mode
         if self.train_regime == 'two-stage':
             self.pre_train = True
+            # Disable training updates for the understander
+            model.decoder.understander.train_understander(train=False)
+            model.decoder.understander.train_executor(train=True)
         else:
             self.pre_train = False
 
