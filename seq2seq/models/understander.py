@@ -23,7 +23,7 @@ class Understander(nn.Module):
     """
 
     # TODO: Do we need attn_keys and vals here? Can't they just only be passed as variables in forward()?
-    def __init__(self, rnn_cell, embedding_dim, n_layers, hidden_dim, dropout_p, gamma, attention_method, sample_train, sample_infer, initial_temperature, learn_temperature, attn_keys, attn_vals):
+    def __init__(self, rnn_cell, embedding_dim, n_layers, hidden_dim, dropout_p, train_method, gamma, epsilon, attention_method, sample_train, sample_infer, initial_temperature, learn_temperature, attn_keys, attn_vals):
         """
         Args:
             input_vocab_size (int): Total size of the input vocabulary
@@ -33,6 +33,9 @@ class Understander(nn.Module):
         """
         super(Understander, self).__init__()
 
+        self.train_method = train_method
+
+        # Get type of RNN cell
         rnn_cell = rnn_cell.lower()
         if rnn_cell == 'lstm':
             self.rnn_cell = nn.LSTM
@@ -47,11 +50,18 @@ class Understander(nn.Module):
             key_dim = hidden_dim
         input_size = hidden_dim + key_dim
 
+        # Initialize models
         self.understander_decoder = self.rnn_cell(hidden_dim, hidden_dim, n_layers, batch_first=True, dropout=dropout_p)
         self.attention = Attention(dim=key_dim, method=attention_method, sample_train=sample_train, sample_infer=sample_infer, learn_temperature=learn_temperature, initial_temperature=initial_temperature)
         self.executor_decoder = self.rnn_cell(input_size, hidden_dim, n_layers, batch_first=True, dropout=dropout_p)
 
-    def forward(self, embedded, understander_decoder_hidden, executor_decoder_hidden, attn_keys, attn_vals):
+        # Store and initialize RL stuff
+        self.gamma = gamma
+        self.epsilon = epsilon
+        self._saved_log_probs = []
+        self._rewards = []
+
+    def temp_forward(self, embedded, understander_decoder_hidden, executor_decoder_hidden, attn_keys, attn_vals):
         """
         Perform a forward pass through the seq2seq model
 
@@ -70,27 +80,6 @@ class Understander(nn.Module):
         executor_decoder_output, executor_decoder_hidden = self.executor_decoder(executor_decoder_input, executor_decoder_hidden)
 
         return executor_decoder_output, understander_decoder_hidden, executor_decoder_hidden, attn
-
-
-        if  (self.training and 'gumbel' in self.sample_train) or \
-            (not self.training and 'gumbel' in self.sample_infer):
-            if self.learn_temperature == 'no':
-                self.current_temperature = self.temperature
-
-            elif self.learn_temperature == 'unconditioned':
-                self.current_temperature = self.temperature_activation(self.temperature)
-
-            elif self.learn_temperature == 'conditioned':
-                # TODO: (max) decoder length?
-                batch_size          = decoder_states.size(0)
-                max_decoder_length  = decoder_states.size(1)
-                hidden_dim          = decoder_states.size(2)
-
-                estimator_input = decoder_states.view(batch_size * max_decoder_length, hidden_dim)
-                inverse_temperature = self.inverse_temperature_activation(self.inverse_temperature_estimator(estimator_input))
-                self.current_temperature = 1. / inverse_temperature
-
-        return action_logits, possible_attn_keys
 
     def get_valid_action_mask(self, state, input_lengths):
         """
@@ -124,7 +113,7 @@ class Understander(nn.Module):
 
         return valid_action_mask
 
-    def select_actions(self, state, input_lengths, max_decoding_length, epsilon, possible_attn_keys, encoder_embeddings, encoder_hidden, encoder_outputs):
+    def forward(self, embedded, understander_decoder_hidden, executor_decoder_hidden, attn_keys, attn_vals):
         """
         Perform forward pass and stochastically select actions using epsilon-greedy RL
 
@@ -141,100 +130,68 @@ class Understander(nn.Module):
             raise Exception("Did you forget to finish the episode?")
 
         # First, we establish which encoder states are valid to attend to.
-        valid_action_mask = self.get_valid_action_mask(state, input_lengths)
-        
+        # TODO: Only works when keys are (full) hidden states. Maybe we should pass the mask (set_mask)
+
         # We perform a forward pass to get the log-probability of attending to each
         # encoder for each decoder
-        action_log_probs, possible_attn_keys = self.forward(state, valid_action_mask, max_decoding_length, possible_attn_keys, encoder_embeddings, encoder_hidden, encoder_outputs)
-
+        understander_decoder_output, understander_decoder_hidden = self.understander_decoder(embedded, understander_decoder_hidden)
+        context, attn = self.attention(queries=understander_decoder_output,keys=attn_keys,values=attn_vals)
+ 
         # In RL settings, we want to stochastically choose a single action.
+        # We use the calculated attention probabilities as policy (we thus must have 'full' sampling) TODO: check for full sampling in combination with RL
+        # TODO: Use hard attention in pre-training
+        # We then sample one single action from this policy stochastically using epsilon-greedy policy.
+        # We re-calculate the context vector, based on this new action/attention.
         if self.train_method == 'rl':
-            actions = []
-            for decoder_step in range(max_decoding_length):
-                # Get the log-probabilities for a single decoder time step
-                # (batch_size x max_encoder_states)
-                action_log_probs_current_step = action_log_probs[:, decoder_step, :]
+            # Get the probabilities for the decoder time step (there is only one)
+            # (batch_size x max_encoder_states)
+            action_probs_current_step = attn[:, 0, :]
 
-                # In training mode:
-                # Chance epsilon: Stochastically sample action from the policy
-                # Chance 1-eps:   Stochastically sample action from uniform distribution
-                if self.training:
-                    categorical_distribution_policy = Categorical(logits=action_log_probs_current_step)
-
-                    # Perform epsilon-greedy action sampling
-                    sample = random.random()
-                    # If we don't meet the epsilon threshold, we stochastically sample from the policy
-                    if sample <= epsilon:
-                        action = categorical_distribution_policy.sample()
-                    # Else we sample the actions from a uniform distribution (over the valid actions)
-                    else:
-                        # We don't need to normalize these to probabilities, as this is already
-                        # done in Categorical
-                        uniform_probability_current_step = valid_action_mask.float()
-                        categorical_distribution_uniform = Categorical(probs=uniform_probability_current_step)
-                        action = categorical_distribution_uniform.sample()
-
-                    log_prob = categorical_distribution_policy.log_prob(action)
-
-                # In inference mode: Just use greedy policy (argmax)
-                else:
-                    log_prob, action = action_log_probs_current_step.max(dim=1)
-                    action = action.long()
-
-                # Append the action to the list of actions and store the log-probabilities of the chosen actions
-                actions.append(action)
-                self._saved_log_probs.append(log_prob)
-        
-            # Convert list into tensor and make it batch-first
-            actions = torch.stack(actions).transpose(0, 1)
-
-        # In supervised training, we need to have a differentiable sample (at train time)
-        elif self.train_method == 'supervised':
-            attn = action_log_probs
-
-            batch_size          = attn.size(0)
-            n_decoder_states    = attn.size(1)
-            n_encoder_states    = attn.size(2)
-
-            # We are in training mode
+            # In training mode:
+            # Chance epsilon: Stochastically sample action from the policy
+            # Chance 1-eps:   Stochastically sample action from uniform distribution
             if self.training:
-                if self.sample_train == 'full':
-                    attn = attn
+                categorical_distribution_policy = Categorical(probs=action_probs_current_step)
 
-                elif 'gumbel' in self.sample_train:
-                    invalid_action_mask = valid_action_mask.eq(0).unsqueeze(1).expand(batch_size, n_decoder_states, n_encoder_states).contiguous().view(-1, n_encoder_states)
-                    attn = attn.view(-1, n_encoder_states)
-                    attn_hard, attn_soft = gumbel_softmax(logits=attn, invalid_action_mask=invalid_action_mask, hard=True, tau=self.current_temperature, eps=1e-20)
-                    
-                    if self.sample_train == 'gumbel_soft':
-                        attn = attn_soft.view(batch_size, -1, n_encoder_states)
-                    elif self.sample_train == 'gumbel_hard':
-                        attn = attn_hard.view(batch_size, -1, n_encoder_states) 
+                # Perform epsilon-greedy action sampling
+                # If we don't meet the epsilon threshold, we stochastically sample from the policy
+                sample = random.random()
+                epsilon = self.epsilon if self.training else 1
+                if sample <= epsilon:
+                    action = categorical_distribution_policy.sample()
 
-            # Inference mode
+                # Else we sample the actions from a uniform distribution (over the valid actions)
+                else:
+                    # We don't need to normalize these to probabilities, as this is already
+                    # done in Categorical
+                    valid_action_mask = attn_keys.eq(0.)[:, :, :1].eq(0).squeeze(2)
+                    uniform_probability_current_step = valid_action_mask.float()
+                    categorical_distribution_uniform = Categorical(probs=uniform_probability_current_step)
+                    action = categorical_distribution_uniform.sample()
+
+                log_prob = categorical_distribution_policy.log_prob(action)
+
+            # In inference mode: Just use greedy policy (argmax)
             else:
-                if self.sample_infer == 'full':
-                    attn = attn
+                log_prob, action = action_probs_current_step.max(dim=1)
+                action = action.long()
 
-                elif 'gumbel' in self.sample_infer:
-                    invalid_action_mask = valid_action_mask.eq(0).unsqueeze(1).expand(batch_size, n_decoder_states, n_encoder_states).contiguous().view(-1, n_encoder_states)
-                    attn = attn.view(-1, n_encoder_states)
-                    attn_hard, attn_soft = gumbel_softmax(logits=attn, invalid_action_mask=invalid_action_mask, hard=True, tau=self.current_temperature, eps=1e-20)
-                    
-                    if self.sample_infer == 'gumbel_soft':
-                        attn = attn_soft.view(batch_size, -1, n_encoder_states)
-                    elif self.sample_infer == 'gumbel_hard':
-                        attn = attn_hard.view(batch_size, -1, n_encoder_states) 
+            # Append the action to the list of actions and store the log-probabilities of the chosen actions
+            self._saved_log_probs.append(log_prob)
 
-                elif self.sample_infer == 'argmax':
-                    argmax = attn.argmax(dim=2, keepdim=True)
-                    attn = torch.zeros_like(attn)
-                    attn.scatter_(dim=2, index=argmax, value=1)
+            # Create one-hot vector from discrete actions indices
+            batch_size, dec_seqlen, enc_seqlen = attn.size()
+            action = action.unsqueeze(1).unsqueeze(2)
+            attn = torch.full([batch_size, dec_seqlen, enc_seqlen], fill_value=0, device=device)
+            attn = attn.scatter_(dim=2, index=action, value=1)
 
-            # In supervised setting we have as actions the entire attention vector(s)
-            actions = attn
+            # Recalculate context vector with new attention
+            context = torch.bmm(attn, attn_vals)
 
-        return actions, possible_attn_keys
+        executor_decoder_input = torch.cat((context, embedded), dim=2)
+        executor_decoder_output, executor_decoder_hidden = self.executor_decoder(executor_decoder_input, executor_decoder_hidden)
+
+        return executor_decoder_output, understander_decoder_hidden, executor_decoder_hidden, attn
 
     def set_rewards(self, rewards):
         self._rewards = rewards

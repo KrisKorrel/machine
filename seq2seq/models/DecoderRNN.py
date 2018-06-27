@@ -66,6 +66,9 @@ class DecoderRNN(BaseRNN):
             sos_id, eos_id, embedding_dim,
             n_layers=1, rnn_cell='gru', bidirectional=False,
             input_dropout_p=0, dropout_p=0, use_attention=False, attention_method=None, full_focus=False,
+            train_method=None,
+            gamma=None,
+            epsilon=None,
             sample_train=None,
             sample_infer=None,
             initial_temperature=None,
@@ -94,7 +97,9 @@ class DecoderRNN(BaseRNN):
                 hidden_dim=hidden_size,
                 n_layers=n_layers,
                 dropout_p=dropout_p,
-                gamma=0.9,
+                train_method=train_method,
+                gamma=gamma,
+                epsilon=epsilon,
                 attention_method=attention_method,
                 sample_train=sample_train,
                 sample_infer=sample_infer,
@@ -318,8 +323,8 @@ class DecoderRNN(BaseRNN):
                     step_attn = None
                 decode(di, step_output, step_attn)
 
-        print(torch.stack(ret_dict[DecoderRNN.KEY_ATTN_SCORE]).squeeze().transpose(0,1)[0])
-        print("\n")
+        # print(torch.stack(ret_dict[DecoderRNN.KEY_ATTN_SCORE]).squeeze().transpose(0,1)[0])
+        # print("\n")
 
         ret_dict[DecoderRNN.KEY_SEQUENCE] = sequence_symbols
         ret_dict[DecoderRNN.KEY_LENGTH] = lengths.tolist()
