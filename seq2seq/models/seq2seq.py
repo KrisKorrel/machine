@@ -33,6 +33,7 @@ class Seq2seq(nn.Module):
 
     """
 
+    # TODO: Ponder parameters are not passed/used
     def __init__(self, understander_encoder, executor_encoder, decoder, decode_function=F.log_softmax):
         super(Seq2seq, self).__init__()
         self.understander_encoder = understander_encoder
@@ -43,14 +44,16 @@ class Seq2seq(nn.Module):
     def flatten_parameters(self):
         self.understander_encoder.rnn.flatten_parameters()
         self.executor_encoder.rnn.flatten_parameters()
-        self.decoder.rnn.flatten_parameters()
+        self.decoder.decoder_model.rnn.flatten_parameters()
 
     def forward_understander_encoder(self, input_variable, input_lengths=None):
-        understander_encoder_embeddings, understander_encoder_hidden, understander_encoder_outputs = self.understander_encoder(input_variable, input_lengths)
+        # TODO: Currently we ignore 'other'
+        understander_encoder_embeddings, understander_encoder_hidden, understander_encoder_outputs, other = self.understander_encoder(input_variable, input_lengths)
         return understander_encoder_embeddings, understander_encoder_hidden, understander_encoder_outputs
 
     def forward_executor_encoder(self, input_variable, input_lengths=None):
-        executor_encoder_embeddings, executor_encoder_hidden, executor_encoder_outputs = self.executor_encoder(input_variable, input_lengths)
+        # TODO: Currently we ignore 'other'
+        executor_encoder_embeddings, executor_encoder_hidden, executor_encoder_outputs, other = self.executor_encoder(input_variable, input_lengths)
         return executor_encoder_embeddings, executor_encoder_hidden, executor_encoder_outputs
 
 
@@ -91,24 +94,26 @@ class Seq2seq(nn.Module):
           executor_encoder_hidden=executor_encoder_hidden,
           executor_encoder_outputs=executor_encoder_outputs)
 
+        # TODO: Should we do this? And how do we do this when we have two encoders to merge?
+        # Merge 'other's
+        # result[-1].update(other)
+
         return result
 
     def train_understander(self, train=True):
-        input("Und")
         parameters = \
             list(self.understander_encoder.parameters()) + \
-            list(self.decoder.understander.understander_decoder.parameters()) + \
-            list(self.decoder.attention.parameters())
+            list(self.decoder.decoder_model.understander_decoder.parameters()) + \
+            list(self.decoder.decoder_model.attention.parameters())
 
         for p in parameters:
             p.requires_grad = train
 
     def train_executor(self, train=True):
-        input("Exec")
         parameters = \
-            list(self.executor_encoder) + \
-            list(self.decoder.understander.executor_decoder.parameters()) + \
-            list(self.decoder.out.parameters())
+            list(self.executor_encoder.parameters()) + \
+            list(self.decoder.decoder_model.executor_decoder.parameters()) + \
+            list(self.decoder.decoder_model.out.parameters())
 
         for p in parameters:
             p.requires_grad = train

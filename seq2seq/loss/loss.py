@@ -75,21 +75,7 @@ class Loss(object):
             other (dictionary): extra outputs of the model
             target_variable (torch.Tensor): expected output of a batch.
         """
-
-        # lists with:
-        # decoder outputs # (batch, vocab_size?)
-        # attention scores # (batch, 1, input_length)
-
-        if self.inputs == 'decoder_output':
-            outputs = decoder_outputs
-        else:
-            outputs = other[self.inputs]
-
-        targets = target_variable[self.target]
-
-        for step, step_output in enumerate(outputs):
-            step_target = targets[:, step + 1]
-            self.eval_step(step_output, step_target)
+        raise NotImplementedError
 
     def eval_step(self, outputs, target):
         """ Function called by eval batch to evaluate a timestep of the batch.
@@ -119,7 +105,30 @@ class Loss(object):
         """
         self.acc_loss*=factor
 
-class NLLLoss(Loss):
+
+class DecoderLoss(Loss):
+    """Parent class specially for decoder loss, where the number of loss elements equals the number of outputs
+
+    """
+
+    def eval_batch(self, decoder_outputs, other, target_variable):
+        # lists with:
+        # decoder outputs # (batch, vocab_size?)
+        # attention scores # (batch, 1, input_length)
+
+        if self.inputs == 'decoder_output':
+            outputs = decoder_outputs
+        else:
+            outputs = other[self.inputs]
+
+        targets = target_variable[self.target]
+
+        for step, step_output in enumerate(outputs):
+            step_target = targets[:, step + 1]
+            self.eval_step(step_output, step_target)
+
+
+class NLLLoss(DecoderLoss):
     """ Batch averaged negative log-likelihood loss.
 
     Args:
@@ -208,3 +217,45 @@ class AttentionLoss(NLLLoss):
         outputs = torch.log(step_outputs.contiguous().view(batch_size, -1).clamp(min=1e-20))
         self.acc_loss += self.criterion(outputs, step_target)
         self.norm_term += 1
+
+
+class PonderLoss(Loss):
+    """ Simple dummy loss that just minimizes the given variable
+
+    """
+    _NAME = "Ponder Loss"
+    _SHORTNAME = "ponder_loss"
+    _INPUTS = "ponder_penalty"
+    _TARGETS = 'decoder_output'
+
+    def __init__(self, name, log_name, identifier):
+        """
+        Args:
+            name (str): Full name of the ponder penalty
+            log_name (str): Log name
+            identifier (str): identifier to retrieve the right ponder penalty in 'other'
+        """
+        super(PonderLoss, self).__init__(name=name, log_name=log_name, inputs=identifier, target='decoder_output', criterion=nn.NLLLoss())
+
+        self.name = name
+        self.log_name = log_name
+        self.identifier = identifier
+
+    def eval_batch(self, decoder_outputs, other, target_variable):
+        ponder_penalties = other[self.identifier]
+        for i in range(len(ponder_penalties)):
+            self.eval_step(ponder_penalties[i], None)
+
+    def eval_step(self, step_outputs, step_target):
+        # Take mean over batch
+        self.acc_loss += torch.mean(step_outputs)
+        self.norm_term += 1
+
+    def get_loss(self):
+        if isinstance(self.acc_loss, int):
+            return 0
+        else:
+            # The ACT paper specifies to sum the ponder penalties of all time step_outputs
+            # However, since we take the mean for all other losses over time, we do the same
+            # for this loss
+            return self.acc_loss.item() / self.norm_term

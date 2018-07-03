@@ -23,7 +23,7 @@ class Understander(nn.Module):
     """
 
     # TODO: Do we need attn_keys and vals here? Can't they just only be passed as variables in forward()?
-    def __init__(self, rnn_cell, embedding_dim, n_layers, hidden_dim, dropout_p, train_method, gamma, epsilon, attention_method, sample_train, sample_infer, initial_temperature, learn_temperature, attn_keys, attn_vals):
+    def __init__(self, rnn_cell, embedding_dim, n_layers, hidden_dim, output_dim, dropout_p, train_method, gamma, epsilon, attention_method, sample_train, sample_infer, initial_temperature, learn_temperature, attn_keys, attn_vals):
         """
         Args:
             input_vocab_size (int): Total size of the input vocabulary
@@ -54,32 +54,13 @@ class Understander(nn.Module):
         self.understander_decoder = self.rnn_cell(hidden_dim, hidden_dim, n_layers, batch_first=True, dropout=dropout_p)
         self.attention = Attention(dim=key_dim, method=attention_method, sample_train=sample_train, sample_infer=sample_infer, learn_temperature=learn_temperature, initial_temperature=initial_temperature)
         self.executor_decoder = self.rnn_cell(input_size, hidden_dim, n_layers, batch_first=True, dropout=dropout_p)
-
+        self.out = nn.Linear(hidden_dim, output_dim)
+        
         # Store and initialize RL stuff
         self.gamma = gamma
         self.epsilon = epsilon
         self._saved_log_probs = []
         self._rewards = []
-
-    def temp_forward(self, embedded, understander_decoder_hidden, executor_decoder_hidden, attn_keys, attn_vals):
-        """
-        Perform a forward pass through the seq2seq model
-
-        Args:
-            state (torch.tensor): [batch_size x max_input_length] tensor containing indices of the input sequence
-            valid_action_mask (torch.tensor): [batch_size x max_input_length] ByteTensor containing a 1 for all non-pad inputs
-            max_decoding_length (int): Maximum length till which the decoder should run
-
-        Returns:
-            torch.tensor: [batch_size x max_output_length x max_input_length] tensor containing the log-probabilities for each decoder step to attend to each encoder step
-        """
-
-        understander_decoder_output, understander_decoder_hidden = self.understander_decoder(embedded, understander_decoder_hidden)
-        context, attn = self.attention(queries=understander_decoder_output,keys=attn_keys,values=attn_vals)
-        executor_decoder_input = torch.cat((context, embedded), dim=2)
-        executor_decoder_output, executor_decoder_hidden = self.executor_decoder(executor_decoder_input, executor_decoder_hidden)
-
-        return executor_decoder_output, understander_decoder_hidden, executor_decoder_hidden, attn
 
     def get_valid_action_mask(self, state, input_lengths):
         """
@@ -137,6 +118,8 @@ class Understander(nn.Module):
         understander_decoder_output, understander_decoder_hidden = self.understander_decoder(embedded, understander_decoder_hidden)
         context, attn = self.attention(queries=understander_decoder_output,keys=attn_keys,values=attn_vals)
  
+        batch_size, dec_seqlen, enc_seqlen = attn.size()
+
         # In RL settings, we want to stochastically choose a single action.
         # We use the calculated attention probabilities as policy (we thus must have 'full' sampling) TODO: check for full sampling in combination with RL
         # TODO: Use hard attention in pre-training
@@ -181,7 +164,6 @@ class Understander(nn.Module):
 
             # Create one-hot vector from discrete actions indices
             # TODO: Can't we use the hard guidance module?
-            batch_size, dec_seqlen, enc_seqlen = attn.size()
             action = action.unsqueeze(1).unsqueeze(2)
             attn = torch.full([batch_size, dec_seqlen, enc_seqlen], fill_value=0, device=device)
             attn = attn.scatter_(dim=2, index=action, value=1)
@@ -191,6 +173,8 @@ class Understander(nn.Module):
 
         executor_decoder_input = torch.cat((context, embedded), dim=2)
         executor_decoder_output, executor_decoder_hidden = self.executor_decoder(executor_decoder_input, executor_decoder_hidden)
+
+        executor_decoder_output = F.log_softmax(self.out(executor_decoder_output.contiguous().view(-1, self.out.in_features)), dim=1).view(batch_size, dec_seqlen, -1)
 
         return executor_decoder_output, understander_decoder_hidden, executor_decoder_hidden, attn
 

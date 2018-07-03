@@ -127,7 +127,7 @@ class Evaluator(object):
                     input_lengths=input_lengths.tolist(),
                     target_variables=target_variable,
                     teacher_forcing_ratio=0)
-                model.decoder.understander.finish_episode()
+                model.decoder.decoder_model.finish_episode()
 
                 # Compute metric(s) over one batch
                 metrics = self.update_batch_metrics(metrics, other, target_variable)  

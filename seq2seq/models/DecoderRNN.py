@@ -9,10 +9,13 @@ import torch.nn.functional as F
 from .attention import Attention, HardGuidance, ProvidedAttentionVectors
 from .baseRNN import BaseRNN
 from .understander import Understander
+from .DecoderRNNModel import DecoderRNNModel
+from .Ponderer import Ponderer
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-class DecoderRNN(BaseRNN):
+
+class DecoderRNN(nn.Module):
     """
     Provides functionality for decoding in a seq2seq framework, with an option for attention.
 
@@ -61,6 +64,7 @@ class DecoderRNN(BaseRNN):
     KEY_ATTN_SCORE = 'attention_score'
     KEY_LENGTH = 'length'
     KEY_SEQUENCE = 'sequence'
+    KEY_PONDER = 'decoder_ponder_penalty'
 
     def __init__(self, vocab_size, max_len, hidden_size,
             sos_id, eos_id, embedding_dim,
@@ -75,26 +79,31 @@ class DecoderRNN(BaseRNN):
             learn_temperature=None,
             init_exec_dec_with=None,
             attn_keys=None,
-            attn_vals=None):
-        super(DecoderRNN, self).__init__(vocab_size, max_len, hidden_size,
-                input_dropout_p, dropout_p,
-                n_layers, rnn_cell)
+            attn_vals=None,
+            ponder=False,
+            max_ponder_steps=100,
+            ponder_epsilon=0.01):
+        super(DecoderRNN, self).__init__()
 
         self.bidirectional_encoder = bidirectional
-        input_size = hidden_size
+        self.rnn_type = rnn_cell
+        self.max_length = max_len
+        self.hidden_size = hidden_size
+        self.use_attention = use_attention
+        self.n_layers = n_layers
+        self.eos_id = eos_id
+        self.sos_id = sos_id
 
-        if use_attention != False and attention_method == None:
-                raise ValueError("Method for computing attention should be provided")
-
-        self.attention_method = attention_method
-        self.full_focus = full_focus
+        self.input_dropout = nn.Dropout(p=input_dropout_p)
+        self.embedding = nn.Embedding(vocab_size, hidden_size)
 
         # increase input size decoder if attention is applied before decoder rnn
         if use_attention == 'seq2attn' and not full_focus:
-            self.understander = Understander(
+            self.decoder_model = Understander(
                 rnn_cell=rnn_cell,
                 embedding_dim=embedding_dim,
                 hidden_dim=hidden_size,
+                output_dim=vocab_size,
                 n_layers=n_layers,
                 dropout_p=dropout_p,
                 train_method=train_method,
@@ -112,49 +121,26 @@ class DecoderRNN(BaseRNN):
             self.attn_vals = attn_vals
 
         else:
-            self.rnn = self.rnn_cell(input_size, hidden_size, n_layers, batch_first=True, dropout=dropout_p)
+            self.decoder_model = DecoderRNNModel(vocab_size, max_len, hidden_size, sos_id, eos_id, n_layers,
+                                             rnn_cell, bidirectional, input_dropout_p, dropout_p, use_attention, attention_method, full_focus)
 
-        self.output_size = vocab_size
-        self.max_length = max_len
-        self.use_attention = use_attention
-        self.eos_id = eos_id
-        self.sos_id = sos_id
+        self.use_pondering = ponder
+        if self.use_pondering:
+            self.decoder_model = Ponderer(model=self.decoder_model, hidden_size=hidden_size,
+                                          output_size=vocab_size, max_ponder_steps=max_ponder_steps, eps=ponder_epsilon)
 
-        self.init_input = None
-
-        self.embedding = nn.Embedding(self.output_size, self.hidden_size)
-        if use_attention:
-            self.attention = Attention(
-                dim=self.hidden_size,
-                method=self.attention_method)
-        else:
-            self.attention = None
-
-        if use_attention == 'post-rnn':
-            # Input size is hidden_size + context vector size, which depends on the type of attention value
-            if 'embeddings' in attn_vals:
-                out_size = hidden_size + embedding_dim
-            elif 'outputs' in attn_vals:
-                out_size = hidden_size + hidden_size
-            self.out = nn.Linear(out_size, self.output_size)
-        else:
-            self.out = nn.Linear(self.hidden_size, self.output_size)
-            if self.full_focus:
-                self.ffocus_merge = nn.Linear(2*self.hidden_size, hidden_size)
 
         # If we initialize the executor's decoder with a new vector instead of the last encoder state
         # We initialize it as parameter here.
         self.init_exec_dec_with = init_exec_dec_with
         if self.init_exec_dec_with == 'new':
-            if self.rnn_cell is nn.LSTM:
+            if self.rnn_type == 'lstm':
                 self.executor_hidden0 = (
                     nn.Parameter(torch.zeros([self.n_layers, 1, self.hidden_size], device=device)),
                     nn.Parameter(torch.zeros([self.n_layers, 1, self.hidden_size], device=device)))
 
-            elif self.rnn_cell is nn.GRU:
+            elif self.rnn_cell == 'gru':
                 self.executor_hidden0 = nn.Parameter(torch.zeros([self.n_layers, 1, self.hidden_size], device=device))
-
-        self.attn_vals = attn_vals
 
     def forward_step(self, input_var, understander_decoder_hidden, executor_decoder_hidden, attn_keys, attn_vals, function, **attention_method_kwargs):
         """
@@ -173,72 +159,38 @@ class DecoderRNN(BaseRNN):
         """
         batch_size = input_var.size(0)
         output_size = input_var.size(1)
+
         embedded = self.embedding(input_var)
         embedded = self.input_dropout(embedded)
 
-        if self.use_attention == 'pre-rnn':
-            h = hidden
-            if isinstance(hidden, tuple):
-                h, c = hidden
-            # Apply the attention method to get the attention vector and weighted context vector. Provide decoder step for hard attention
-            context, attn = self.attention(h[-1:].transpose(0,1), encoder_outputs, **attention_method_kwargs) # transpose to get batch at the second index
-            combined_input = torch.cat((context, embedded), dim=2)
-            if self.full_focus:
-                merged_input = F.relu(self.ffocus_merge(combined_input))
-                combined_input = torch.mul(context, merged_input)
-            output, hidden = self.rnn(combined_input, hidden)
-
-        elif self.use_attention == 'post-rnn':
-            output, hidden = self.rnn(embedded, hidden)
-            # Apply the attention method to get the attention vector and weighted context vector. Provide decoder step for hard attention
-            context, attn = self.attention(output, encoder_outputs, **attention_method_kwargs)
-            output = torch.cat((context, output), dim=2)
-
-        elif self.use_attention == 'seq2attn':
-            output, understander_decoder_hidden, executor_decoder_hidden, attn = self.understander(
+        # TODO: We should not have an if-else statement here. Should be agnostic of underlying recurrent model
+        if self.use_attention == 'seq2attn':
+            output, understander_decoder_hidden, executor_decoder_hidden, attn = self.decoder_model(
                 embedded=embedded,
                 understander_decoder_hidden=understander_decoder_hidden,
                 executor_decoder_hidden=executor_decoder_hidden,
                 attn_keys=attn_keys,
                 attn_vals=attn_vals)
 
-        elif not self.use_attention:
-            attn = None
-            output, hidden = self.rnn(embedded, hidden)
+            return_values = output, understander_decoder_hidden, executor_decoder_hidden, attn
+        else:
+            return_values = self.decoder_model(embedded, decoder_hidden, encoder_outputs, function, **attention_method_kwargs)
 
-        predicted_softmax = function(self.out(output.contiguous().view(-1, self.out.in_features)), dim=1).view(batch_size, output_size, -1)
-
-        return predicted_softmax, understander_decoder_hidden, executor_decoder_hidden, attn
+        return return_values
 
     def forward(self, inputs=None,
                 understander_encoder_embeddings=None, understander_encoder_hidden=None, understander_encoder_outputs=None,
                 executor_encoder_embeddings=None, executor_encoder_hidden=None, executor_encoder_outputs=None,
                 function=F.log_softmax, teacher_forcing_ratio=0, provided_attention=None, provided_attention_vectors=None, possible_attn_vals=None):
-        # If the understander is trained using supervised learning, we need a different attention method. One that accepts full attention
-        # vectors instead of single indices. As soon as we see that the understander has provided these full vectors, we change the attention method
-        # Must be solved more nicely in the future.
-        if provided_attention_vectors is not None: 
-            self.attention.method = self.attention.get_method(
-                dim=self.hidden_size,
-                method='provided_attention_vectors')
-            # We are provided entire attention vectors (possible one-hot) and don't have to apply softmax
-            self.attention.apply_softmax = False
-        # When storing a checkpoint, and after training, we will use the evaluator again with normal attention indices,
-        # so we must change back the attention method
-        if provided_attention is not None:
-            self.attention.method = self.attention.get_method(
-                dim=self.hidden_size,
-                method='hard')
-            # We are provided attention vectors from the data and need to apply softmax
-            self.attention.apply_softmax = True
+
 
         ret_dict = dict()
         if self.use_attention:
             ret_dict[DecoderRNN.KEY_ATTN_SCORE] = list()
 
         inputs, batch_size, max_length = self._validate_args(inputs, understander_encoder_hidden, understander_encoder_outputs,
-                                                             function, teacher_forcing_ratio)
-        
+                                                             function, teacher_forcing_ratio)        
+
         understander_decoder_hidden = self._init_state(understander_encoder_hidden, 'encoder')
         executor_decoder_hidden = self._init_state(executor_encoder_hidden, self.init_exec_dec_with)
 
@@ -246,6 +198,7 @@ class DecoderRNN(BaseRNN):
 
         decoder_outputs = []
         sequence_symbols = []
+        ponder_penalties = [] if self.use_pondering else None
         lengths = np.array([max_length] * batch_size)
 
         def decode(step, step_output, step_attn):
@@ -264,9 +217,9 @@ class DecoderRNN(BaseRNN):
 
         # Prepare extra arguments for attention method
         attention_method_kwargs = {}
-        if self.attention and isinstance(self.attention.method, HardGuidance):
+        if self.decoder_model.attention and isinstance(self.decoder_model.attention.method, HardGuidance):
             attention_method_kwargs['provided_attention'] = provided_attention
-        if self.attention and isinstance(self.attention.method, ProvidedAttentionVectors):
+        if self.decoder_model.attention and isinstance(self.decoder_model.attention.method, ProvidedAttentionVectors):
             attention_method_kwargs['provided_attention_vectors'] = provided_attention_vectors
             attention_method_kwargs['attn_vals'] = possible_attn_vals[self.attn_vals]
 
@@ -274,7 +227,7 @@ class DecoderRNN(BaseRNN):
         # the previous hidden state, before we can calculate the next hidden state.
         # We also need to unroll when we don't use teacher forcing. We need perform the decoder steps
         # one-by-one since the output needs to be copied to the input of the next step.
-        if self.use_attention == 'pre-rnn' or self.use_attention == 'seq2attn' or not use_teacher_forcing:
+        if self.use_attention == 'pre-rnn' or self.use_attention == 'seq2attn' or self.use_pondering or not use_teacher_forcing:
             unrolling = True
         else:
             unrolling = False
@@ -291,15 +244,29 @@ class DecoderRNN(BaseRNN):
                     decoder_input = symbols
 
                 # Perform one forward step
-                if self.attention and (isinstance(self.attention.method, HardGuidance) or isinstance(self.attention.method, ProvidedAttentionVectors)):
+                if self.decoder_model.attention and (isinstance(self.decoder_model.attention.method, HardGuidance) or isinstance(self.decoder_model.attention.method, ProvidedAttentionVectors)):
                     attention_method_kwargs['step'] = di
 
                 # Get local variable out of locals() dictionary by string key
                 attn_keys = locals()[self.attn_keys]
                 attn_vals = locals()[self.attn_vals]
 
-                executor_decoder_output, understander_decoder_hidden, executor_decoder_hidden, step_attn = self.forward_step(decoder_input, understander_decoder_hidden, executor_decoder_hidden, attn_keys, attn_vals,
+                return_values = self.forward_step(decoder_input, understander_decoder_hidden, executor_decoder_hidden, attn_keys, attn_vals,
                                                                          function=function, **attention_method_kwargs)
+
+                executor_decoder_output, understander_decoder_hidden, executor_decoder_hidden, step_attn = return_values[:4]
+
+                if len(return_values) > 4:
+                    ponder_penalty = return_values[4]
+                    ponder_penalties.append(ponder_penalty)
+
+                # If the decoder_model is a pondering model, it will return a list of attentions for each
+                # ponder step.
+                # For simplicity we will just store only the last for now, but we might want to/have to (for attention_loss)
+                # get a weighted average for example.
+                if isinstance(step_attn, list):
+                    step_attn = step_attn[-1]
+
                 # Remove the unnecessary dimension.
                 step_output = executor_decoder_output.squeeze(1)
                 # Get the actual symbol
@@ -311,8 +278,9 @@ class DecoderRNN(BaseRNN):
             decoder_input = inputs[:, :-1]
 
             # Forward step without unrolling
-            if self.attention and (isinstance(self.attention.method, HardGuidance) or isinstance(self.attention.method, ProvidedAttentionVectors)):
+            if self.decoder_model.attention and (isinstance(self.decoder_model.attention.method, HardGuidance) or isinstance(self.decoder_model.attention.method, ProvidedAttentionVectors)):
                 attention_method_kwargs['step'] = -1
+
             decoder_output, decoder_hidden, attn = self.forward_step(decoder_input, decoder_hidden, encoder_outputs, function=function, **attention_method_kwargs)
 
             for di in range(decoder_output.size(1)):
@@ -328,6 +296,8 @@ class DecoderRNN(BaseRNN):
 
         ret_dict[DecoderRNN.KEY_SEQUENCE] = sequence_symbols
         ret_dict[DecoderRNN.KEY_LENGTH] = lengths.tolist()
+        if self.use_pondering:
+            ret_dict[DecoderRNN.KEY_PONDER] = ponder_penalties
 
         return decoder_outputs, executor_decoder_hidden, ret_dict
 
@@ -373,9 +343,9 @@ class DecoderRNN(BaseRNN):
             if inputs is not None:
                 batch_size = inputs.size(0)
             else:
-                if self.rnn_cell is nn.LSTM:
+                if self.rnn_cell == 'lstm':
                     batch_size = encoder_hidden[0].size(1)
-                elif self.rnn_cell is nn.GRU:
+                elif self.rnn_cell == 'gru':
                     batch_size = encoder_hidden.size(1)
 
         # set default input and max decoding length

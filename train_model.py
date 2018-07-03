@@ -14,7 +14,7 @@ from collections import OrderedDict
 import seq2seq
 from seq2seq.trainer import SupervisedTrainer
 from seq2seq.models import EncoderRNN, DecoderRNN, Seq2seq, Understander
-from seq2seq.loss import Perplexity, AttentionLoss, NLLLoss
+from seq2seq.loss import Perplexity, AttentionLoss, NLLLoss, PonderLoss
 from seq2seq.metrics import WordAccuracy, SequenceAccuracy, FinalTargetAccuracy, SymbolRewritingAccuracy
 from seq2seq.optim import Optimizer
 from seq2seq.dataset import SourceField, TargetField, AttentionField
@@ -78,6 +78,13 @@ parser.add_argument('--init_exec_dec_with', type=str, choices=['encoder', 'new']
 parser.add_argument('--train_regime', type=str, choices=['two-stage', 'simultaneous'], help="In 'two-stage' training we first train the executor with hard guidance for n/2 epochs and then the understander for n/2 epochs. In 'simultaneous' training, we train both models together without any supervision on the attention.")
 parser.add_argument('--attn_keys', type=str, choices=['understander_encoder_embeddings', 'understander_encoder_outputs', 'executor_encoder_embeddings', 'executor_encoder_outputs'])
 parser.add_argument('--attn_vals', type=str, choices=['understander_encoder_embeddings', 'understander_encoder_outputs', 'executor_encoder_embeddings', 'executor_encoder_outputs'])
+
+# Ponder arguments
+parser.add_argument('--ponder_encoder', action='store_true', help='Use ACT pondering for the encoder')
+parser.add_argument('--ponder_decoder', action='store_true', help='Use ACT pondering for the decoder')
+parser.add_argument('--max_ponder_steps', type=int, default=100, help='Hard maximum number of ponder steps')
+parser.add_argument('--ponder_epsilon', type=float, default=0.01, help='Epsilon for ACT to allow only 1 ponder step')
+parser.add_argument('--ponder_penalty_scale', type=float, default=0.01, help='Scale of the ponder penalty loss')
 
 opt = parser.parse_args()
 IGNORE_INDEX=-1
@@ -150,6 +157,7 @@ if opt.dev:
         fields=tabular_data_fields,
         filter_pred=len_filter
     )
+
 else:
     dev = None
 
@@ -160,6 +168,34 @@ for dataset in opt.monitor:
         fields=tabular_data_fields,
         filter_pred=len_filter)
     monitor_data[dataset] = m
+
+# When chosen to use attentive guidance, check whether the data is correct for the first
+# example in the data set. We can assume that the other examples are then also correct.
+if opt.use_attention_loss or opt.attention_method == 'hard':
+    if len(train) > 0:
+        if 'attn' not in vars(train[0]):
+            raise Exception("AttentionField not found in train data")
+        tgt_len = len(vars(train[0])['tgt']) - 1 # -1 for SOS
+        attn_len = len(vars(train[0])['attn']) - 1 # -1 for preprended ignore_index
+        if attn_len != tgt_len:
+            raise Exception("Length of output sequence does not equal length of attention sequence in train data")
+
+    if dev is not None and len(dev) > 0:
+        if 'attn' not in vars(dev[0]):
+            raise Exception("AttentionField not found in dev data")
+        tgt_len = len(vars(dev[0])['tgt']) - 1 # -1 for SOS
+        attn_len = len(vars(dev[0])['attn']) - 1 # -1 for preprended ignore_index
+        if attn_len != tgt_len:
+            raise Exception("Length of output sequence does not equal length of attention sequence in dev data.")
+
+    for m in monitor_data.values():
+        if len(m) > 0:
+            if 'attn' not in vars(m[0]):
+                raise Exception("AttentionField not found in monitor data")
+            tgt_len = len(vars(m[0])['tgt']) - 1 # -1 for SOS
+            attn_len = len(vars(m[0])['attn']) - 1 # -1 for preprended ignore_index
+            if attn_len != tgt_len:
+                raise Exception("Length of output sequence does not equal length of attention sequence in monitor data.")
 
 #################################################################################
 # prepare model
@@ -201,7 +237,10 @@ else:
                          n_layers=opt.n_layers,
                          bidirectional=opt.bidirectional,
                          rnn_cell=opt.rnn_cell,
-                         variable_lengths=True)
+                         variable_lengths=True,
+                         ponder=opt.ponder_encoder,
+                         max_ponder_steps=opt.max_ponder_steps,
+                         ponder_epsilon=opt.ponder_epsilon)
     decoder = DecoderRNN(len(tgt.vocab), max_len, decoder_hidden_size,
                          dropout_p=opt.dropout_p_decoder,
                          n_layers=opt.n_layers,
@@ -222,14 +261,17 @@ else:
                          learn_temperature=opt.learn_temperature,
                          init_exec_dec_with=opt.init_exec_dec_with,
                          attn_keys=opt.attn_keys,
-                         attn_vals=opt.attn_vals)
+                         attn_vals=opt.attn_vals,
+                         ponder=opt.ponder_decoder,
+                         max_ponder_steps=opt.max_ponder_steps,
+                         ponder_epsilon=opt.ponder_epsilon)
     seq2seq = Seq2seq(understander_encoder, executor_encoder, decoder)
     seq2seq.to(device)
 
     for param in seq2seq.named_parameters():
-        # Don't reinitialize the gumbel temperature
-        if 'temperature' not in param[0]:
-            param[1].data.uniform_(-0.08, 0.08)
+        name, data = param[0], param[1].data
+        if "halt_layer.bias" not in name and 'temperature' not in name:
+            data.uniform_(-0.08, 0.08)
 
 input_vocabulary = input_vocab.itos
 output_vocabulary = output_vocab.itos
@@ -243,13 +285,20 @@ losses = [NLLLoss(ignore_index=pad)]
 # loss_weights = [1.]
 loss_weights = [float(opt.xent_loss)]
 
+if opt.ponder_encoder:
+    losses.append(PonderLoss(name="Encoder ponder penalty", log_name="encoder_ponder_loss", identifier="encoder_ponder_penalty"))
+    loss_weights.append(opt.ponder_penalty_scale)
+
+if opt.ponder_decoder:
+    losses.append(PonderLoss(name="Decoder ponder penalty", log_name="decoder_ponder_loss", identifier="decoder_ponder_penalty"))
+    loss_weights.append(opt.ponder_penalty_scale)
 
 if opt.use_attention_loss:
     losses.append(AttentionLoss(ignore_index=IGNORE_INDEX))
     loss_weights.append(opt.scale_attention_loss)
 
 for loss in losses:
-  loss.to(device)
+    loss.to(device)
 
 metrics = [WordAccuracy(ignore_index=pad), SequenceAccuracy(ignore_index=pad), FinalTargetAccuracy(ignore_index=pad, eos_id=tgt.eos_id)]
 # Since we need the actual tokens to determine k-grammar accuracy,

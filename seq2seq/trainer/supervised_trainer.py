@@ -111,10 +111,10 @@ class SupervisedTrainer(object):
                 step_reward = list(numpy.clip((3-loss_func(prediction, ground_truth).detach().cpu().numpy())/3, 0, 1))
                 rewards.append(step_reward)
 
-            model.decoder.understander.set_rewards(rewards)
+            model.decoder.decoder_model.set_rewards(rewards)
 
             # Calculate discounted rewards and policy loss
-            policy_loss = model.decoder.understander.finish_episode()
+            policy_loss = model.decoder.decoder_model.finish_episode()
             policy_loss.backward(retain_graph=True)
 
         for i, loss in enumerate(losses):
@@ -176,8 +176,8 @@ class SupervisedTrainer(object):
             model.train_executor(train=True)
 
         for epoch in range(start_epoch, n_epochs + 1):
-            if model.decoder.understander.attention.current_temperature is not None:
-                log.info("Example temperature: {}".format(model.decoder.understander.attention.current_temperature[0].item()))
+            if model.decoder.decoder_model.attention.current_temperature is not None:
+                log.info("Example temperature: {}".format(model.decoder.decoder_model.attention.current_temperature[0].item()))
 
             log.info("Epoch: %d, Step: %d" % (epoch, step))
 
@@ -361,6 +361,7 @@ class SupervisedTrainer(object):
                             monitor_data=monitor_data,
                             teacher_forcing_ratio=teacher_forcing_ratio,
                             top_k=top_k)
+
         return model, logs
 
     @staticmethod
@@ -372,24 +373,6 @@ class SupervisedTrainer(object):
         # If available, also get provided attentive guidance data
         if hasattr(batch, seq2seq.attn_field_name):
             attention_target = getattr(batch, seq2seq.attn_field_name)
-
-            # When we ignore output EOS, the sequence target will not contain the EOS, but if present
-            # in the data, the attention indices might still. We should remove this.
-            target_length = target_variables['decoder_output'].size(1)
-            attn_length = attention_target.size(1)
-
-            # If the attention sequence is exactly 1 longer than the output sequence, the EOS attention
-            # index is present.
-            if attn_length == target_length + 1:
-                # First we replace each of these indices with a -1. This makes sure that the hard
-                # attention method will not attend to an input that might not be present (the EOS)
-                # We need this if there are attentions of multiple lengths in a bath
-                attn_eos_indices = input_lengths.unsqueeze(1) + 1
-                attention_target = attention_target.scatter_(dim=1, index=attn_eos_indices, value=-1)
-                
-                # Next we also make sure that the longest attention sequence in the batch is truncated
-                attention_target = attention_target[:, :-1]
-
             target_variables['attention_target'] = attention_target
 
         return input_variables, input_lengths, target_variables
