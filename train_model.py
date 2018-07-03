@@ -224,23 +224,32 @@ else:
     # Initialize model
     hidden_size = opt.hidden_size
     decoder_hidden_size = hidden_size*2 if opt.bidirectional else hidden_size
-    understander_encoder = EncoderRNN(len(src.vocab), max_len, hidden_size,
-                         opt.embedding_size,
-                         dropout_p=opt.dropout_p_encoder,
-                         n_layers=opt.n_layers,
-                         bidirectional=opt.bidirectional,
-                         rnn_cell=opt.rnn_cell,
-                         variable_lengths=True)
-    executor_encoder = EncoderRNN(len(src.vocab), max_len, hidden_size,
-                         opt.embedding_size,
-                         dropout_p=opt.dropout_p_encoder,
-                         n_layers=opt.n_layers,
-                         bidirectional=opt.bidirectional,
-                         rnn_cell=opt.rnn_cell,
-                         variable_lengths=True,
-                         ponder=opt.ponder_encoder,
-                         max_ponder_steps=opt.max_ponder_steps,
-                         ponder_epsilon=opt.ponder_epsilon)
+    understander_encoder = EncoderRNN(len(src.vocab),
+                                      max_len,
+                                      hidden_size,
+                                      opt.embedding_size,
+                                      dropout_p=opt.dropout_p_encoder,
+                                      n_layers=opt.n_layers,
+                                      bidirectional=opt.bidirectional,
+                                      rnn_cell=opt.rnn_cell,
+                                      variable_lengths=True,
+                                      ponder=opt.ponder_encoder,
+                                      max_ponder_steps=opt.max_ponder_steps,
+                                      ponder_epsilon=opt.ponder_epsilon,
+                                      ponder_key='understander_encoder_ponder_penalty')
+    executor_encoder = EncoderRNN(len(src.vocab),
+                                  max_len,
+                                  hidden_size,
+                                  opt.embedding_size,
+                                  dropout_p=opt.dropout_p_encoder,
+                                  n_layers=opt.n_layers,
+                                  bidirectional=opt.bidirectional,
+                                  rnn_cell=opt.rnn_cell,
+                                  variable_lengths=True,
+                                  ponder=opt.ponder_encoder,
+                                  max_ponder_steps=opt.max_ponder_steps,
+                                  ponder_epsilon=opt.ponder_epsilon,
+                                  ponder_key='executor_encoder_ponder_penalty')
     decoder = DecoderRNN(len(tgt.vocab), max_len, decoder_hidden_size,
                          dropout_p=opt.dropout_p_decoder,
                          n_layers=opt.n_layers,
@@ -286,7 +295,10 @@ losses = [NLLLoss(ignore_index=pad)]
 loss_weights = [float(opt.xent_loss)]
 
 if opt.ponder_encoder:
-    losses.append(PonderLoss(name="Encoder ponder penalty", log_name="encoder_ponder_loss", identifier="encoder_ponder_penalty"))
+    losses.append(PonderLoss(name="Understander encoder ponder penalty", log_name="understander_encoder_ponder_loss", identifier="understander_encoder_ponder_penalty"))
+    loss_weights.append(opt.ponder_penalty_scale)
+
+    losses.append(PonderLoss(name="Executor encoder ponder penalty", log_name="executor_encoder_ponder_loss", identifier="executor_encoder_ponder_penalty"))
     loss_weights.append(opt.ponder_penalty_scale)
 
 if opt.ponder_decoder:

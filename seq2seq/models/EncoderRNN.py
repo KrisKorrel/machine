@@ -40,11 +40,12 @@ class EncoderRNN(BaseRNN):
     """
 
     def __init__(self, vocab_size, max_len, hidden_size, embedding_size,
-            input_dropout_p=0, dropout_p=0,
-            n_layers=1, bidirectional=False, rnn_cell='gru', variable_lengths=False,
-            ponder=False, max_ponder_steps=100, ponder_epsilon=0.01):
-        super(EncoderRNN, self).__init__(vocab_size, max_len, hidden_size,
-                input_dropout_p, dropout_p, n_layers, rnn_cell)
+                 input_dropout_p=0, dropout_p=0, n_layers=1, bidirectional=False,
+                 rnn_cell='gru', variable_lengths=False,
+                 ponder=False, max_ponder_steps=100, ponder_epsilon=0.01,
+                 ponder_key='encoder_ponder_penalty'):
+        super(EncoderRNN, self).__init__(vocab_size, max_len, hidden_size, input_dropout_p,
+                                         dropout_p, n_layers, rnn_cell)
 
         self.embedding_size = embedding_size
         self.hidden_size = hidden_size
@@ -56,6 +57,7 @@ class EncoderRNN(BaseRNN):
 
         self.use_pondering = ponder
         if self.use_pondering:
+            self.ponder_key = ponder_key
             self.rnn = Ponderer(model=self.rnn, hidden_size=hidden_size, output_size=hidden_size, max_ponder_steps=max_ponder_steps, eps=ponder_epsilon, optimize=True)
 
     def forward(self, input_var, input_lengths=None):
@@ -98,7 +100,7 @@ class EncoderRNN(BaseRNN):
                 output_list.append(output.squeeze(1))
                 ponder_penalties.append(ponder_penalty)
             output = torch.stack(output_list, dim=1)
-            other = {'encoder_ponder_penalty': ponder_penalties}
+            other = {self.ponder_key: ponder_penalties}
         else:
             output, hidden = self.rnn(embedded)
             other = {}
