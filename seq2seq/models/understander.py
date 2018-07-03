@@ -34,13 +34,15 @@ class Understander(nn.Module):
         super(Understander, self).__init__()
 
         self.train_method = train_method
+        self.hidden_size = hidden_dim
 
         # Get type of RNN cell
         rnn_cell = rnn_cell.lower()
+        self.rnn_type = rnn_cell
         if rnn_cell == 'lstm':
-            self.rnn_cell = nn.LSTM
+            rnn_cell = nn.LSTM
         elif rnn_cell == 'gru':
-            self.rnn_cell = nn.GRU
+            rnn_cell = nn.GRU
 
         # Input size is hidden_size + context vector size, which depends on the type of attention value
         # TODO: As Yann pointed out, we should have different embedding size for decoder.
@@ -51,9 +53,9 @@ class Understander(nn.Module):
         input_size = hidden_dim + key_dim
 
         # Initialize models
-        self.understander_decoder = self.rnn_cell(hidden_dim, hidden_dim, n_layers, batch_first=True, dropout=dropout_p)
+        self.understander_decoder = rnn_cell(hidden_dim, hidden_dim, n_layers, batch_first=True, dropout=dropout_p)
         self.attention = Attention(dim=key_dim, method=attention_method, sample_train=sample_train, sample_infer=sample_infer, learn_temperature=learn_temperature, initial_temperature=initial_temperature)
-        self.executor_decoder = self.rnn_cell(input_size, hidden_dim, n_layers, batch_first=True, dropout=dropout_p)
+        self.executor_decoder = rnn_cell(input_size, hidden_dim, n_layers, batch_first=True, dropout=dropout_p)
         self.out = nn.Linear(hidden_dim, output_dim)
         
         # Store and initialize RL stuff
@@ -94,7 +96,7 @@ class Understander(nn.Module):
 
         return valid_action_mask
 
-    def forward(self, embedded, understander_decoder_hidden, executor_decoder_hidden, attn_keys, attn_vals):
+    def forward(self, embedded, ponder_decoder_hidden, attn_keys, attn_vals):
         """
         Perform forward pass and stochastically select actions using epsilon-greedy RL
 
@@ -109,6 +111,15 @@ class Understander(nn.Module):
         """
         if self._rewards:
             raise Exception("Did you forget to finish the episode?")
+
+        if self.rnn_type == 'gru':
+            understander_decoder_hidden = ponder_decoder_hidden[:, :, :self.hidden_size]
+            executor_decoder_hidden = ponder_decoder_hidden[:, :, self.hidden_size:]
+        elif self.rnn_type == 'lstm':
+            understander_decoder_hidden = (ponder_decoder_hidden[0][:, :, :self.hidden_size],
+                                           ponder_decoder_hidden[1][:, :, :self.hidden_size])
+            executor_decoder_hidden = (ponder_decoder_hidden[0][:, :, self.hidden_size:],
+                                       ponder_decoder_hidden[1][:, :, self.hidden_size:])
 
         # First, we establish which encoder states are valid to attend to.
         # TODO: Only works when keys are (full) hidden states. Maybe we should pass the mask (set_mask)
@@ -176,7 +187,16 @@ class Understander(nn.Module):
 
         executor_decoder_output = F.log_softmax(self.out(executor_decoder_output.contiguous().view(-1, self.out.in_features)), dim=1).view(batch_size, dec_seqlen, -1)
 
-        return executor_decoder_output, understander_decoder_hidden, executor_decoder_hidden, attn
+        if self.rnn_type == 'gru':
+            ponder_hidden = torch.cat([understander_decoder_hidden,
+                                       executor_decoder_hidden], dim=2)
+        elif self.rnn_type == 'lstm':
+            ponder_hidden = (torch.cat([understander_decoder_hidden[0],
+                                        executor_decoder_hidden[0]], dim=2),
+                             torch.cat([understander_decoder_hidden[1],
+                                        executor_decoder_hidden[1]], dim=2))
+
+        return executor_decoder_output, ponder_hidden, attn
 
     def set_rewards(self, rewards):
         self._rewards = rewards

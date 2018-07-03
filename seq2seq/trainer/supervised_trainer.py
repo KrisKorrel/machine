@@ -118,6 +118,7 @@ class SupervisedTrainer(object):
             policy_loss.backward(retain_graph=True)
 
         for i, loss in enumerate(losses):
+            print(i, loss, self.loss_weights[i], loss.get_loss())
             loss.scale_loss(self.loss_weights[i])
             loss.backward(retain_graph=True)
         self.optimizer.step()

@@ -33,7 +33,6 @@ class Seq2seq(nn.Module):
 
     """
 
-    # TODO: Ponder parameters are not passed/used
     def __init__(self, understander_encoder, executor_encoder, decoder, decode_function=F.log_softmax):
         super(Seq2seq, self).__init__()
         self.understander_encoder = understander_encoder

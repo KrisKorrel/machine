@@ -126,9 +126,15 @@ class DecoderRNN(nn.Module):
 
         self.use_pondering = ponder
         if self.use_pondering:
-            self.decoder_model = Ponderer(model=self.decoder_model, hidden_size=hidden_size,
-                                          output_size=vocab_size, max_ponder_steps=max_ponder_steps, eps=ponder_epsilon)
-
+            # For pondering, we concatenate the understander and executor states
+            ponder_hidden_size = hidden_size
+            if use_attention == 'seq2attn':
+                ponder_hidden_size *= 2
+            self.decoder_model = Ponderer(model=self.decoder_model,
+                                          hidden_size=ponder_hidden_size,
+                                          output_size=vocab_size,
+                                          max_ponder_steps=max_ponder_steps,
+                                          eps=ponder_epsilon)
 
         # If we initialize the executor's decoder with a new vector instead of the last encoder state
         # We initialize it as parameter here.
@@ -165,14 +171,21 @@ class DecoderRNN(nn.Module):
 
         # TODO: We should not have an if-else statement here. Should be agnostic of underlying recurrent model
         if self.use_attention == 'seq2attn':
-            output, understander_decoder_hidden, executor_decoder_hidden, attn = self.decoder_model(
-                embedded=embedded,
-                understander_decoder_hidden=understander_decoder_hidden,
-                executor_decoder_hidden=executor_decoder_hidden,
+            # To accomodate pondering, we just pass only 1 hidden state.
+            # This will be disassembled again in the understander
+            if self.rnn_type == 'gru':
+                ponder_hidden = torch.cat([understander_decoder_hidden,
+                                           executor_decoder_hidden], dim=2)
+            elif self.rnn_type == 'lstm':
+                ponder_hidden = (torch.cat([understander_decoder_hidden[0],
+                                            executor_decoder_hidden[0]], dim=2),
+                                 torch.cat([understander_decoder_hidden[1],
+                                            executor_decoder_hidden[1]], dim=2))
+            return_values = self.decoder_model(
+                embedded,
+                ponder_hidden,
                 attn_keys=attn_keys,
                 attn_vals=attn_vals)
-
-            return_values = output, understander_decoder_hidden, executor_decoder_hidden, attn
         else:
             return_values = self.decoder_model(embedded, decoder_hidden, encoder_outputs, function, **attention_method_kwargs)
 
@@ -182,8 +195,6 @@ class DecoderRNN(nn.Module):
                 understander_encoder_embeddings=None, understander_encoder_hidden=None, understander_encoder_outputs=None,
                 executor_encoder_embeddings=None, executor_encoder_hidden=None, executor_encoder_outputs=None,
                 function=F.log_softmax, teacher_forcing_ratio=0, provided_attention=None, provided_attention_vectors=None, possible_attn_vals=None):
-
-
         ret_dict = dict()
         if self.use_attention:
             ret_dict[DecoderRNN.KEY_ATTN_SCORE] = list()
@@ -251,13 +262,28 @@ class DecoderRNN(nn.Module):
                 attn_keys = locals()[self.attn_keys]
                 attn_vals = locals()[self.attn_vals]
 
-                return_values = self.forward_step(decoder_input, understander_decoder_hidden, executor_decoder_hidden, attn_keys, attn_vals,
-                                                                         function=function, **attention_method_kwargs)
+                return_values = self.forward_step(decoder_input,
+                                                  understander_decoder_hidden,
+                                                  executor_decoder_hidden,
+                                                  attn_keys,
+                                                  attn_vals,
+                                                  function=function,
+                                                  **attention_method_kwargs)
 
-                executor_decoder_output, understander_decoder_hidden, executor_decoder_hidden, step_attn = return_values[:4]
+                executor_decoder_output, ponder_decoder_hidden, step_attn = return_values[:3]
+                # Decouple the ponder hidden state
 
-                if len(return_values) > 4:
-                    ponder_penalty = return_values[4]
+                if self.rnn_type == 'gru':
+                    understander_decoder_hidden = ponder_decoder_hidden[:, :, :self.hidden_size]
+                    executor_decoder_hidden = ponder_decoder_hidden[:, :, self.hidden_size:]
+                elif self.rnn_type == 'lstm':
+                    understander_decoder_hidden = (ponder_decoder_hidden[0][:, :, :self.hidden_size],
+                                                   ponder_decoder_hidden[1][:, :, :self.hidden_size])
+                    executor_decoder_hidden = (ponder_decoder_hidden[0][:, :, self.hidden_size:],
+                                               ponder_decoder_hidden[1][:, :, self.hidden_size:])
+
+                if len(return_values) > 3:
+                    ponder_penalty = return_values[3]
                     ponder_penalties.append(ponder_penalty)
 
                 # If the decoder_model is a pondering model, it will return a list of attentions for each

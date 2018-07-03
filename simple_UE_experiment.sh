@@ -52,6 +52,10 @@ ATTN_KEYS='understander_encoder_outputs'
 # The vals can be: 'understander_encoder_embeddings', 'understander_encoder_outputs', 'executor_encoder_embeddings', 'executor_encoder_outputs'
 ATTN_VALS='understander_encoder_embeddings'
 
+MAX_PONDER_STEPS=100
+PONDER_EPSILON=0.01
+PONDER_PENALTY_SCALE=0.01
+
 echo "Start training"
 python3 train_model.py \
     --train $TRAIN \
@@ -85,4 +89,8 @@ python3 train_model.py \
     --train_regime $TRAIN_REGIME \
     --learn_temperature $LEARN_TEMP \
     --attn_keys $ATTN_KEYS \
-    --attn_vals $ATTN_VALS
+    --attn_vals $ATTN_VALS \
+    --ponder_decoder \
+    --max_ponder_steps $MAX_PONDER_STEPS \
+    --ponder_epsilon $PONDER_EPSILON \
+    --ponder_penalty_scale $PONDER_PENALTY_SCALE
