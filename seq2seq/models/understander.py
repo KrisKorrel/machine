@@ -113,13 +113,13 @@ class Understander(nn.Module):
             raise Exception("Did you forget to finish the episode?")
 
         if self.rnn_type == 'gru':
-            understander_decoder_hidden = ponder_decoder_hidden[:, :, :self.hidden_size]
-            executor_decoder_hidden = ponder_decoder_hidden[:, :, self.hidden_size:]
+            understander_decoder_hidden = ponder_decoder_hidden[:, :, :self.hidden_size].contiguous()
+            executor_decoder_hidden = ponder_decoder_hidden[:, :, self.hidden_size:].contiguous()
         elif self.rnn_type == 'lstm':
-            understander_decoder_hidden = (ponder_decoder_hidden[0][:, :, :self.hidden_size],
-                                           ponder_decoder_hidden[1][:, :, :self.hidden_size])
-            executor_decoder_hidden = (ponder_decoder_hidden[0][:, :, self.hidden_size:],
-                                       ponder_decoder_hidden[1][:, :, self.hidden_size:])
+            understander_decoder_hidden = (ponder_decoder_hidden[0][:, :, :self.hidden_size].contiguous(),
+                                           ponder_decoder_hidden[1][:, :, :self.hidden_size].contiguous())
+            executor_decoder_hidden = (ponder_decoder_hidden[0][:, :, self.hidden_size:].contiguous(),
+                                       ponder_decoder_hidden[1][:, :, self.hidden_size:].contiguous())
 
         # First, we establish which encoder states are valid to attend to.
         # TODO: Only works when keys are (full) hidden states. Maybe we should pass the mask (set_mask)
