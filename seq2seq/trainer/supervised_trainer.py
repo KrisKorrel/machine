@@ -247,7 +247,7 @@ class SupervisedTrainer(object):
 
                     all_losses = ' '.join(['%s:\t %s\n' % (os.path.basename(name), m_logs[name]) for name in m_logs])
 
-                    log_msg = 'Progress %d%%, %s' % (
+                    log_msg = 'Progress %d%%\n%s' % (
                             step / total_steps * 100,
                             all_losses)
 
