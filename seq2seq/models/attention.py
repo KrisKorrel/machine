@@ -136,7 +136,10 @@ class Attention(nn.Module):
     # TODO: I actually think we should refactor Attention in Master to at least allow arguments
     # key, value, query. sample_method might be a bit specific though.
     def forward(self, queries, keys, values, **attention_method_kwargs):
+        if queries.dim() == 2:
+            queries = queries.unsqueeze(1)
         batch_size, _, queries_dim = queries.size()
+
         input_size = keys.size(1)
 
         # compute mask

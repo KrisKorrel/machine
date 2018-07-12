@@ -99,7 +99,7 @@ class Evaluator(object):
         """
         # If the model was in train mode before this method was called, we make sure it still is
         # after this method.
-        previous_model_mode        = model.training
+        previous_model_mode = model.training
         model.eval()
 
         losses = self.losses
@@ -127,7 +127,12 @@ class Evaluator(object):
                     input_lengths=input_lengths.tolist(),
                     target_variables=target_variable,
                     teacher_forcing_ratio=0)
-                model.decoder.decoder_model.finish_episode()
+                
+                # Only call finish_episode for seq2attn model, not for baseline
+                try:
+                    model.decoder.decoder_model.finish_episode()
+                except Exception:
+                    pass
 
                 # Compute metric(s) over one batch
                 metrics = self.update_batch_metrics(metrics, other, target_variable)  
