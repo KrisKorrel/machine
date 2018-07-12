@@ -78,6 +78,7 @@ parser.add_argument('--init_exec_dec_with', type=str, choices=['encoder', 'new']
 parser.add_argument('--train_regime', type=str, choices=['two-stage', 'simultaneous'], help="In 'two-stage' training we first train the executor with hard guidance for n/2 epochs and then the understander for n/2 epochs. In 'simultaneous' training, we train both models together without any supervision on the attention.")
 parser.add_argument('--attn_keys', type=str, choices=['understander_encoder_embeddings', 'understander_encoder_outputs', 'executor_encoder_embeddings', 'executor_encoder_outputs'])
 parser.add_argument('--attn_vals', type=str, choices=['understander_encoder_embeddings', 'understander_encoder_outputs', 'executor_encoder_embeddings', 'executor_encoder_outputs'])
+parser.add_argument('--dropout_enc_dec', default='0', type=float, help="If the executor decoder is initialized with it's last encoder state, you can optionally add dropout between the encoder and decoder")
 
 # Ponder arguments
 parser.add_argument('--ponder_encoder', action='store_true', help='Use ACT pondering for the encoder')
@@ -274,7 +275,7 @@ else:
                          ponder=opt.ponder_decoder,
                          max_ponder_steps=opt.max_ponder_steps,
                          ponder_epsilon=opt.ponder_epsilon)
-    seq2seq = Seq2seq(understander_encoder, executor_encoder, decoder)
+    seq2seq = Seq2seq(understander_encoder, executor_encoder, decoder, dropout_enc_dec=opt.dropout_enc_dec)
     seq2seq.to(device)
 
     for param in seq2seq.named_parameters():

@@ -33,12 +33,13 @@ class Seq2seq(nn.Module):
 
     """
 
-    def __init__(self, understander_encoder, executor_encoder, decoder, decode_function=F.log_softmax):
+    def __init__(self, understander_encoder, executor_encoder, decoder, decode_function=F.log_softmax, dropout_enc_dec=0.):
         super(Seq2seq, self).__init__()
         self.understander_encoder = understander_encoder
         self.executor_encoder = executor_encoder
         self.decoder = decoder
         self.decode_function = decode_function
+        self.enc_dec_dropout = nn.Dropout(p=dropout_enc_dec)
 
     def flatten_parameters(self):
         self.understander_encoder.rnn.flatten_parameters()
@@ -51,6 +52,13 @@ class Seq2seq(nn.Module):
 
     def forward_executor_encoder(self, input_variable, input_lengths=None):
         executor_encoder_embeddings, executor_encoder_hidden, executor_encoder_outputs, other = self.executor_encoder(input_variable, input_lengths)
+
+        if isinstance(executor_encoder_hidden, tuple):
+            executor_encoder_hidden = (self.enc_dec_dropout(executor_encoder_hidden[0]),
+                                       self.enc_dec_dropout(executor_encoder_hidden[1]))
+        else:
+            executor_encoder_hidden = self.enc_dec_dropout(executor_encoder_hidden)
+
         return executor_encoder_embeddings, executor_encoder_hidden, executor_encoder_outputs, other
 
     def forward_decoder(self, target_variables, teacher_forcing_ratio, understander_encoder_embeddings, understander_encoder_hidden, understander_encoder_outputs, executor_encoder_embeddings, executor_encoder_hidden, executor_encoder_outputs):
