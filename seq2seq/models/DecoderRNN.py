@@ -100,6 +100,8 @@ class DecoderRNN(nn.Module):
         self.attn_keys = attn_keys
         self.attn_vals = attn_vals
 
+        self.train_method = train_method
+
         # increase input size decoder if attention is applied before decoder rnn
         if use_attention == 'seq2attn' and not full_focus:
             self.decoder_model = Understander(

@@ -51,7 +51,7 @@ class SupervisedTrainer(object):
         self.loss = loss
         self.metrics = metrics
         self.loss_weights = loss_weights or len(loss)*[1.]
-        self.evaluator = Evaluator(understander_train_method=understander_train_method, loss=self.loss, metrics=self.metrics, batch_size=eval_batch_size)
+        self.evaluator = Evaluator(loss=self.loss, metrics=self.metrics, batch_size=eval_batch_size)
         self.optimizer = None
         self.total_optimizer = None
         self.checkpoint_every = checkpoint_every
@@ -154,7 +154,7 @@ class SupervisedTrainer(object):
 
         # store initial model to be sure at least one model is stored
         val_data = dev_data or data
-        losses, metrics = self.evaluator.evaluate(model, val_data, self.get_batch_data, pre_train=self.pre_train)
+        losses, metrics = self.evaluator.evaluate(model, val_data, self.get_batch_data)
 
         total_loss, log_msg, model_name = self.get_losses(losses, metrics, step)
         log.info(log_msg)
@@ -176,8 +176,11 @@ class SupervisedTrainer(object):
             model.train_executor(train=True)
 
         for epoch in range(start_epoch, n_epochs + 1):
-            if model.decoder.decoder_model.attention.current_temperature is not None:
-                log.info("Example temperature: {}".format(model.decoder.decoder_model.attention.current_temperature[0].item()))
+            try:
+                if model.decoder.decoder_model.attention.current_temperature is not None:
+                    log.info("Example temperature: {}".format(model.decoder.decoder_model.attention.current_temperature[0].item()))
+            except Exception:
+                pass
 
             log.info("Epoch: %d, Step: %d" % (epoch, step))
 
@@ -231,7 +234,7 @@ class SupervisedTrainer(object):
                         print_loss_total[name] = 0
 
                     m_logs = {}
-                    train_losses, train_metrics = self.evaluator.evaluate(model, data, self.get_batch_data, pre_train=self.pre_train)
+                    train_losses, train_metrics = self.evaluator.evaluate(model, data, self.get_batch_data)
                     train_loss, train_log_msg, model_name = self.get_losses(train_losses, train_metrics, step)
                     logs.write_to_log('Train', train_losses, train_metrics, step)
                     logs.update_step(step)
@@ -240,7 +243,7 @@ class SupervisedTrainer(object):
 
                     # compute vals for all monitored sets
                     for m_data in monitor_data:
-                        losses, metrics = self.evaluator.evaluate(model, monitor_data[m_data], self.get_batch_data, pre_train=self.pre_train)
+                        losses, metrics = self.evaluator.evaluate(model, monitor_data[m_data], self.get_batch_data)
                         total_loss, log_msg, model_name = self.get_losses(losses, metrics, step)
                         m_logs[m_data] = log_msg
                         logs.write_to_log(m_data, losses, metrics, step)
@@ -256,7 +259,7 @@ class SupervisedTrainer(object):
                 # check if new model should be saved
                 if step % self.checkpoint_every == 0 or step == total_steps:
                     # compute dev loss
-                    losses, metrics = self.evaluator.evaluate(model, val_data, self.get_batch_data, pre_train=self.pre_train)
+                    losses, metrics = self.evaluator.evaluate(model, val_data, self.get_batch_data)
                     total_loss, log_msg, model_name = self.get_losses(losses, metrics, step)
 
                     max_eval_loss = max(loss_best)
@@ -285,14 +288,14 @@ class SupervisedTrainer(object):
             log_msg = "Finished epoch %d: Train %s" % (epoch, loss_msg)
 
             if dev_data is not None:
-                losses, metrics = self.evaluator.evaluate(model, dev_data, self.get_batch_data, pre_train=self.pre_train)
+                losses, metrics = self.evaluator.evaluate(model, dev_data, self.get_batch_data)
                 loss_total, log_, model_name = self.get_losses(losses, metrics, step)
 
                 self.optimizer.update(loss_total, epoch)    # TODO check if this makes sense!
                 log_msg += ", Dev set: " + log_
 
 
-                losses, metrics = self.evaluator.evaluate(model, data, self.get_batch_data, pre_train=self.pre_train)
+                losses, metrics = self.evaluator.evaluate(model, data, self.get_batch_data)
                 loss_total, log_, model_name = self.get_losses(losses, metrics, step)
 
                 log_msg += ", Train set: " + log_

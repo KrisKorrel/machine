@@ -17,12 +17,10 @@ class Evaluator(object):
         batch_size (int, optional): batch size for evaluator (default: 64)
     """
 
-    def __init__(self, understander_train_method, loss=[NLLLoss()], metrics=[WordAccuracy(), SequenceAccuracy()], batch_size=64):
+    def __init__(self, loss=[NLLLoss()], metrics=[WordAccuracy(), SequenceAccuracy()], batch_size=64):
         self.losses = loss
         self.metrics = metrics
         self.batch_size = batch_size
-
-        self.understander_train_method = understander_train_method
 
     def update_batch_metrics(self, metrics, other, target_variable):
         """
@@ -86,7 +84,7 @@ class Evaluator(object):
 
         return losses
 
-    def evaluate(self, model, data, get_batch_data, pre_train):
+    def evaluate(self, model, data, get_batch_data):
         """ Evaluate a model on given dataset and return performance.
 
         Args:
