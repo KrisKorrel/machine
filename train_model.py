@@ -327,7 +327,6 @@ if 'sym_rwr_acc' in opt.metrics:
         input_vocab=input_vocab,
         output_vocab=output_vocab,
         use_output_eos=use_output_eos,
-        input_pad_symbol=src.pad_token,
         output_sos_symbol=tgt.SYM_SOS,
         output_pad_symbol=tgt.pad_token,
         output_eos_symbol=tgt.SYM_EOS,
