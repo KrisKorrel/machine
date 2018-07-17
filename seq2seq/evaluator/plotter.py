@@ -9,9 +9,8 @@ import numpy as np
 class PlotAttention(object):
     """PlotAttention."""
 
-    def __init__(self, master_data):
+    def __init__(self):
         """Init."""
-        self.master_data = master_data
 
     def _showAttention(self, input_sentence, output_words, attentions, name, colour):
         # Set up figure with colorbar

@@ -44,7 +44,8 @@ class Seq2seq(nn.Module):
     def flatten_parameters(self):
         self.understander_encoder.rnn.flatten_parameters()
         self.executor_encoder.rnn.flatten_parameters()
-        self.decoder.decoder_model.rnn.flatten_parameters()
+        self.decoder.decoder_model.executor_decoder.flatten_parameters()
+        self.decoder.decoder_model.understander_decoder.flatten_parameters()
 
     def forward_understander_encoder(self, input_variable, input_lengths=None):
         understander_encoder_embeddings, understander_encoder_hidden, understander_encoder_outputs, other = self.understander_encoder(input_variable, input_lengths)

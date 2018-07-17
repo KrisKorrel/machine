@@ -26,10 +26,9 @@ except NameError:
 parser = argparse.ArgumentParser()
 
 parser.add_argument('--checkpoint_path',
-                    help='Give the checkpoint path from which to load the model')
-parser.add_argument('--train', help='Path to train data')
-parser.add_argument('--test', help='Path to test data')
-parser.add_argument('--output_dir', help='Path to save results')
+                    help='Give the checkpoint path from which to load the model', required=True)
+parser.add_argument('--test', help='Path to test data', required=True)
+parser.add_argument('--output_dir', help='Path to save results', required=True)
 parser.add_argument('--ignore_output_eos', action='store_true',
                     help='Ignore end of sequence token during training and evaluation')
 parser.add_argument('--kgrammar', action='store_true',
@@ -76,6 +75,7 @@ def prepare_data(data_path):
 def plot_attention(test_data, img_path, correctness_check):
     """Plot attentions."""
     indices = list(range(len(test_data)))
+    # random.shuffle(indices)
 
     for data_index in indices:
         input_sentence = test_data[data_index, 0]
@@ -104,7 +104,11 @@ def correctness_check_lookup_tables(input_sequence, output_sequence, prediction_
     """
     correct = []
     for i in range(len(output_sequence)):
-        correct.append(output_sequence[i] == prediction_sequence[i])
+        # Prediction is too short
+        if i >= len(prediction_sequence):
+            correct.append(False)
+        else:
+            correct.append(output_sequence[i] == prediction_sequence[i])
 
     return correct
 
@@ -115,26 +119,46 @@ def correctness_check_kgrammar(input_sequence, output_sequence, prediction_seque
     Returns a list containing True or False for each prediction to indicate
     whether it is correct.
     """
-    correct = []
     grammar_vocab = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O',
                      'P', 'Q', 'R', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'AS', 'BS', 'CS', 'DS',
                      'ES', 'FS', 'GS', 'HS', 'IS', 'JS', 'KS', 'LS', 'MS', 'NS', 'OS']
 
-    all_correct = False
+    def all_correct(grammar, prediction):
+        all_correct = False
 
-    # Check if everything falls in the same bucket, and there are no repeats
-    for idx, inp in enumerate(input_sequence):
-        vocab_idx = grammar_vocab.index(inp) + 1
-        span = prediction_sequence[idx * 3:idx * 3 + 3]
+        # Check if everything falls in the same bucket, and there are no repeats
+        for idx, inp in enumerate(grammar):
+            vocab_idx = grammar_vocab.index(inp) + 1
+            span = prediction[idx * 3:idx * 3 + 3]
 
-        span_str = " ".join(span)
-        if (not all(int(item.replace("A", "").replace("B", "").replace("C", "").split("_")[0]) == vocab_idx for item in span)
-                or (not ("A" in span_str and "B" in span_str and "C" in span_str))):
-            all_correct = False
-            break
-        else:
-            all_correct = True
-    return all_correct
+            span_str = " ".join(span)
+            if (not all(int(item.replace("A", "").replace("B", "").replace("C", "").split("_")[0]) == vocab_idx for item in span)
+                    or (not ("A" in span_str and "B" in span_str and "C" in span_str))):
+                all_correct = False
+                break
+            else:
+                all_correct = True
+        print(grammar, prediction, all_correct)
+        return all_correct
+
+    correct = []
+    for i in range(len(input_sequence)):
+        grammar = [input_sequence[i]]
+        for j in range(3):
+            try:
+                prediction = [prediction_sequence[i*3 + j]]
+            except Exception:
+                pass
+            if i*3 + j >= len(prediction_sequence):
+                correct.append(False)
+            elif grammar[0] == '.' and prediction[0] == '<eos>':
+                correct.append(True)
+            elif grammar[0] == '.' and prediction[0] != '<eos>':
+                correct.append(False)
+            elif grammar[0] != '.' and prediction[0] == '<eos>':
+                correct.append(False)
+            else:
+                correct.append(all_correct(grammar, prediction))
 
     return correct
 
@@ -147,8 +171,7 @@ if __name__ == '__main__':
 
     predictor = Predictor(model, input_vocab, output_vocab)
 
-    train_data = prepare_data(opt.train)
-    attn_plotter = PlotAttention(train_data)
+    attn_plotter = PlotAttention()
 
     test_data = prepare_data(opt.test)
 
