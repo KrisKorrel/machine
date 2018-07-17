@@ -62,11 +62,16 @@ class Seq2seq(nn.Module):
         return executor_encoder_embeddings, executor_encoder_hidden, executor_encoder_outputs, other
 
     def forward_decoder(self, target_variables, teacher_forcing_ratio, understander_encoder_embeddings, understander_encoder_hidden, understander_encoder_outputs, executor_encoder_embeddings, executor_encoder_hidden, executor_encoder_outputs):
-        # Unpack target variables
-        target_output = target_variables.get('decoder_output', None)
-        # The attention target is preprended with an extra SOS step. We must remove this
-        provided_attention = target_variables['attention_target'][:,1:] if 'attention_target' in target_variables else None
-        provided_attention_vectors = target_variables.get('provided_attention_vectors', None)
+        if target_variables == None:
+            target_output = None
+            provided_attention = None
+            provided_attention_vectors = None
+        else:
+            # Unpack target variables
+            target_output = target_variables.get('decoder_output', None)
+            # The attention target is preprended with an extra SOS step. We must remove this
+            provided_attention = target_variables['attention_target'][:,1:] if 'attention_target' in target_variables else None
+            provided_attention_vectors = target_variables.get('provided_attention_vectors', None)
 
         result = self.decoder(inputs=target_output,
                               function=self.decode_function,
