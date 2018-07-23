@@ -8,7 +8,6 @@ class Seq2seq(nn.Module):
     Args:
         encoder (EncoderRNN): object of EncoderRNN
         decoder (DecoderRNN): object of DecoderRNN
-        decode_function (func, optional): function to generate symbols from output hidden states (default: F.log_softmax)
 
     Inputs: input_variable, input_lengths, target_variable, teacher_forcing_ratio
         - **input_variable** (list, option): list of sequences, whose length is the batch size and within which
@@ -33,12 +32,11 @@ class Seq2seq(nn.Module):
 
     """
 
-    def __init__(self, understander_encoder, executor_encoder, decoder, decode_function=F.log_softmax, dropout_enc_dec=0.):
+    def __init__(self, understander_encoder, executor_encoder, decoder, dropout_enc_dec=0.):
         super(Seq2seq, self).__init__()
         self.understander_encoder = understander_encoder
         self.executor_encoder = executor_encoder
         self.decoder = decoder
-        self.decode_function = decode_function
         self.enc_dec_dropout = nn.Dropout(p=dropout_enc_dec)
 
     def flatten_parameters(self):
@@ -69,7 +67,6 @@ class Seq2seq(nn.Module):
         provided_attention_vectors = target_variables.get('provided_attention_vectors', None)
 
         result = self.decoder(inputs=target_output,
-                              function=self.decode_function,
                               teacher_forcing_ratio=teacher_forcing_ratio,
                               provided_attention=provided_attention,
                               provided_attention_vectors=provided_attention_vectors,

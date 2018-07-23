@@ -136,7 +136,7 @@ class DecoderRNN(nn.Module):
                 ponder_hidden_size *= 2
             self.decoder_model = Ponderer(model=self.decoder_model,
                                           hidden_size=ponder_hidden_size,
-                                          output_size=vocab_size,
+                                          output_size=hidden_size,
                                           max_ponder_steps=max_ponder_steps,
                                           eps=ponder_epsilon)
 
@@ -152,7 +152,14 @@ class DecoderRNN(nn.Module):
             elif self.rnn_type == 'gru':
                 self.executor_hidden0 = nn.Parameter(torch.zeros([self.n_layers, 1, self.hidden_size], device=device))
 
-    def forward_step(self, input_var, understander_decoder_hidden, executor_decoder_hidden, attn_keys, attn_vals, function, **attention_method_kwargs):
+        if use_attention == 'post-rnn':
+            self.out = nn.Linear(2 * self.hidden_size, vocab_size)
+        else:
+            self.out = nn.Linear(self.hidden_size, vocab_size)
+            if full_focus:
+                self.ffocus_merge = nn.Linear(2 * self.hidden_size, self.hidden_size)
+
+    def forward_step(self, input_var, understander_decoder_hidden, executor_decoder_hidden, attn_keys, attn_vals, **attention_method_kwargs):
         """
         Performs one or multiple forward decoder steps.
         
@@ -160,7 +167,6 @@ class DecoderRNN(nn.Module):
             input_var (torch.tensor): Variable containing the input(s) to the decoder RNN
             hidden (torch.tensor): Variable containing the previous decoder hidden state.
             encoder_outputs (torch.tensor): Variable containing the target outputs of the decoder RNN
-            function (torch.tensor): Activation function over the last output of the decoder RNN at every time step.
         
         Returns:
             predicted_softmax: The output softmax distribution at every time step of the decoder RNN
@@ -191,20 +197,24 @@ class DecoderRNN(nn.Module):
                 attn_keys=attn_keys,
                 attn_vals=attn_vals)
         else:
-            return_values = self.decoder_model(embedded, executor_decoder_hidden, attn_keys, function, **attention_method_kwargs)
+            return_values = self.decoder_model(embedded, executor_decoder_hidden, attn_keys, **attention_method_kwargs)
 
-        return return_values
+        new_return_values = [F.log_softmax(self.out(return_values[0].contiguous().view(batch_size, -1)), dim=1).view(batch_size, output_size, -1)]
+        for i in range(1, len(return_values)):
+            new_return_values.append(return_values[i])
+
+        return new_return_values
 
     def forward(self, inputs=None,
                 understander_encoder_embeddings=None, understander_encoder_hidden=None, understander_encoder_outputs=None,
                 executor_encoder_embeddings=None, executor_encoder_hidden=None, executor_encoder_outputs=None,
-                function=F.log_softmax, teacher_forcing_ratio=0, provided_attention=None, provided_attention_vectors=None, possible_attn_vals=None):
+                teacher_forcing_ratio=0, provided_attention=None, provided_attention_vectors=None, possible_attn_vals=None):
         ret_dict = dict()
         if self.use_attention:
             ret_dict[DecoderRNN.KEY_ATTN_SCORE] = list()
 
         inputs, batch_size, max_length = self._validate_args(inputs, understander_encoder_hidden, understander_encoder_outputs,
-                                                             function, teacher_forcing_ratio)        
+                                                             teacher_forcing_ratio)        
 
         understander_decoder_hidden = self._init_state(understander_encoder_hidden, 'encoder')
         executor_decoder_hidden = self._init_state(executor_encoder_hidden, self.init_exec_dec_with)
@@ -219,7 +229,10 @@ class DecoderRNN(nn.Module):
         def decode(step, step_output, step_attn):
             decoder_outputs.append(step_output)
             if self.use_attention:
-                ret_dict[DecoderRNN.KEY_ATTN_SCORE].append(step_attn)
+                if not isinstance(step_attn, list):
+                    step_attn = [step_attn]
+                for s in step_attn:
+                    ret_dict[DecoderRNN.KEY_ATTN_SCORE].append(s)
             symbols = decoder_outputs[-1].topk(1)[1]
             sequence_symbols.append(symbols)
 
@@ -271,11 +284,10 @@ class DecoderRNN(nn.Module):
                                                   executor_decoder_hidden,
                                                   attn_keys,
                                                   attn_vals,
-                                                  function=function,
                                                   **attention_method_kwargs)
 
                 executor_decoder_output, ponder_decoder_hidden, step_attn = return_values[:3]
-                
+
                 # Decouple the ponder hidden state
                 # IF we use seq2attn the understander and executor are concatenated into 1 vector, we should slice this
                 if self.use_attention == 'seq2attn':
@@ -296,18 +308,15 @@ class DecoderRNN(nn.Module):
                     ponder_penalty = return_values[3]
                     ponder_penalties.append(ponder_penalty)
 
-                # If the decoder_model is a pondering model, it will return a list of attentions for each
-                # ponder step.
-                # For simplicity we will just store only the last for now, but we might want to/have to (for attention_loss)
-                # get a weighted average for example.
-                if isinstance(step_attn, list):
-                    step_attn = step_attn[-1]
+                step_attn = [s[0] for s in step_attn]
 
                 # Remove the unnecessary dimension.
                 step_output = executor_decoder_output.squeeze(1)
                 # Get the actual symbol
                 symbols = decode(di, step_output, step_attn)
 
+                # print(torch.stack(step_attn).transpose(0, 1).squeeze(2)[0])
+                # print("\n")
         else:
             # Remove last token of the longest output target in the batch. We don't have to run the last decoder step where the teacher forcing input is EOS (or the last output)
             # It still is run for shorter output targets in the batch
@@ -322,7 +331,6 @@ class DecoderRNN(nn.Module):
                                               executor_decoder_hidden,
                                               attn_keys,
                                               attn_vals,
-                                              function=function,
                                               **attention_method_kwargs)
 
             # Decouple the ponder hidden state
@@ -348,9 +356,6 @@ class DecoderRNN(nn.Module):
                 else:
                     step_attn = None
                 decode(di, step_output, step_attn)
-
-        # print(torch.stack(ret_dict[DecoderRNN.KEY_ATTN_SCORE]).squeeze().transpose(0,1)[0])
-        # print("\n")
 
         ret_dict[DecoderRNN.KEY_SEQUENCE] = sequence_symbols
         ret_dict[DecoderRNN.KEY_LENGTH] = lengths.tolist()
@@ -389,7 +394,7 @@ class DecoderRNN(nn.Module):
             h = torch.cat([h[0:h.size(0):2], h[1:h.size(0):2]], 2)
         return h
 
-    def _validate_args(self, inputs, encoder_hidden, encoder_outputs, function, teacher_forcing_ratio):
+    def _validate_args(self, inputs, encoder_hidden, encoder_outputs, teacher_forcing_ratio):
         if self.use_attention:
             if encoder_outputs is None:
                 raise ValueError("Argument encoder_outputs cannot be None when attention is used.")

@@ -56,7 +56,6 @@ class Understander(nn.Module):
         self.understander_decoder = rnn_cell(hidden_dim, hidden_dim, n_layers, batch_first=True, dropout=dropout_p)
         self.attention = Attention(dim=key_dim, method=attention_method, sample_train=sample_train, sample_infer=sample_infer, learn_temperature=learn_temperature, initial_temperature=initial_temperature)
         self.executor_decoder = rnn_cell(input_size, hidden_dim, n_layers, batch_first=True, dropout=dropout_p)
-        self.out = nn.Linear(hidden_dim, output_dim)
         
         # Store and initialize RL stuff
         self.gamma = gamma
@@ -184,8 +183,6 @@ class Understander(nn.Module):
 
         executor_decoder_input = torch.cat((context, embedded), dim=2)
         executor_decoder_output, executor_decoder_hidden = self.executor_decoder(executor_decoder_input, executor_decoder_hidden)
-
-        executor_decoder_output = F.log_softmax(self.out(executor_decoder_output.contiguous().view(-1, self.out.in_features)), dim=1).view(batch_size, dec_seqlen, -1)
 
         if self.rnn_type == 'gru':
             ponder_hidden = torch.cat([understander_decoder_hidden,

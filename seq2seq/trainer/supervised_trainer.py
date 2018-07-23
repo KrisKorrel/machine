@@ -311,7 +311,7 @@ class SupervisedTrainer(object):
     def train(self, model, data, pre_train=None, num_epochs=5,
               resume=False, dev_data=None, optimizer=None,
               teacher_forcing_ratio=0, monitor_data={},
-              learning_rate=0.001, checkpoint_path=None, top_k=5):
+              learning_rate=0.001, checkpoint_path=None, top_k=1):
         """ Run training for a given model.
 
         Args:
