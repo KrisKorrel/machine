@@ -51,7 +51,7 @@ class Attention(nn.Module):
         self.sample_train = sample_train
         self.sample_infer = sample_infer
 
-        if 'gumbel' in sample_train:
+        if 'gumbel' in sample_train or sample_train == 'full_hard':
             self.learn_temperature = learn_temperature
             if learn_temperature == 'no':
                 self.temperature = torch.tensor(initial_temperature, requires_grad=False, device=device)
@@ -66,6 +66,7 @@ class Attention(nn.Module):
                 inverse_max_temperature = 1. / max_temperature
                 self.inverse_temperature_estimator = nn.Linear(hidden_dim,1)
                 self.inverse_temperature_activation = lambda inv_temp: torch.log(1 + torch.exp(inv_temp)) + inverse_max_temperature
+
         self.current_temperature = None
 
     def set_mask(self, mask):
@@ -101,10 +102,17 @@ class Attention(nn.Module):
             if self.sample_train == 'full':
                 attn = F.softmax(attn, dim=2)
 
+            elif self.sample_train == 'full_hard':
+                attn = F.log_softmax(attn.view(-1, input_size), dim=1)
+
+                mask = mask.expand(batch_size, output_size, input_size).contiguous().view(-1, input_size)
+                attn_hard, attn_soft = gumbel_softmax(logits=attn, invalid_action_mask=mask, hard=True, tau=self.current_temperature, gumbel=False, eps=1e-20)
+                attn = attn_hard.view(batch_size, -1, input_size) 
+
             elif 'gumbel' in self.sample_train:
                 attn = F.log_softmax(attn.view(-1, input_size), dim=1)
                 mask = mask.expand(batch_size, output_size, input_size).contiguous().view(-1, input_size)
-                attn_hard, attn_soft = gumbel_softmax(logits=attn, invalid_action_mask=mask, hard=True, tau=self.current_temperature, eps=1e-20)
+                attn_hard, attn_soft = gumbel_softmax(logits=attn, invalid_action_mask=mask, hard=True, tau=self.current_temperature, gumbel=True, eps=1e-20)
                 
                 if self.sample_train == 'gumbel_soft':
                     attn = attn_soft.view(batch_size, -1, input_size)
@@ -116,10 +124,16 @@ class Attention(nn.Module):
             if self.sample_infer == 'full':
                 attn = F.softmax(attn, dim=2)
 
+            elif self.sample_infer == 'full_hard':
+                attn = F.log_softmax(attn.view(-1, input_size), dim=1)
+                mask = mask.expand(batch_size, output_size, input_size).contiguous().view(-1, input_size)
+                attn_hard, attn_soft = gumbel_softmax(logits=attn, invalid_action_mask=mask, hard=True, tau=self.current_temperature, gumbel=False, eps=1e-20)
+                attn = attn_hard.view(batch_size, -1, input_size) 
+                
             elif 'gumbel' in self.sample_infer:
                 attn = F.log_softmax(attn.view(-1, input_size), dim=1)
                 mask = mask.expand(batch_size, output_size, input_size).contiguous().view(-1, input_size)
-                attn_hard, attn_soft = gumbel_softmax(logits=attn, invalid_action_mask=mask, hard=True, tau=self.current_temperature, eps=1e-20)
+                attn_hard, attn_soft = gumbel_softmax(logits=attn, invalid_action_mask=mask, hard=True, tau=self.current_temperature, gumbel=True, eps=1e-20)
                 
                 if self.sample_infer == 'gumbel_soft':
                     attn = attn_soft.view(batch_size, -1, input_size)
@@ -156,7 +170,9 @@ class Attention(nn.Module):
         attn.masked_fill_(mask, -float('inf'))
 
         if  (self.training and 'gumbel' in self.sample_train) or \
-            (not self.training and 'gumbel' in self.sample_infer):
+            (not self.training and 'gumbel' in self.sample_infer) or \
+            (self.training and self.sample_train == 'full_hard') or \
+            (not self.training and  self.sample_infer == 'full_hard'):
             self.update_temperature()
 
         # TODO: Double, triple quadruple check whether the mask is correct, we don't take softmax more than once, etc.

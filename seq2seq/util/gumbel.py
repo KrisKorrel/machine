@@ -13,7 +13,7 @@ def _sample_gumbel(shape, eps, out=None):
     return - torch.log(eps - torch.log(U + eps))
 
 
-def _gumbel_softmax_sample(logits, invalid_action_mask, tau, eps):
+def _gumbel_softmax_sample(logits, invalid_action_mask, gumbel, tau, eps):
     """
     Draw a sample from the Gumbel-Softmax distribution
 
@@ -23,7 +23,11 @@ def _gumbel_softmax_sample(logits, invalid_action_mask, tau, eps):
     """
     dims = logits.dim()
     gumbel_noise = _sample_gumbel(logits.size(), eps=eps, out=logits.data.new())
-    y = logits + gumbel_noise
+
+    if gumbel:
+        y = logits + gumbel_noise
+    else:
+        y = logits
 
     # Make temperature same dimensions as y and make certain values non-differentiable by filling their content
     # Otherwise, pytorch would try to differentiate, y would contain -inf values, making y/tau produce NaN gradients
@@ -36,7 +40,7 @@ def _gumbel_softmax_sample(logits, invalid_action_mask, tau, eps):
     return softmax(y / tau, dims - 1)
 
 
-def gumbel_softmax(logits, invalid_action_mask, tau, hard, eps):
+def gumbel_softmax(logits, invalid_action_mask, tau, gumbel, hard, eps):
     """
     Sample from the Gumbel-Softmax distribution and optionally discretize.
     Args:
@@ -57,7 +61,7 @@ def gumbel_softmax(logits, invalid_action_mask, tau, hard, eps):
     """
     shape = logits.size()
     assert len(shape) == 2
-    y_soft = _gumbel_softmax_sample(logits, invalid_action_mask, tau=tau, eps=eps)
+    y_soft = _gumbel_softmax_sample(logits, invalid_action_mask, gumbel=gumbel, tau=tau, eps=eps)
     if hard:
         _, k = y_soft.data.max(-1)
         # this bit is based on

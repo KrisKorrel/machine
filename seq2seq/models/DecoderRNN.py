@@ -357,6 +357,9 @@ class DecoderRNN(nn.Module):
                     step_attn = None
                 decode(di, step_output, step_attn)
 
+        # print(torch.stack(ret_dict[DecoderRNN.KEY_ATTN_SCORE]).squeeze()[0:4])
+        # print("\n")
+
         ret_dict[DecoderRNN.KEY_SEQUENCE] = sequence_symbols
         ret_dict[DecoderRNN.KEY_LENGTH] = lengths.tolist()
         if self.use_pondering:
