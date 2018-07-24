@@ -308,6 +308,9 @@ class DecoderRNN(nn.Module):
                     ponder_penalty = return_values[3]
                     ponder_penalties.append(ponder_penalty)
 
+                if not isinstance(step_attn, list):
+                    step_attn = [(step_attn,)]
+
                 step_attn = [s[0] for s in step_attn]
 
                 # Remove the unnecessary dimension.
