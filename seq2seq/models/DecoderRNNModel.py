@@ -35,7 +35,7 @@ class DecoderRNNModel(BaseRNN):
                                  self.n_layers, batch_first=True, dropout=self.dropout_p)
 
         if use_attention:
-            self.attention = Attention(self.hidden_size, self.attention_method)
+            self.attention = Attention(input_dim=self.hidden_size*2, output_dim=self.hidden_size, method=attention_method)
         else:
             self.attention = None
 

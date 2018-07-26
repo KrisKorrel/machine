@@ -44,10 +44,10 @@ class Attention(nn.Module):
 
     """
 
-    def __init__(self, dim, method, sample_train='full', sample_infer='full', learn_temperature='no', initial_temperature=0.):
+    def __init__(self, input_dim, output_dim, method, sample_train='full', sample_infer='full', learn_temperature='no', initial_temperature=0.):
         super(Attention, self).__init__()
         self.mask = None
-        self.method = self.get_method(method, dim)
+        self.method = self.get_method(method, input_dim, output_dim)
         self.sample_train = sample_train
         self.sample_infer = sample_infer
 
@@ -187,14 +187,14 @@ class Attention(nn.Module):
 
         return context, attn
 
-    def get_method(self, method, dim):
+    def get_method(self, method, input_dim, output_dim=0):
         """
         Set method to compute attention
         """
         if method == 'mlp':
-            method = MLP(dim)
+            method = MLP(input_dim, output_dim)
         elif method == 'concat':
-            method = Concat(dim)
+            method = Concat(input_dim)
         elif method == 'dot':
             method = Dot()
         elif method == 'hard':
@@ -261,33 +261,33 @@ class Dot(nn.Module):
 
 class MLP(nn.Module):
 
-    def __init__(self, dim):
+    def __init__(self, input_dim, output_dim):
         super(MLP, self).__init__()
-        self.mlp = nn.Linear(dim * 2, dim)
+        self.mlp = nn.Linear(input_dim, output_dim)
         self.activation = nn.ReLU()
-        self.out = nn.Linear(dim, 1)
+        self.out = nn.Linear(output_dim, 1)
 
     def forward(self, decoder_states, encoder_states):
         # apply mlp to all encoder states for current decoder
 
         # decoder_states --> (batch, dec_seqlen, hl_size)
         # encoder_states --> (batch, enc_seqlen, hl_size)
-        batch_size, enc_seqlen, hl_size = encoder_states.size()
-        _,          dec_seqlen, _       = decoder_states.size()
+        batch_size, enc_seqlen, enc_hl_size = encoder_states.size()
+        _,          dec_seqlen, dec_hl_size = decoder_states.size()
 
         # (batch, enc_seqlen, hl_size) -> (batch, dec_seqlen, enc_seqlen, hl_size)
         encoder_states_exp = encoder_states.unsqueeze(1)
-        encoder_states_exp = encoder_states_exp.expand(batch_size, dec_seqlen, enc_seqlen, hl_size)
+        encoder_states_exp = encoder_states_exp.expand(batch_size, dec_seqlen, enc_seqlen, enc_hl_size)
 
         # (batch, dec_seqlen, hl_size) -> (batch, dec_seqlen, enc_seqlen, hl_size)
         decoder_states_exp = decoder_states.unsqueeze(2)
-        decoder_states_exp = decoder_states_exp.expand(batch_size, dec_seqlen, enc_seqlen, hl_size)
+        decoder_states_exp = decoder_states_exp.expand(batch_size, dec_seqlen, enc_seqlen, dec_hl_size)
 
         # reshape encoder and decoder states to allow batchwise computation. We will have
         # batch_size x enc_seqlen x dec_seqlen batches. So we apply the Linear
         # layer for each of them
-        decoder_states_tr = decoder_states_exp.contiguous().view(-1, hl_size)
-        encoder_states_tr = encoder_states_exp.contiguous().view(-1, hl_size)
+        decoder_states_tr = decoder_states_exp.contiguous().view(-1, dec_hl_size)
+        encoder_states_tr = encoder_states_exp.contiguous().view(-1, enc_hl_size)
 
         mlp_input = torch.cat((encoder_states_tr, decoder_states_tr), dim=1)
 
