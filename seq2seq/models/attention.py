@@ -61,13 +61,16 @@ class Attention(nn.Module):
                 self.temperature_activation = torch.exp
 
             elif learn_temperature == 'conditioned':
-                max_temperature = initial_temperature
+                self.max_temperature = initial_temperature
 
-                inverse_max_temperature = 1. / max_temperature
-                self.inverse_temperature_estimator = nn.Linear(hidden_dim,1)
-                self.inverse_temperature_activation = lambda inv_temp: torch.log(1 + torch.exp(inv_temp)) + inverse_max_temperature
+                self.inverse_temperature_estimator = nn.Linear(output_dim, 1)
+                self.inverse_temperature_activation = self.inverse_temperature_activation
 
         self.current_temperature = None
+
+    def inverse_temperature_activation(self, inv_temp):
+        inverse_max_temperature = 1. / self.max_temperature
+        return torch.log(1 + torch.exp(inv_temp)) + inverse_max_temperature
 
     def set_mask(self, mask):
         """
@@ -78,7 +81,7 @@ class Attention(nn.Module):
         """
         self.mask = mask
 
-    def update_temperature(self):
+    def update_temperature(self, decoder_states):
         if self.learn_temperature == 'no':
             self.current_temperature = self.temperature
 
@@ -173,7 +176,7 @@ class Attention(nn.Module):
             (not self.training and 'gumbel' in self.sample_infer) or \
             (self.training and self.sample_train == 'full_hard') or \
             (not self.training and  self.sample_infer == 'full_hard'):
-            self.update_temperature()
+            self.update_temperature(queries)
 
         # TODO: Double, triple quadruple check whether the mask is correct, we don't take softmax more than once, etc.
         attn = self.sample(attn, mask)
