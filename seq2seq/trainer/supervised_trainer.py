@@ -14,7 +14,7 @@ from collections import defaultdict
 import seq2seq
 from seq2seq.evaluator import Evaluator
 from seq2seq.loss import NLLLoss, AttentionLoss
-from seq2seq.metrics import WordAccuracy
+from seq2seq.metrics import SymbolRewritingAccuracy
 from seq2seq.optim import Optimizer
 from seq2seq.util.checkpoint import Checkpoint
 from seq2seq.util.log import Log
@@ -159,6 +159,13 @@ class SupervisedTrainer(object):
         total_loss, log_msg, model_name = self.get_losses(losses, metrics, step)
         log.info(log_msg)
 
+        # For the SR task we look at SR accuracy instead of validation loss.
+        # We take the negative, as the checks still work then. Kinda hacky..
+        for metric in metrics:
+            if isinstance(metric, SymbolRewritingAccuracy):
+                total_loss = -1 * metric.get_val()
+                print(total_loss)
+
         logs = Log()
         loss_best = top_k*[total_loss]
         best_checkpoints = top_k*[None]
@@ -262,7 +269,13 @@ class SupervisedTrainer(object):
                     losses, metrics = self.evaluator.evaluate(model, val_data, self.get_batch_data)
                     total_loss, log_msg, model_name = self.get_losses(losses, metrics, step)
 
+                    # For the SR task we look at SR accuracy instead of validation loss.
+                    # We take the negative, as the checks still work then. Kinda hacky..
+                    for metric in metrics:
+                        if isinstance(metric, SymbolRewritingAccuracy):
+                            total_loss = -1 * metric.get_val()
                     max_eval_loss = max(loss_best)
+
                     if total_loss < max_eval_loss:
                             index_max = loss_best.index(max_eval_loss)
                             # rm prev model

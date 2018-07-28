@@ -208,6 +208,7 @@ class Ponderer(nn.Module):
         else:
             hidden = accumulative_states
 
+
         # rho(t) = N(t) + R(t)
         ponder_penalty = ponder_steps + ponder_penalty
 

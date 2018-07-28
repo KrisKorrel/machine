@@ -44,14 +44,14 @@ class Attention(nn.Module):
 
     """
 
-    def __init__(self, dim, method, sample_train='full', sample_infer='full', learn_temperature='no', initial_temperature=0.):
+    def __init__(self, input_dim, output_dim, method, sample_train='full', sample_infer='full', learn_temperature='no', initial_temperature=0.):
         super(Attention, self).__init__()
         self.mask = None
-        self.method = self.get_method(method, dim)
+        self.method = self.get_method(method, input_dim, output_dim)
         self.sample_train = sample_train
         self.sample_infer = sample_infer
 
-        if 'gumbel' in sample_train:
+        if 'gumbel' in sample_train or sample_train == 'full_hard':
             self.learn_temperature = learn_temperature
             if learn_temperature == 'no':
                 self.temperature = torch.tensor(initial_temperature, requires_grad=False, device=device)
@@ -61,12 +61,16 @@ class Attention(nn.Module):
                 self.temperature_activation = torch.exp
 
             elif learn_temperature == 'conditioned':
-                max_temperature = initial_temperature
+                self.max_temperature = initial_temperature
 
-                inverse_max_temperature = 1. / max_temperature
-                self.inverse_temperature_estimator = nn.Linear(hidden_dim,1)
-                self.inverse_temperature_activation = lambda inv_temp: torch.log(1 + torch.exp(inv_temp)) + inverse_max_temperature
+                self.inverse_temperature_estimator = nn.Linear(output_dim, 1)
+                self.inverse_temperature_activation = self.inverse_temperature_activation
+
         self.current_temperature = None
+
+    def inverse_temperature_activation(self, inv_temp):
+        inverse_max_temperature = 1. / self.max_temperature
+        return torch.log(1 + torch.exp(inv_temp)) + inverse_max_temperature
 
     def set_mask(self, mask):
         """
@@ -77,7 +81,7 @@ class Attention(nn.Module):
         """
         self.mask = mask
 
-    def update_temperature(self):
+    def update_temperature(self, decoder_states):
         if self.learn_temperature == 'no':
             self.current_temperature = self.temperature
 
@@ -101,10 +105,17 @@ class Attention(nn.Module):
             if self.sample_train == 'full':
                 attn = F.softmax(attn, dim=2)
 
+            elif self.sample_train == 'full_hard':
+                attn = F.log_softmax(attn.view(-1, input_size), dim=1)
+
+                mask = mask.expand(batch_size, output_size, input_size).contiguous().view(-1, input_size)
+                attn_hard, attn_soft = gumbel_softmax(logits=attn, invalid_action_mask=mask, hard=True, tau=self.current_temperature, gumbel=False, eps=1e-20)
+                attn = attn_hard.view(batch_size, -1, input_size) 
+
             elif 'gumbel' in self.sample_train:
                 attn = F.log_softmax(attn.view(-1, input_size), dim=1)
                 mask = mask.expand(batch_size, output_size, input_size).contiguous().view(-1, input_size)
-                attn_hard, attn_soft = gumbel_softmax(logits=attn, invalid_action_mask=mask, hard=True, tau=self.current_temperature, eps=1e-20)
+                attn_hard, attn_soft = gumbel_softmax(logits=attn, invalid_action_mask=mask, hard=True, tau=self.current_temperature, gumbel=True, eps=1e-20)
                 
                 if self.sample_train == 'gumbel_soft':
                     attn = attn_soft.view(batch_size, -1, input_size)
@@ -116,10 +127,16 @@ class Attention(nn.Module):
             if self.sample_infer == 'full':
                 attn = F.softmax(attn, dim=2)
 
+            elif self.sample_infer == 'full_hard':
+                attn = F.log_softmax(attn.view(-1, input_size), dim=1)
+                mask = mask.expand(batch_size, output_size, input_size).contiguous().view(-1, input_size)
+                attn_hard, attn_soft = gumbel_softmax(logits=attn, invalid_action_mask=mask, hard=True, tau=self.current_temperature, gumbel=False, eps=1e-20)
+                attn = attn_hard.view(batch_size, -1, input_size) 
+                
             elif 'gumbel' in self.sample_infer:
                 attn = F.log_softmax(attn.view(-1, input_size), dim=1)
                 mask = mask.expand(batch_size, output_size, input_size).contiguous().view(-1, input_size)
-                attn_hard, attn_soft = gumbel_softmax(logits=attn, invalid_action_mask=mask, hard=True, tau=self.current_temperature, eps=1e-20)
+                attn_hard, attn_soft = gumbel_softmax(logits=attn, invalid_action_mask=mask, hard=True, tau=self.current_temperature, gumbel=True, eps=1e-20)
                 
                 if self.sample_infer == 'gumbel_soft':
                     attn = attn_soft.view(batch_size, -1, input_size)
@@ -156,8 +173,10 @@ class Attention(nn.Module):
         attn.masked_fill_(mask, -float('inf'))
 
         if  (self.training and 'gumbel' in self.sample_train) or \
-            (not self.training and 'gumbel' in self.sample_infer):
-            self.update_temperature()
+            (not self.training and 'gumbel' in self.sample_infer) or \
+            (self.training and self.sample_train == 'full_hard') or \
+            (not self.training and  self.sample_infer == 'full_hard'):
+            self.update_temperature(queries)
 
         # TODO: Double, triple quadruple check whether the mask is correct, we don't take softmax more than once, etc.
         attn = self.sample(attn, mask)
@@ -171,14 +190,14 @@ class Attention(nn.Module):
 
         return context, attn
 
-    def get_method(self, method, dim):
+    def get_method(self, method, input_dim, output_dim=0):
         """
         Set method to compute attention
         """
         if method == 'mlp':
-            method = MLP(dim)
+            method = MLP(input_dim, output_dim)
         elif method == 'concat':
-            method = Concat(dim)
+            method = Concat(input_dim)
         elif method == 'dot':
             method = Dot()
         elif method == 'hard':
@@ -245,33 +264,33 @@ class Dot(nn.Module):
 
 class MLP(nn.Module):
 
-    def __init__(self, dim):
+    def __init__(self, input_dim, output_dim):
         super(MLP, self).__init__()
-        self.mlp = nn.Linear(dim * 2, dim)
+        self.mlp = nn.Linear(input_dim, output_dim)
         self.activation = nn.ReLU()
-        self.out = nn.Linear(dim, 1)
+        self.out = nn.Linear(output_dim, 1)
 
     def forward(self, decoder_states, encoder_states):
         # apply mlp to all encoder states for current decoder
 
         # decoder_states --> (batch, dec_seqlen, hl_size)
         # encoder_states --> (batch, enc_seqlen, hl_size)
-        batch_size, enc_seqlen, hl_size = encoder_states.size()
-        _,          dec_seqlen, _       = decoder_states.size()
+        batch_size, enc_seqlen, enc_hl_size = encoder_states.size()
+        _,          dec_seqlen, dec_hl_size = decoder_states.size()
 
         # (batch, enc_seqlen, hl_size) -> (batch, dec_seqlen, enc_seqlen, hl_size)
         encoder_states_exp = encoder_states.unsqueeze(1)
-        encoder_states_exp = encoder_states_exp.expand(batch_size, dec_seqlen, enc_seqlen, hl_size)
+        encoder_states_exp = encoder_states_exp.expand(batch_size, dec_seqlen, enc_seqlen, enc_hl_size)
 
         # (batch, dec_seqlen, hl_size) -> (batch, dec_seqlen, enc_seqlen, hl_size)
         decoder_states_exp = decoder_states.unsqueeze(2)
-        decoder_states_exp = decoder_states_exp.expand(batch_size, dec_seqlen, enc_seqlen, hl_size)
+        decoder_states_exp = decoder_states_exp.expand(batch_size, dec_seqlen, enc_seqlen, dec_hl_size)
 
         # reshape encoder and decoder states to allow batchwise computation. We will have
         # batch_size x enc_seqlen x dec_seqlen batches. So we apply the Linear
         # layer for each of them
-        decoder_states_tr = decoder_states_exp.contiguous().view(-1, hl_size)
-        encoder_states_tr = encoder_states_exp.contiguous().view(-1, hl_size)
+        decoder_states_tr = decoder_states_exp.contiguous().view(-1, dec_hl_size)
+        encoder_states_tr = encoder_states_exp.contiguous().view(-1, enc_hl_size)
 
         mlp_input = torch.cat((encoder_states_tr, decoder_states_tr), dim=1)
 
