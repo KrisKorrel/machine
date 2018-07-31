@@ -100,7 +100,7 @@ class Understander(nn.Module):
 
         return valid_action_mask
 
-    def forward(self, embedded, ponder_decoder_hidden, attn_keys, attn_vals):
+    def forward(self, embedded, ponder_decoder_hidden, attn_keys, attn_vals, **attention_method_kwargs):
         """
         Perform forward pass and stochastically select actions using epsilon-greedy RL
 
@@ -131,7 +131,7 @@ class Understander(nn.Module):
         # We perform a forward pass to get the log-probability of attending to each
         # encoder for each decoder
         understander_decoder_output, understander_decoder_hidden = self.understander_decoder(embedded, understander_decoder_hidden)
-        context, attn = self.attention(queries=understander_decoder_output,keys=attn_keys,values=attn_vals)
+        context, attn = self.attention(queries=understander_decoder_output, keys=attn_keys, values=attn_vals, **attention_method_kwargs)
  
         batch_size, dec_seqlen, enc_seqlen = attn.size()
 

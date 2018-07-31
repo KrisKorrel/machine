@@ -195,7 +195,8 @@ class DecoderRNN(nn.Module):
                 embedded,
                 ponder_hidden,
                 attn_keys=attn_keys,
-                attn_vals=attn_vals)
+                attn_vals=attn_vals,
+                **attention_method_kwargs)
         else:
             return_values = self.decoder_model(embedded, executor_decoder_hidden, attn_keys, **attention_method_kwargs)
 
