@@ -86,6 +86,9 @@ def plot_attention(test_data, img_path, correctness_check):
         outputs, attention = predictor.predict(input_sequence)
         output_length = len(test_data[data_index, 1])
 
+        if not correctness_check(input_sequence, output_sequence, outputs)[0]:
+            print(data_index)
+
         img_filename = os.path.join(img_path, 'plot' + '{}'.format(data_index))
         attn_plotter.evaluateAndShowAttention(
             input_sequence,
@@ -138,27 +141,17 @@ def correctness_check_kgrammar(input_sequence, output_sequence, prediction_seque
                 break
             else:
                 all_correct = True
-        print(grammar, prediction, all_correct)
+
         return all_correct
 
-    correct = []
-    for i in range(len(input_sequence)):
-        grammar = [input_sequence[i]]
-        for j in range(3):
-            try:
-                prediction = [prediction_sequence[i*3 + j]]
-            except Exception:
-                pass
-            if i*3 + j >= len(prediction_sequence):
-                correct.append(False)
-            elif grammar[0] == '.' and prediction[0] == '<eos>':
-                correct.append(True)
-            elif grammar[0] == '.' and prediction[0] != '<eos>':
-                correct.append(False)
-            elif grammar[0] != '.' and prediction[0] == '<eos>':
-                correct.append(False)
-            else:
-                correct.append(all_correct(grammar, prediction))
+    grammar = input_sequence[:-1]
+    prediction = prediction_sequence[:-1]
+
+    correct = False
+    if len(prediction) == 3 * len(grammar):
+        correct = all_correct(grammar, prediction)
+
+    correct = [correct for i in range(len(prediction_sequence))]
 
     return correct
 
