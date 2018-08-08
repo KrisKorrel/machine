@@ -81,6 +81,7 @@ class DecoderRNN(nn.Module):
             init_exec_dec_with=None,
             attn_keys=None,
             attn_vals=None,
+            full_attention_focus='no',
             ponder=False,
             max_ponder_steps=100,
             ponder_epsilon=0.01):
@@ -124,7 +125,8 @@ class DecoderRNN(nn.Module):
                 initial_temperature=initial_temperature,
                 learn_temperature=learn_temperature,
                 attn_keys=attn_keys,
-                attn_vals=attn_vals)
+                attn_vals=attn_vals,
+                full_attention_focus=full_attention_focus)
 
         else:
             # TODO: Currently we do not use this anymore. We use understander for baseline as well.

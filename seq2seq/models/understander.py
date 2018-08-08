@@ -23,7 +23,7 @@ class Understander(nn.Module):
     """
 
     # TODO: Do we need attn_keys and vals here? Can't they just only be passed as variables in forward()?
-    def __init__(self, model_type, rnn_cell, embedding_dim, n_layers, hidden_dim, output_dim, dropout_p, train_method, gamma, epsilon, attention_method, sample_train, sample_infer, initial_temperature, learn_temperature, attn_keys, attn_vals):
+    def __init__(self, model_type, rnn_cell, embedding_dim, n_layers, hidden_dim, output_dim, dropout_p, train_method, gamma, epsilon, attention_method, sample_train, sample_infer, initial_temperature, learn_temperature, attn_keys, attn_vals, full_attention_focus):
         """
         Args:
             input_vocab_size (int): Total size of the input vocabulary
@@ -36,6 +36,7 @@ class Understander(nn.Module):
         self.model_type = model_type
         self.train_method = train_method
         self.hidden_size = hidden_dim
+        self.full_attention_focus = (full_attention_focus == 'yes')
 
         # Get type of RNN cell
         rnn_cell = rnn_cell.lower()
@@ -199,6 +200,8 @@ class Understander(nn.Module):
             understander_decoder_output, understander_decoder_hidden = self.understander_decoder(embedded, understander_decoder_hidden)
             context, attn = self.get_context(queries=understander_decoder_output, keys=attn_keys, values=attn_vals, **attention_method_kwargs)
             executor_decoder_input = torch.cat((context, embedded), dim=2)
+            if self.full_attention_focus:
+                executor_decoder_hidden = executor_decoder_hidden * context.transpose(0, 1)
             executor_decoder_output, executor_decoder_hidden = self.executor_decoder(executor_decoder_input, executor_decoder_hidden)
 
             output = executor_decoder_output
@@ -206,6 +209,8 @@ class Understander(nn.Module):
         elif self.model_type == 'baseline':
             context, attn = self.get_context(queries=understander_decoder_hidden.transpose(0, 1), keys=attn_keys, values=attn_vals, **attention_method_kwargs)
             understander_decoder_input = torch.cat((context, embedded), dim=2)
+            if self.full_attention_focus:
+                understander_decoder_hidden = understander_decoder_hidden * context.transpose(0, 1)
             understander_decoder_output, understander_decoder_hidden = self.understander_decoder(understander_decoder_input, understander_decoder_hidden)
 
             output = understander_decoder_output
