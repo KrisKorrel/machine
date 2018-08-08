@@ -23,7 +23,7 @@ class Understander(nn.Module):
     """
 
     # TODO: Do we need attn_keys and vals here? Can't they just only be passed as variables in forward()?
-    def __init__(self, rnn_cell, embedding_dim, n_layers, hidden_dim, output_dim, dropout_p, train_method, gamma, epsilon, attention_method, sample_train, sample_infer, initial_temperature, learn_temperature, attn_keys, attn_vals):
+    def __init__(self, model_type, rnn_cell, embedding_dim, n_layers, hidden_dim, output_dim, dropout_p, train_method, gamma, epsilon, attention_method, sample_train, sample_infer, initial_temperature, learn_temperature, attn_keys, attn_vals):
         """
         Args:
             input_vocab_size (int): Total size of the input vocabulary
@@ -33,6 +33,7 @@ class Understander(nn.Module):
         """
         super(Understander, self).__init__()
 
+        self.model_type = model_type
         self.train_method = train_method
         self.hidden_size = hidden_dim
 
@@ -58,7 +59,10 @@ class Understander(nn.Module):
         input_size = hidden_dim + val_dim
 
         # Initialize models
-        self.understander_decoder = rnn_cell(hidden_dim, hidden_dim, n_layers, batch_first=True, dropout=dropout_p)
+        if self.model_type == 'baseline':
+            self.understander_decoder = rnn_cell(2*hidden_dim, hidden_dim, n_layers, batch_first=True, dropout=dropout_p)
+        elif self.model_type == 'seq2attn':
+            self.understander_decoder = rnn_cell(hidden_dim, hidden_dim, n_layers, batch_first=True, dropout=dropout_p)
         self.attention = Attention(input_dim=hidden_dim+key_dim, output_dim=hidden_dim, method=attention_method, sample_train=sample_train, sample_infer=sample_infer, learn_temperature=learn_temperature, initial_temperature=initial_temperature)
         self.executor_decoder = rnn_cell(input_size, hidden_dim, n_layers, batch_first=True, dropout=dropout_p)
         
@@ -100,38 +104,8 @@ class Understander(nn.Module):
 
         return valid_action_mask
 
-    def forward(self, embedded, ponder_decoder_hidden, attn_keys, attn_vals, **attention_method_kwargs):
-        """
-        Perform forward pass and stochastically select actions using epsilon-greedy RL
-
-        Args:
-            state (torch.tensor): [batch_size x max_input_length] tensor containing indices of the input sequence
-            input_lengths (list): List containing the input length for each element in the batch
-            max_decoding_length (int): Maximum length till which the decoder should run
-            epsilon (float): epsilon for epsilon-greedy RL. Set to 1 in inference mode
-
-        Returns:
-            list(torch.tensor): List of length max_output_length containing the selected actions
-        """
-        if self._rewards:
-            raise Exception("Did you forget to finish the episode?")
-
-        if self.rnn_type == 'gru':
-            understander_decoder_hidden = ponder_decoder_hidden[:, :, :self.hidden_size].contiguous()
-            executor_decoder_hidden = ponder_decoder_hidden[:, :, self.hidden_size:].contiguous()
-        elif self.rnn_type == 'lstm':
-            understander_decoder_hidden = (ponder_decoder_hidden[0][:, :, :self.hidden_size].contiguous(),
-                                           ponder_decoder_hidden[1][:, :, :self.hidden_size].contiguous())
-            executor_decoder_hidden = (ponder_decoder_hidden[0][:, :, self.hidden_size:].contiguous(),
-                                       ponder_decoder_hidden[1][:, :, self.hidden_size:].contiguous())
-
-        # First, we establish which encoder states are valid to attend to.
-        # TODO: Only works when keys are (full) hidden states. Maybe we should pass the mask (set_mask)
-
-        # We perform a forward pass to get the log-probability of attending to each
-        # encoder for each decoder
-        understander_decoder_output, understander_decoder_hidden = self.understander_decoder(embedded, understander_decoder_hidden)
-        context, attn = self.attention(queries=understander_decoder_output, keys=attn_keys, values=attn_vals, **attention_method_kwargs)
+    def get_context(self, queries, keys, values, **attention_method_kwargs):
+        context, attn = self.attention(queries=queries, keys=keys, values=values, **attention_method_kwargs)
  
         batch_size, dec_seqlen, enc_seqlen = attn.size()
 
@@ -186,9 +160,57 @@ class Understander(nn.Module):
             # Recalculate context vector with new attention
             context = torch.bmm(attn, attn_vals)
 
-        executor_decoder_input = torch.cat((context, embedded), dim=2)
-        executor_decoder_output, executor_decoder_hidden = self.executor_decoder(executor_decoder_input, executor_decoder_hidden)
+        return context, attn
 
+    def forward(self, embedded, ponder_decoder_hidden, attn_keys, attn_vals, **attention_method_kwargs):
+        """
+        Perform forward pass and stochastically select actions using epsilon-greedy RL
+
+        Args:
+            state (torch.tensor): [batch_size x max_input_length] tensor containing indices of the input sequence
+            input_lengths (list): List containing the input length for each element in the batch
+            max_decoding_length (int): Maximum length till which the decoder should run
+            epsilon (float): epsilon for epsilon-greedy RL. Set to 1 in inference mode
+
+        Returns:
+            list(torch.tensor): List of length max_output_length containing the selected actions
+        """
+        if self._rewards:
+            raise Exception("Did you forget to finish the episode?")
+
+        if self.rnn_type == 'gru':
+            understander_decoder_hidden = ponder_decoder_hidden[:, :, :self.hidden_size].contiguous()
+            executor_decoder_hidden = ponder_decoder_hidden[:, :, self.hidden_size:].contiguous()
+        elif self.rnn_type == 'lstm':
+            understander_decoder_hidden = (ponder_decoder_hidden[0][:, :, :self.hidden_size].contiguous(),
+                                           ponder_decoder_hidden[1][:, :, :self.hidden_size].contiguous())
+            executor_decoder_hidden = (ponder_decoder_hidden[0][:, :, self.hidden_size:].contiguous(),
+                                       ponder_decoder_hidden[1][:, :, self.hidden_size:].contiguous())
+
+        # First, we establish which encoder states are valid to attend to.
+        # TODO: Only works when keys are (full) hidden states. Maybe we should pass the mask (set_mask)
+
+        # We perform a forward pass to get the log-probability of attending to each
+        # encoder for each decoder
+
+
+
+        if self.model_type == 'seq2attn':
+            understander_decoder_output, understander_decoder_hidden = self.understander_decoder(embedded, understander_decoder_hidden)
+            context, attn = self.get_context(queries=understander_decoder_output, keys=attn_keys, values=attn_vals, **attention_method_kwargs)
+            executor_decoder_input = torch.cat((context, embedded), dim=2)
+            executor_decoder_output, executor_decoder_hidden = self.executor_decoder(executor_decoder_input, executor_decoder_hidden)
+
+            output = executor_decoder_output
+
+        elif self.model_type == 'baseline':
+            context, attn = self.get_context(queries=understander_decoder_hidden.transpose(0, 1), keys=attn_keys, values=attn_vals, **attention_method_kwargs)
+            understander_decoder_input = torch.cat((context, embedded), dim=2)
+            understander_decoder_output, understander_decoder_hidden = self.understander_decoder(understander_decoder_input, understander_decoder_hidden)
+
+            output = understander_decoder_output
+
+        # TODO: For pondering in combination with baseline: It currently also uses the executor, which it should not.
         if self.rnn_type == 'gru':
             ponder_hidden = torch.cat([understander_decoder_hidden,
                                        executor_decoder_hidden], dim=2)
@@ -198,7 +220,7 @@ class Understander(nn.Module):
                              torch.cat([understander_decoder_hidden[1],
                                         executor_decoder_hidden[1]], dim=2))
 
-        return executor_decoder_output, ponder_hidden, attn
+        return output, ponder_hidden, attn
 
     def set_rewards(self, rewards):
         self._rewards = rewards

@@ -46,7 +46,7 @@ parser.add_argument('--tgt_vocab', type=int, help='target vocabulary size', defa
 parser.add_argument('--dropout_p_encoder', type=float, help='Dropout probability for the encoder', default=0.2)
 parser.add_argument('--dropout_p_decoder', type=float, help='Dropout probability for the decoder', default=0.2)
 parser.add_argument('--teacher_forcing_ratio', type=float, help='Teacher forcing ratio', default=0.2)
-parser.add_argument('--attention', choices=['pre-rnn', 'post-rnn', 'seq2attn'], default=False)
+parser.add_argument('--attention', choices=['pre-rnn', 'post-rnn'], default=False)
 parser.add_argument('--attention_method', choices=['dot', 'mlp', 'concat', 'hard'], default=None)
 parser.add_argument('--use_attention_loss', action='store_true')
 parser.add_argument('--scale_attention_loss', type=float, default=1.)
@@ -67,6 +67,7 @@ parser.add_argument('--write-logs', help='Specify file to write logs to after tr
 parser.add_argument('--cuda_device', default=0, type=int, help='set cuda device to use')
 
 # Arguments for the UE model
+parser.add_argument('--model_type', choices=['baseline', 'seq2attn'], required=True, help='Indicate whether we should have a separate transcoder and decoder or just one decoder.')
 parser.add_argument('--pre_train', help='Data for pre-training the executor')
 parser.add_argument('--gamma', type=float, default=0.99, help='Gamma to use for discounted future rewards')
 parser.add_argument('--epsilon', type=float, default=1, help='Epsilon to use for epsilon-greedy during RL training.')
@@ -264,6 +265,7 @@ else:
                          eos_id=tgt.eos_id,
                          sos_id=tgt.sos_id,
                          embedding_dim=opt.embedding_size,
+                         model_type=opt.model_type,
                          train_method=opt.understander_train_method,
                          gamma=opt.gamma,
                          epsilon=opt.epsilon,
