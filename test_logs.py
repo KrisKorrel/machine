@@ -1,13 +1,9 @@
 from seq2seq.util.log import LogCollection
 import re
+from collections import OrderedDict
 
 def name_parser(filename, subdir):
-    subdir = subdir.split('/')[0]
-    splits = filename.split('/')
-    index = splits[1].index('_')
-    if splits[0] == '..':
-        return splits[2]
-    return splits[1]
+    return subdir.split('/')[-1]
     # if '64' in subdir:
     #     return splits[1][:index] + '_E64' + splits[1][index:]
     # else:
@@ -18,7 +14,7 @@ log = LogCollection()
 # log.add_log_from_folder('dumps_64', ext='LOG', name_parser=name_parser)
 # log.add_log_from_folder('dump_final', ext='LOG', name_parser=name_parser)
 # log.add_log_from_folder('dumps_temp', ext='LOG', name_parser=name_parser)
-log.add_log_from_folder('../logs_kgrammar_512', ext='LOG', name_parser=name_parser)
+log.add_log_from_folder('../machine_results_copy/test_all_baselines', ext='LOG', name_parser=name_parser)
 
 ############################
 # helper funcs
@@ -75,8 +71,10 @@ def no_restriction(input_str):
     return True
 def k_base_name(input_str):
     return "_".join(input_str.split("_")[:-2])
+
 def k_parse_data_set_name(dataset):
     dataname = dataset.split('/')[-1].split('.')[0]
+    return dataname
     if 'long' in dataname:
         return 'long'
     elif 'short' in dataname:
@@ -96,27 +94,37 @@ def group_rest(dataset):
     else:
         return 'tests'
 
-mean_avg, min_avg, max_avg, std_avg = log.find_highest_average_val('sym_rwr_acc', find_basename=k_base_name, find_data_name=k_parse_data_set_name, restrict_data=no_restriction)
+mean_avg, min_avg, max_avg, std_avg = log.find_highest_average_val('seq_acc', find_basename=k_base_name, find_data_name=k_parse_data_set_name, restrict_data=no_restriction)
+
+print("\nData sets:")
+for model in natural_sort(min_avg)[:1]:
+    datadict = OrderedDict(sorted(min_avg[model].items(), key=lambda x : x[0], reverse=False))
+    print('%s:\t%s' % ("model", '\t'.join(['%s' % (d) for d in datadict])))
+    # print('%s:\t%s' % (model, '\t'.join(['%.4f' % (datadict[d]) for d in datadict])))
 
 print("\nMin:")
 for model in natural_sort(min_avg):
-    datadict = min_avg[model]
-    print('%s:\t%s' % (model, '\t'.join(['%s %.4f' % (d, datadict[d]) for d in datadict])))
+    datadict = OrderedDict(sorted(min_avg[model].items(), key=lambda x : x[0], reverse=False))
+    # print('%s:\t%s' % (model, '\t'.join(['%s %.4f' % (d, datadict[d]) for d in datadict])))
+    print('%s:\t%s' % (model, '\t'.join(['%.4f' % (datadict[d]) for d in datadict])))
 
 print("\nMax:")
 for model in natural_sort(max_avg):
-    datadict = max_avg[model]
-    print('%s:\t%s' % (model, '\t'.join(['%s %.4f' % (d, datadict[d]) for d in datadict])))
+    datadict = OrderedDict(sorted(max_avg[model].items(), key=lambda x : x[0], reverse=False))
+    # print('%s:\t%s' % (model, '\t'.join(['%s %.4f' % (d, datadict[d]) for d in datadict])))
+    print('%s:\t%s' % (model, '\t'.join(['%.4f' % (datadict[d]) for d in datadict])))
 
 print("\nMean:")
 for model in natural_sort(mean_avg):
-    datadict = mean_avg[model]
-    print('%s:\t%s' % (model, '\t'.join(['%s %.4f' % (d, datadict[d]) for d in datadict])))
+    datadict = OrderedDict(sorted(mean_avg[model].items(), key=lambda x : x[0], reverse=False))
+    # print('%s:\t%s' % (model, '\t'.join(['%s %.4f' % (d, datadict[d]) for d in datadict])))
+    print('%s:\t%s' % (model, '\t'.join(['%.4f' % (datadict[d]) for d in datadict])))
 
 print("\nStd:")
 for model in natural_sort(std_avg):
-    datadict = std_avg[model]
-    print('%s:\t%s' % (model, '\t'.join(['%s %.4f' % (d, datadict[d]) for d in datadict])))
+    datadict = OrderedDict(sorted(std_avg[model].items(), key=lambda x : x[0], reverse=False))
+    # print('%s:\t%s' % (model, '\t'.join(['%s %.4f' % (d, datadict[d]) for d in datadict])))
+    print('%s:\t%s' % (model, '\t'.join(['%.4f' % (datadict[d]) for d in datadict])))
 
 
 def k_restrict(input_str):

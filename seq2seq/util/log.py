@@ -260,7 +260,6 @@ class LogCollection(object):
                     if restrict_data(dataset):
                         log_max = max(log.data[dataset][metric_name])
                         index = log.data[dataset][metric_name].index(log_max)
-                        print(name, index)
 
                 for dataset in log.data.keys():
                     dataname = find_data_name(dataset)
