@@ -27,7 +27,7 @@ class PlotAttention(object):
         # Set up axes and labels
         ax.set_xticks(np.arange(len(input_sentence)))
         ax.set_yticks(np.arange(len(output_words)))
-        ax.set_xticklabels(input_sentence, fontweight='bold')
+        ax.set_xticklabels(input_sentence, fontweight='bold', rotation='vertical')
         ax.set_yticklabels(output_words, fontweight='bold')
 
         # Colour ticks

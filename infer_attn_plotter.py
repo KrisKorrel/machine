@@ -86,8 +86,8 @@ def plot_attention(test_data, img_path, correctness_check):
         outputs, attention = predictor.predict(input_sequence)
         output_length = len(test_data[data_index, 1])
 
-        if not correctness_check(input_sequence, output_sequence, outputs)[0]:
-            print(data_index)
+        if False in correctness_check(input_sequence, output_sequence, outputs):
+            print("Incorrect: ", data_index)
 
         img_filename = os.path.join(img_path, 'plot' + '{}'.format(data_index))
         attn_plotter.evaluateAndShowAttention(
@@ -112,6 +112,10 @@ def correctness_check_lookup_tables(input_sequence, output_sequence, prediction_
             correct.append(False)
         else:
             correct.append(output_sequence[i] == prediction_sequence[i])
+
+    if len(prediction_sequence) > len(output_sequence):
+        for i in range(len(output_sequence), len(prediction_sequence)):
+            correct.append(False)
 
     return correct
 
