@@ -255,11 +255,13 @@ class LogCollection(object):
                 for dataset in log.data.keys():
                     if 'val' not in dataset:
                         continue
+                    print("Using {} for early stopping".format(dataset))
 
                     dataname = find_data_name(dataset)
                     if restrict_data(dataset):
                         log_max = max(log.data[dataset][metric_name])
-                        index = log.data[dataset][metric_name].index(log_max)
+                        index = log.data[dataset][metric_name].index(log_max)  # first index
+                        index = len(log.data[dataset][metric_name]) - log.data[dataset][metric_name][::-1].index(log_max) - 1  # last index
 
                 for dataset in log.data.keys():
                     dataname = find_data_name(dataset)

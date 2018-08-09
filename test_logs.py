@@ -99,7 +99,7 @@ mean_avg, min_avg, max_avg, std_avg = log.find_highest_average_val('seq_acc', fi
 print("\nData sets:")
 for model in natural_sort(min_avg)[:1]:
     datadict = OrderedDict(sorted(min_avg[model].items(), key=lambda x : x[0], reverse=False))
-    print('%s:\t%s' % ("model", '\t'.join(['%s' % (d) for d in datadict])))
+    print('%s\t%s' % (".", '\t'.join(['%s' % (d) for d in datadict])))
     # print('%s:\t%s' % (model, '\t'.join(['%.4f' % (datadict[d]) for d in datadict])))
 
 print("\nMin:")
