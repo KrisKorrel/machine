@@ -46,7 +46,7 @@ parser.add_argument('--tgt_vocab', type=int, help='target vocabulary size', defa
 parser.add_argument('--dropout_p_encoder', type=float, help='Dropout probability for the encoder', default=0.2)
 parser.add_argument('--dropout_p_decoder', type=float, help='Dropout probability for the decoder', default=0.2)
 parser.add_argument('--teacher_forcing_ratio', type=float, help='Teacher forcing ratio', default=0.2)
-parser.add_argument('--attention', choices=['pre-rnn', 'post-rnn', 'seq2attn'], default=False)
+parser.add_argument('--attention', choices=['pre-rnn', 'post-rnn'], default=False)
 parser.add_argument('--attention_method', choices=['dot', 'mlp', 'concat', 'hard'], default=None)
 parser.add_argument('--use_attention_loss', action='store_true')
 parser.add_argument('--scale_attention_loss', type=float, default=1.)
@@ -67,6 +67,7 @@ parser.add_argument('--write-logs', help='Specify file to write logs to after tr
 parser.add_argument('--cuda_device', default=0, type=int, help='set cuda device to use')
 
 # Arguments for the UE model
+parser.add_argument('--model_type', choices=['baseline', 'seq2attn'], required=True, help='Indicate whether we should have a separate transcoder and decoder or just one decoder.')
 parser.add_argument('--pre_train', help='Data for pre-training the executor')
 parser.add_argument('--gamma', type=float, default=0.99, help='Gamma to use for discounted future rewards')
 parser.add_argument('--epsilon', type=float, default=1, help='Epsilon to use for epsilon-greedy during RL training.')
@@ -80,6 +81,7 @@ parser.add_argument('--init_exec_dec_with', type=str, choices=['encoder', 'new']
 # parser.add_argument('--train_regime', type=str, choices=['two-stage', 'simultaneous'], help="In 'two-stage' training we first train the executor with hard guidance for n/2 epochs and then the understander for n/2 epochs. In 'simultaneous' training, we train both models together without any supervision on the attention.")
 parser.add_argument('--attn_keys', type=str, choices=['understander_encoder_embeddings', 'understander_encoder_outputs', 'executor_encoder_embeddings', 'executor_encoder_outputs'], default='executor_encoder_outputs')
 parser.add_argument('--attn_vals', type=str, choices=['understander_encoder_embeddings', 'understander_encoder_outputs', 'executor_encoder_embeddings', 'executor_encoder_outputs'], default='executor_encoder_outputs')
+parser.add_argument('--full_attention_focus', choices=['yes', 'no'], default='no', help='Indicate whether to multiply the hidden state of the decoder with the context vector')
 parser.add_argument('--dropout_enc_dec', default='0', type=float, help="If the executor decoder is initialized with it's last encoder state, you can optionally add dropout between the encoder and decoder")
 
 # Ponder arguments
@@ -264,6 +266,7 @@ else:
                          eos_id=tgt.eos_id,
                          sos_id=tgt.sos_id,
                          embedding_dim=opt.embedding_size,
+                         model_type=opt.model_type,
                          train_method=opt.understander_train_method,
                          gamma=opt.gamma,
                          epsilon=opt.epsilon,
@@ -274,6 +277,7 @@ else:
                          init_exec_dec_with=opt.init_exec_dec_with,
                          attn_keys=opt.attn_keys,
                          attn_vals=opt.attn_vals,
+                         full_attention_focus=opt.full_attention_focus,
                          ponder=opt.ponder_decoder,
                          max_ponder_steps=opt.max_ponder_steps,
                          ponder_epsilon=opt.ponder_epsilon)
