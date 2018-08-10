@@ -94,7 +94,7 @@ def group_rest(dataset):
     else:
         return 'tests'
 
-mean_avg, min_avg, max_avg, std_avg = log.find_highest_average_val('seq_acc', find_basename=k_base_name, find_data_name=k_parse_data_set_name, restrict_data=no_restriction)
+mean_avg, min_avg, max_avg, std_avg = log.find_highest_average_val('val', 'nll_loss', 'seq_acc', find_basename=k_base_name, find_data_name=k_parse_data_set_name, restrict_data=no_restriction)
 
 print("\nData sets:")
 for model in natural_sort(min_avg)[:1]:

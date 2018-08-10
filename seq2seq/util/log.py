@@ -236,7 +236,7 @@ class LogCollection(object):
 
         return max_scores
 
-    def find_highest_average_val(self, metric_name, find_basename,
+    def find_highest_average_val(self, stop_dataset, stop_metric, report_metric, find_basename,
                              restrict_model=lambda x: True,
                              restrict_data=lambda x: True,
                              find_data_name=lambda x: x):
@@ -248,38 +248,48 @@ class LogCollection(object):
         data = dict()
         counts = dict()
 
+        if 'loss' in stop_metric:
+            operation = min
+        else:
+            operation = max
+
+        if 'loss' in report_metric:
+            scale = 1
+        else:
+            scale = 100
+
         for i, name in enumerate(self.log_names):
             if restrict_model(name):
                 log = self.logs[i]
                 basename = find_basename(name)
                 for dataset in log.data.keys():
-                    if 'val' not in dataset:
+                    if stop_dataset not in dataset:
                         continue
                     print("Using {} for early stopping".format(dataset))
 
                     dataname = find_data_name(dataset)
                     if restrict_data(dataset):
-                        log_max = max(log.data[dataset][metric_name])
-                        index = log.data[dataset][metric_name].index(log_max)  # first index
-                        index = len(log.data[dataset][metric_name]) - log.data[dataset][metric_name][::-1].index(log_max) - 1  # last index
+                        log_max = operation(log.data[dataset][stop_metric])
+                        index = log.data[dataset][stop_metric].index(log_max)  # first index
+                        index = len(log.data[dataset][stop_metric]) - log.data[dataset][stop_metric][::-1].index(log_max) - 1  # last index
 
                 for dataset in log.data.keys():
                     dataname = find_data_name(dataset)
                     if restrict_data(dataset):
-                        log_max = log.data[dataset][metric_name][index] * 100
+                        log_max = log.data[dataset][report_metric][index] * scale
 
                         if basename in data:
                             if dataname in data[basename]:
                                 data[basename][dataname].append(log_max)
-                                counts[basename][dataname]+=1
+                                counts[basename][dataname] += 1
                             else:
-                                data[basename][dataname]=[log_max]
-                                counts[basename][dataname]=1
+                                data[basename][dataname] = [log_max]
+                                counts[basename][dataname] = 1
                         else:
                             data[basename] = dict()
-                            data[basename][dataname]=[log_max]
+                            data[basename][dataname] = [log_max]
                             counts[basename] = dict()
-                            counts[basename][dataname]=1
+                            counts[basename][dataname] = 1
 
         # find max
         mean_avg = {}
