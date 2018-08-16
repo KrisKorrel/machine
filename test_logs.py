@@ -197,21 +197,21 @@ def k_color_one_new(model_name, data_name):
 
     return c,l
 
-# Train loss
-fig = log.plot_metric('nll_loss', restrict_model=k_best_model_filter, restrict_data=train_and_val, data_name_parser=data_name_parser, color_group=k_color_one_new, eor=-1, ylabel='Loss')
-fig.savefig('/home/kris/Desktop/Results plots/train_and_val_loss.png')
+# # Train loss
+# fig = log.plot_metric('nll_loss', restrict_model=k_best_model_filter, restrict_data=train_and_val, data_name_parser=data_name_parser, color_group=k_color_one_new, eor=-1, ylabel='Loss')
+# fig.savefig('/home/kris/Desktop/Results plots/train_and_val_loss.png')
 
-# Train accuracy
-fig = log.plot_metric('sym_rwr_acc', restrict_model=k_best_model_filter, restrict_data=only_train, data_name_parser=data_name_parser, color_group=k_color_one_new, eor=-1, ylabel='Accuracy')
-fig.savefig('/home/kris/Desktop/Results plots/train_acc.png')
+# # Train accuracy
+# fig = log.plot_metric('sym_rwr_acc', restrict_model=k_best_model_filter, restrict_data=only_train, data_name_parser=data_name_parser, color_group=k_color_one_new, eor=-1, ylabel='Accuracy')
+# fig.savefig('/home/kris/Desktop/Results plots/train_acc.png')
 
-# Validation accuracy
-fig = log.plot_metric('sym_rwr_acc', restrict_model=k_best_model_filter, restrict_data=only_validation, data_name_parser=data_name_parser, color_group=k_color_one_new, eor=-1, ylabel='Accuracy')
-fig.savefig('/home/kris/Desktop/Results plots/validation_acc.png')
+# # Validation accuracy
+# fig = log.plot_metric('sym_rwr_acc', restrict_model=k_best_model_filter, restrict_data=only_validation, data_name_parser=data_name_parser, color_group=k_color_one_new, eor=-1, ylabel='Accuracy')
+# fig.savefig('/home/kris/Desktop/Results plots/validation_acc.png')
 
-# Long accuracy
-fig = log.plot_metric('sym_rwr_acc', restrict_model=k_best_model_filter, restrict_data=only_long, data_name_parser=data_name_parser, color_group=k_color_one_new, eor=-1, ylabel='Accuracy')
-fig.savefig('/home/kris/Desktop/Results plots/longer_acc.png')
+# # Long accuracy
+# fig = log.plot_metric('sym_rwr_acc', restrict_model=k_best_model_filter, restrict_data=only_long, data_name_parser=data_name_parser, color_group=k_color_one_new, eor=-1, ylabel='Accuracy')
+# fig.savefig('/home/kris/Desktop/Results plots/longer_acc.png')
 
 def second_parser(model_name, data_name):
     m = None
@@ -242,15 +242,15 @@ def second_parser(model_name, data_name):
     # return m
     return m + ', ' + d
 
-fig = log.plot_groups('sym_rwr_acc', restrict_model=k_best_model_filter, find_basename=basename_without_run, data_name_parser=second_parser, find_data_name=group_rest, restrict_data=no_validation, color_group=color_groups, ylabel='Accuracy')
-fig.savefig('/home/kris/Desktop/Results plots/average_acc_train_combined_tests.png')
-fig = log.plot_groups('nll_loss', restrict_model=k_best_model_filter, find_basename=basename_without_run, data_name_parser=second_parser, find_data_name=group_rest, restrict_data=no_validation, color_group=color_groups, ylabel='Loss')
-fig.savefig('/home/kris/Desktop/Results plots/average_loss_train_combined_tests.png')
+# fig = log.plot_groups('sym_rwr_acc', restrict_model=k_best_model_filter, find_basename=basename_without_run, data_name_parser=second_parser, find_data_name=group_rest, restrict_data=no_validation, color_group=color_groups, ylabel='Accuracy')
+# fig.savefig('/home/kris/Desktop/Results plots/average_acc_train_combined_tests.png')
+# fig = log.plot_groups('nll_loss', restrict_model=k_best_model_filter, find_basename=basename_without_run, data_name_parser=second_parser, find_data_name=group_rest, restrict_data=no_validation, color_group=color_groups, ylabel='Loss')
+# fig.savefig('/home/kris/Desktop/Results plots/average_loss_train_combined_tests.png')
 
-fig = log.plot_groups('sym_rwr_acc', restrict_model=k_best_model_filter, find_basename=basename_without_run, data_name_parser=second_parser, find_data_name=k_parse_data_set_name, restrict_data=no_validation, color_group=color_groups)
-fig.savefig('/home/kris/Desktop/Results plots/average_acc_train_individual_tests.png')
-fig = log.plot_groups('nll_loss', restrict_model=k_best_model_filter, find_basename=basename_without_run, data_name_parser=second_parser, find_data_name=k_parse_data_set_name, restrict_data=no_validation, color_group=color_groups)
-fig.savefig('/home/kris/Desktop/Results plots/average_loss_train_individual_tests.png')
+# fig = log.plot_groups('sym_rwr_acc', restrict_model=k_best_model_filter, find_basename=basename_without_run, data_name_parser=second_parser, find_data_name=k_parse_data_set_name, restrict_data=no_validation, color_group=color_groups)
+# fig.savefig('/home/kris/Desktop/Results plots/average_acc_train_individual_tests.png')
+# fig = log.plot_groups('nll_loss', restrict_model=k_best_model_filter, find_basename=basename_without_run, data_name_parser=second_parser, find_data_name=k_parse_data_set_name, restrict_data=no_validation, color_group=color_groups)
+# fig.savefig('/home/kris/Desktop/Results plots/average_loss_train_individual_tests.png')
 
 def train_and_standard(input_str):
     if 'Train' in input_str or 'std' in input_str:
@@ -297,14 +297,14 @@ def color_groups2(model_name, data_name):
 
     return c,l
 
-fig = log.plot_groups('nll_loss', restrict_model=k_best_model_filter, find_basename=basename_without_run, data_name_parser=second_parser, find_data_name=k_parse_data_set_name, restrict_data=only_standard, color_group=color_groups2, ylabel='Loss')
-fig.savefig('/home/kris/Desktop/Results plots/average_loss_train_standard.png')
-fig = log.plot_groups('nll_loss', restrict_model=k_best_model_filter, find_basename=basename_without_run, data_name_parser=second_parser, find_data_name=k_parse_data_set_name, restrict_data=only_repeat, color_group=color_groups2, ylabel='Loss')
-fig.savefig('/home/kris/Desktop/Results plots/average_loss_train_repeat.png')
-fig = log.plot_groups('nll_loss', restrict_model=k_best_model_filter, find_basename=basename_without_run, data_name_parser=second_parser, find_data_name=k_parse_data_set_name, restrict_data=only_short, color_group=color_groups2, ylabel='Loss')
-fig.savefig('/home/kris/Desktop/Results plots/average_loss_train_short.png')
-fig = log.plot_groups('nll_loss', restrict_model=k_best_model_filter, find_basename=basename_without_run, data_name_parser=second_parser, find_data_name=k_parse_data_set_name, restrict_data=only_long, color_group=color_groups2, ylabel='Loss')
-fig.savefig('/home/kris/Desktop/Results plots/average_loss_train_long.png')
+# fig = log.plot_groups('nll_loss', restrict_model=k_best_model_filter, find_basename=basename_without_run, data_name_parser=second_parser, find_data_name=k_parse_data_set_name, restrict_data=only_standard, color_group=color_groups2, ylabel='Loss')
+# fig.savefig('/home/kris/Desktop/Results plots/average_loss_train_standard.png')
+# fig = log.plot_groups('nll_loss', restrict_model=k_best_model_filter, find_basename=basename_without_run, data_name_parser=second_parser, find_data_name=k_parse_data_set_name, restrict_data=only_repeat, color_group=color_groups2, ylabel='Loss')
+# fig.savefig('/home/kris/Desktop/Results plots/average_loss_train_repeat.png')
+# fig = log.plot_groups('nll_loss', restrict_model=k_best_model_filter, find_basename=basename_without_run, data_name_parser=second_parser, find_data_name=k_parse_data_set_name, restrict_data=only_short, color_group=color_groups2, ylabel='Loss')
+# fig.savefig('/home/kris/Desktop/Results plots/average_loss_train_short.png')
+# fig = log.plot_groups('nll_loss', restrict_model=k_best_model_filter, find_basename=basename_without_run, data_name_parser=second_parser, find_data_name=k_parse_data_set_name, restrict_data=only_long, color_group=color_groups2, ylabel='Loss')
+# fig.savefig('/home/kris/Desktop/Results plots/average_loss_train_long.png')
 
 # fig = log.plot_groups('k_grammar_acc', restrict_model=k_best_model_filter, find_basename=basename_without_run, data_name_parser=second_parser, find_data_name=k_parse_data_set_name, restrict_data=only_standard, color_group=color_groups2, ylabel='Accuracy')
 # fig.savefig('/home/kris/Desktop/Results plots/average_acc_train_standard.png')
