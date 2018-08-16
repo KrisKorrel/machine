@@ -23,7 +23,7 @@ class Understander(nn.Module):
     """
 
     # TODO: Do we need attn_keys and vals here? Can't they just only be passed as variables in forward()?
-    def __init__(self, model_type, rnn_cell, embedding_dim, n_layers, hidden_dim, output_dim, dropout_p, train_method, gamma, epsilon, attention_method, sample_train, sample_infer, initial_temperature, learn_temperature, attn_keys, attn_vals, full_attention_focus):
+    def __init__(self, model_type, rnn_cell, embedding_dim, n_layers, hidden_dim, output_dim, dropout_p, train_method, gamma, epsilon, attention_method, sample_train, sample_infer, initial_temperature, learn_temperature, attn_keys, attn_vals, full_focus, full_attention_focus):
         """
         Args:
             input_vocab_size (int): Total size of the input vocabulary
@@ -60,13 +60,18 @@ class Understander(nn.Module):
         input_size = hidden_dim + val_dim
 
         # Initialize models
-        if self.model_type == 'baseline':
-            self.understander_decoder = rnn_cell(2*hidden_dim, hidden_dim, n_layers, batch_first=True, dropout=dropout_p)
-        elif self.model_type == 'seq2attn':
-            self.understander_decoder = rnn_cell(hidden_dim, hidden_dim, n_layers, batch_first=True, dropout=dropout_p)
+        if self.model_type == 'baseline' and not full_focus:
+            understander_input_size = 2 * hidden_dim
+        else:
+            understander_input_size = hidden_dim
+        self.understander_decoder = rnn_cell(understander_input_size, hidden_dim, n_layers, batch_first=True, dropout=dropout_p)
         self.attention = Attention(input_dim=hidden_dim+key_dim, output_dim=hidden_dim, method=attention_method, sample_train=sample_train, sample_infer=sample_infer, learn_temperature=learn_temperature, initial_temperature=initial_temperature)
         self.executor_decoder = rnn_cell(input_size, hidden_dim, n_layers, batch_first=True, dropout=dropout_p)
-        
+
+        self.full_focus = full_focus
+        if self.full_focus:
+            self.ffocus_merge = nn.Linear(2 * self.hidden_size, self.hidden_size)
+
         # Store and initialize RL stuff
         self.gamma = gamma
         self.epsilon = epsilon
@@ -200,6 +205,9 @@ class Understander(nn.Module):
             understander_decoder_output, understander_decoder_hidden = self.understander_decoder(embedded, understander_decoder_hidden)
             context, attn = self.get_context(queries=understander_decoder_output, keys=attn_keys, values=attn_vals, **attention_method_kwargs)
             executor_decoder_input = torch.cat((context, embedded), dim=2)
+            if self.full_focus:
+                executor_decoder_hidden = F.relu(self.ffocus_merge(executor_decoder_hidden))
+                understander_decoder_input = torch.mul(context, executor_decoder_hidden)
             if self.full_attention_focus:
                 executor_decoder_hidden = executor_decoder_hidden * context.transpose(0, 1)
             executor_decoder_output, executor_decoder_hidden = self.executor_decoder(executor_decoder_input, executor_decoder_hidden)
@@ -209,8 +217,13 @@ class Understander(nn.Module):
         elif self.model_type == 'baseline':
             context, attn = self.get_context(queries=understander_decoder_hidden.transpose(0, 1), keys=attn_keys, values=attn_vals, **attention_method_kwargs)
             understander_decoder_input = torch.cat((context, embedded), dim=2)
+
+            if self.full_focus:
+                understander_decoder_input = F.relu(self.ffocus_merge(understander_decoder_input))
+                understander_decoder_input = torch.mul(context, understander_decoder_input)
             if self.full_attention_focus:
                 understander_decoder_hidden = understander_decoder_hidden * context.transpose(0, 1)
+
             understander_decoder_output, understander_decoder_hidden = self.understander_decoder(understander_decoder_input, understander_decoder_hidden)
 
             output = understander_decoder_output

@@ -126,6 +126,7 @@ class DecoderRNN(nn.Module):
                 learn_temperature=learn_temperature,
                 attn_keys=attn_keys,
                 attn_vals=attn_vals,
+                full_focus=full_focus,
                 full_attention_focus=full_attention_focus)
 
         else:
