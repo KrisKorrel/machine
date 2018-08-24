@@ -78,6 +78,7 @@ def plot_attention(test_data, img_path, correctness_check):
     # random.shuffle(indices)
 
     for data_index in indices:
+        print("Test example", data_index)
         input_sentence = test_data[data_index, 0]
         output_sentence = test_data[data_index, 1]
         input_sequence = input_sentence.split()
