@@ -297,14 +297,14 @@ def color_groups2(model_name, data_name):
 
     return c,l
 
-# fig = log.plot_groups('nll_loss', restrict_model=k_best_model_filter, find_basename=basename_without_run, data_name_parser=second_parser, find_data_name=k_parse_data_set_name, restrict_data=only_standard, color_group=color_groups2, ylabel='Loss', legend=True)
-# fig.savefig('/home/kris/Desktop/Results plots/average_loss_train_standard.png', bbox_inches='tight')
-# fig = log.plot_groups('nll_loss', restrict_model=k_best_model_filter, find_basename=basename_without_run, data_name_parser=second_parser, find_data_name=k_parse_data_set_name, restrict_data=only_repeat, color_group=color_groups2, ylabel='Loss')
-# fig.savefig('/home/kris/Desktop/Results plots/average_loss_train_repeat.png', bbox_inches='tight')
-# fig = log.plot_groups('nll_loss', restrict_model=k_best_model_filter, find_basename=basename_without_run, data_name_parser=second_parser, find_data_name=k_parse_data_set_name, restrict_data=only_short, color_group=color_groups2, ylabel='Loss')
-# fig.savefig('/home/kris/Desktop/Results plots/average_loss_train_short.png', bbox_inches='tight')
-# fig = log.plot_groups('nll_loss', restrict_model=k_best_model_filter, find_basename=basename_without_run, data_name_parser=second_parser, find_data_name=k_parse_data_set_name, restrict_data=only_long, color_group=color_groups2, ylabel='Loss')
-# fig.savefig('/home/kris/Desktop/Results plots/average_loss_train_long.png', bbox_inches='tight')
+fig = log.plot_groups('nll_loss', restrict_model=k_best_model_filter, find_basename=basename_without_run, data_name_parser=second_parser, find_data_name=k_parse_data_set_name, restrict_data=only_standard, color_group=color_groups2, xlabel=None, ylabel='Loss', legend=True)
+fig.savefig('/home/kris/Desktop/Results plots/average_loss_train_standard.png', bbox_inches='tight')
+fig = log.plot_groups('nll_loss', restrict_model=k_best_model_filter, find_basename=basename_without_run, data_name_parser=second_parser, find_data_name=k_parse_data_set_name, restrict_data=only_repeat, color_group=color_groups2, xlabel=None, ylabel=None)
+fig.savefig('/home/kris/Desktop/Results plots/average_loss_train_repeat.png', bbox_inches='tight')
+fig = log.plot_groups('nll_loss', restrict_model=k_best_model_filter, find_basename=basename_without_run, data_name_parser=second_parser, find_data_name=k_parse_data_set_name, restrict_data=only_short, color_group=color_groups2, xlabel='Epochs', ylabel='Loss')
+fig.savefig('/home/kris/Desktop/Results plots/average_loss_train_short.png', bbox_inches='tight')
+fig = log.plot_groups('nll_loss', restrict_model=k_best_model_filter, find_basename=basename_without_run, data_name_parser=second_parser, find_data_name=k_parse_data_set_name, restrict_data=only_long, color_group=color_groups2, xlabel='Epochs', ylabel=None)
+fig.savefig('/home/kris/Desktop/Results plots/average_loss_train_long.png', bbox_inches='tight')
 
 # fig = log.plot_groups('k_grammar_acc', restrict_model=k_best_model_filter, find_basename=basename_without_run, data_name_parser=second_parser, find_data_name=k_parse_data_set_name, restrict_data=only_standard, color_group=color_groups2, ylabel='Accuracy')
 # fig.savefig('/home/kris/Desktop/Results plots/average_acc_train_standard.png')
@@ -315,5 +315,5 @@ def color_groups2(model_name, data_name):
 # fig = log.plot_groups('k_grammar_acc', restrict_model=k_best_model_filter, find_basename=basename_without_run, data_name_parser=second_parser, find_data_name=k_parse_data_set_name, restrict_data=only_long, color_group=color_groups2, ylabel='accuracy')
 # fig.savefig('/home/kris/Desktop/Results plots/average_acc_train_long.png')
 
-fig = log.plot_groups('k_grammar_acc', restrict_model=k_best_model_filter, find_basename=basename_without_run, data_name_parser=second_parser, find_data_name=group_rest, restrict_data=no_validation, color_group=color_groups2, ylabel='Accuracy', legend=True)
-fig.savefig('/home/kris/Desktop/Results plots/average.png', bbox_inches='tight')
+# fig = log.plot_groups('k_grammar_acc', restrict_model=k_best_model_filter, find_basename=basename_without_run, data_name_parser=second_parser, find_data_name=group_rest, restrict_data=no_validation, color_group=color_groups2, ylabel='Accuracy', legend=True)
+# fig.savefig('/home/kris/Desktop/Results plots/average.png', bbox_inches='tight')

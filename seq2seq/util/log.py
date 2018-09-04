@@ -343,7 +343,7 @@ class LogCollection(object):
                    restrict_model=lambda x: True,
                    restrict_data=lambda x: True,
                    find_data_name=lambda x: x,
-                   data_name_parser=None,ylabel=None,
+                   data_name_parser=None,xlabel=None,ylabel=None,
                    color_group=False, eor=-1, legend=False):
 
         import numpy as np
@@ -384,8 +384,10 @@ class LogCollection(object):
             plt.legend(handles2, labels2, fontsize=60)
 
         ax.tick_params(axis='both', which='major', labelsize=40)
-        plt.xlabel("Epochs", fontsize=40)
-        plt.ylabel(ylabel, fontsize=40)
+        if xlabel:
+            plt.xlabel(xlabel, fontsize=40)
+        if ylabel:
+            plt.ylabel(ylabel, fontsize=40)
         # plt.legend()
         # plt.show()
 
