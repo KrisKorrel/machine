@@ -82,7 +82,10 @@ class Log(object):
         f = open(path, 'rb')
 
         lines = f.readlines()
+
         self.steps = [int(i) for i in lines[0].split()[1:]]
+        print(self.steps)
+        print(path)
 
         for line in lines[1:]:
             l_list = line.split()
@@ -341,7 +344,7 @@ class LogCollection(object):
                    restrict_data=lambda x: True,
                    find_data_name=lambda x: x,
                    data_name_parser=None,ylabel=None,
-                   color_group=False, eor=-1):
+                   color_group=False, eor=-1, legend=False):
 
         import numpy as np
 
@@ -355,35 +358,36 @@ class LogCollection(object):
                                      find_data_name=find_data_name,
                                      restrict_data=restrict_data)
 
-        steps = [step/516. for step in self.logs[0].steps[:]]
+        steps = [step/310. for step in self.logs[-1].steps[:]]
         for model, data in group_data.items():
             for dataset in data:
                 av = np.mean(data[dataset], axis=0)[:]
+
                 if color_group:
                     c,l = color_group(model, dataset)
-                    print(dataset, model, color_group(model, dataset))
-                    ax.plot(steps, av, color=c,linestyle=l, label=data_name_parser(model,dataset), linewidth=5.0)
+                    ax.plot(steps, av, color=c, linestyle=l, label=data_name_parser(model,dataset), linewidth=5.0)
                 else:
                     ax.plot(steps, av, dataset, label=data_name_parser(model,dataset))
 
         handles, labels = ax.get_legend_handles_labels()
 
         # reverse the order
-        ax.legend(handles[::-1], labels[::-1])
+        if legend:
+            ax.legend(handles[::-1], labels[::-1])
 
-        # or sort them by labels
-        import operator
-        hl = sorted(zip(handles, labels),
-                    key=operator.itemgetter(1), reverse=True)
-        handles2, labels2 = zip(*hl)
+            # or sort them by labels
+            import operator
+            hl = sorted(zip(handles, labels),
+                        key=operator.itemgetter(1), reverse=True)
+            handles2, labels2 = zip(*hl)
 
-        plt.legend(handles2, labels2, fontsize=38)
+            plt.legend(handles2, labels2, fontsize=60)
 
-        ax.tick_params(axis='both', which='major', labelsize=20)
-        plt.xlabel("Epochs", fontsize=24)
-        plt.ylabel(ylabel, fontsize=24)
+        ax.tick_params(axis='both', which='major', labelsize=40)
+        plt.xlabel("Epochs", fontsize=40)
+        plt.ylabel(ylabel, fontsize=40)
         # plt.legend()
-        plt.show()
+        # plt.show()
 
         return fig
 
