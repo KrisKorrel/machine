@@ -115,7 +115,7 @@ for model in natural_sort(max_avg):
     print('%s:\t%s' % (model, '\t'.join(['%.4f' % (datadict[d]) for d in datadict])))
 
 print("\nMean:")
-for model in natural_sort(mean_avg):
+for i, model in enumerate(natural_sort(mean_avg)):
     datadict = OrderedDict(sorted(mean_avg[model].items(), key=lambda x : x[0], reverse=False))
     # print('%s:\t%s' % (model, '\t'.join(['%s %.4f' % (d, datadict[d]) for d in datadict])))
     print('%s:\t%s' % (model, '\t'.join(['%.4f' % (datadict[d]) for d in datadict])))
@@ -126,6 +126,13 @@ for model in natural_sort(std_avg):
     # print('%s:\t%s' % (model, '\t'.join(['%s %.4f' % (d, datadict[d]) for d in datadict])))
     print('%s:\t%s' % (model, '\t'.join(['%.4f' % (datadict[d]) for d in datadict])))
 
+print("\nMean+std:")
+for i, model in enumerate(natural_sort(mean_avg)):
+    datadict = OrderedDict(sorted(mean_avg[model].items(), key=lambda x : x[0], reverse=False))
+    datadict_std = OrderedDict(sorted(std_avg[model].items(), key=lambda x: x[0], reverse=False))
+    # print('%s:\t%s' % (model, '\t'.join(['%s %.4f' % (d, datadict[d]) for d in datadict])))
+    print('%s:\t%s' % (model, '\t'.join(['%.4f' % (datadict[d]) for d in datadict])))
+    print('%s:\t%s' % (model, '\t'.join(['%.4f ($\\pm$%.2f)' % (datadict[d], datadict_std[d]) for d in datadict])))
 
 def k_restrict(input_str):
     return True
