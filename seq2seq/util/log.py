@@ -84,8 +84,6 @@ class Log(object):
         lines = f.readlines()
 
         self.steps = [int(i) for i in lines[0].split()[1:]]
-        print(self.steps)
-        print(path)
 
         for line in lines[1:]:
             l_list = line.split()
