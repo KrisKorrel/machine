@@ -70,7 +70,7 @@ class Understander(nn.Module):
 
         self.full_focus = full_focus
         if self.full_focus:
-            self.ffocus_merge = nn.Linear(2 * self.hidden_size, self.hidden_size)
+            self.ffocus_merge = nn.Linear(input_size, self.hidden_size)
 
         # Store and initialize RL stuff
         self.gamma = gamma
