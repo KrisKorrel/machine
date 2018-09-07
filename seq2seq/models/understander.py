@@ -206,8 +206,8 @@ class Understander(nn.Module):
             context, attn = self.get_context(queries=understander_decoder_output, keys=attn_keys, values=attn_vals, **attention_method_kwargs)
             executor_decoder_input = torch.cat((context, embedded), dim=2)
             if self.full_focus:
-                executor_decoder_hidden = F.relu(self.ffocus_merge(executor_decoder_hidden))
-                understander_decoder_input = torch.mul(context, executor_decoder_hidden)
+                executor_decoder_input = F.relu(self.ffocus_merge(executor_decoder_input))
+                executor_decoder_input = torch.mul(context, executor_decoder_input)
             if self.full_attention_focus:
                 executor_decoder_hidden = executor_decoder_hidden * context.transpose(0, 1)
             executor_decoder_output, executor_decoder_hidden = self.executor_decoder(executor_decoder_input, executor_decoder_hidden)
