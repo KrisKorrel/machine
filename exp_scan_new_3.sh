@@ -7,7 +7,7 @@
 
 module load python
 
-cd ~/exp_scan_old_1
+cd ~/exp_scan_new_3
 
 # COMMON
 DATA_PATH="../machine-tasks/test_scan/simple_split"

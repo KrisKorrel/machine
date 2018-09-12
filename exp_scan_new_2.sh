@@ -7,7 +7,7 @@
 
 module load python
 
-cd ~/exp_scan_old_1
+cd ~/exp_scan_new_2
 
 # COMMON
 DATA_PATH="../machine-tasks/test_scan/simple_split"
@@ -71,6 +71,7 @@ for RUN in 1 2 3 4 5 6 7 8 9 10; do
             REAL_CUDA=0
             wait
         fi
+    done
 done
 
 # SEQ2ATTN
@@ -111,6 +112,7 @@ for RUN in 1 2 3 4 5 6 7 8 9 10; do
             REAL_CUDA=0
             wait
         fi
+    done
 done
 
 wait
