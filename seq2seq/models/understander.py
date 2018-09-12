@@ -64,6 +64,7 @@ class Understander(nn.Module):
             understander_input_size = 2 * hidden_dim
         else:
             understander_input_size = hidden_dim
+
         self.understander_decoder = rnn_cell(understander_input_size, hidden_dim, n_layers, batch_first=True, dropout=dropout_p)
         self.attention = Attention(input_dim=hidden_dim+key_dim, output_dim=hidden_dim, method=attention_method, sample_train=sample_train, sample_infer=sample_infer, learn_temperature=learn_temperature, initial_temperature=initial_temperature)
         self.executor_decoder = rnn_cell(input_size, hidden_dim, n_layers, batch_first=True, dropout=dropout_p)
@@ -215,7 +216,14 @@ class Understander(nn.Module):
             output = executor_decoder_output
 
         elif self.model_type == 'baseline':
-            context, attn = self.get_context(queries=understander_decoder_hidden.transpose(0, 1), keys=attn_keys, values=attn_vals, **attention_method_kwargs)
+            # When using multilayer rnns we simply take the last layer of
+            # the encoder as attention queries
+            if understander_decoder_hidden.size(0) > 1:
+                attn_queries = understander_decoder_hidden[-2:-1].transpose(0, 1)
+            else:
+                attn_queries = understander_decoder_hidden.transpose(0, 1)
+
+            context, attn = self.get_context(queries=attn_queries, keys=attn_keys, values=attn_vals, **attention_method_kwargs)
             understander_decoder_input = torch.cat((context, embedded), dim=2)
 
             if self.full_focus:
