@@ -49,8 +49,8 @@ MODEL=baseline
 SAMPLE_TRAIN=full
 SAMPLE_INFER=full
 INIT_EXEC_DEC_WITH=new
-ATTN_KEYS=executor_encoder_outputs
-ATTN_VALS=executor_encoder_outputs
+ATTN_KEYS=understander_encoder_outputs
+ATTN_VALS=understander_encoder_outputs
 
 
 CUDA=0
