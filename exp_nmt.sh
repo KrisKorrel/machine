@@ -19,30 +19,30 @@ LEARN_TEMP=no
 DROPOUT_ENC_DEC=0
 CUDA=0
 
-DATA_PATH="../machine-tasks/NMT/OpenNMT"
+DATA_PATH="../machine-tasks/NMT/medium"
 TRAIN_PATH="${DATA_PATH}/train.tsv"
-VALIDATION_PATH="${DATA_PATH}/validation.tsv"
-TEST_PATH="${DATA_PATH}/validation.tsv"
+VALIDATION_PATH="${DATA_PATH}/test.tsv"
+TEST_PATH="${DATA_PATH}/test.tsv"
 MONITOR_DATA="${TEST_PATH}"
 
 TF=0.5
 EPOCHS=150
-BATCH_SIZE=64
-EVAL_BATCH_SIZE=450
+BATCH_SIZE=50
+EVAL_BATCH_SIZE=350
 SAVE_EVERY=100
 PRINT_EVERY=100
-METRICS="word_acc seq_acc"
+METRICS="word_acc seq_acc bleu"
 
 RNN_CELL=gru
 
 ATTENTION="pre-rnn"
 MODEL_TYPE="baseline"
-FULL_ATTENTION_FOCUS=yes
+FULL_ATTENTION_FOCUS=no
 SAMPLE_TRAIN=full
 SAMPLE_INFER=full
-INIT_EXEC_DEC_WITH=encoder
-ATTN_KEYS=executor_encoder_outputs
-ATTN_VALS=executor_encoder_outputs
+INIT_EXEC_DEC_WITH=new
+ATTN_KEYS=understander_encoder_outputs
+ATTN_VALS=understander_encoder_outputs
 
 for RUN in 1 2; do
     EXPT_DIR="baseline_nmt_${RNN_CELL}_${ATTN_KEYS}_${ATTN_VALS}_E${EMB_SIZE}_H${HIDDEN_SIZE}_D${DROPOUT}_${SAMPLE_TRAIN}_${SAMPLE_INFER}_${LEARN_TEMP}_${INIT_TEMP}_run_${RUN}"
