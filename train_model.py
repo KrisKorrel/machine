@@ -15,7 +15,7 @@ import seq2seq
 from seq2seq.trainer import SupervisedTrainer
 from seq2seq.models import EncoderRNN, DecoderRNN, Seq2seq, Understander
 from seq2seq.loss import Perplexity, AttentionLoss, NLLLoss, PonderLoss
-from seq2seq.metrics import WordAccuracy, SequenceAccuracy, FinalTargetAccuracy, SymbolRewritingAccuracy
+from seq2seq.metrics import WordAccuracy, SequenceAccuracy, FinalTargetAccuracy, SymbolRewritingAccuracy, BLEU
 from seq2seq.optim import Optimizer
 from seq2seq.dataset import SourceField, TargetField, AttentionField
 from seq2seq.evaluator import Predictor, Evaluator
@@ -51,7 +51,7 @@ parser.add_argument('--attention_method', choices=['dot', 'mlp', 'concat', 'hard
 parser.add_argument('--use_attention_loss', action='store_true')
 parser.add_argument('--scale_attention_loss', type=float, default=1.)
 parser.add_argument('--xent_loss', type=float, default=1.)
-parser.add_argument('--metrics', nargs='+', default=['seq_acc'], choices=['word_acc', 'seq_acc', 'target_acc', 'sym_rwr_acc'], help='Metrics to use')
+parser.add_argument('--metrics', nargs='+', default=['seq_acc'], choices=['word_acc', 'seq_acc', 'target_acc', 'sym_rwr_acc', 'bleu'], help='Metrics to use')
 parser.add_argument('--full_focus', action='store_true')
 parser.add_argument('--batch_size', type=int, help='Batch size', default=32)
 parser.add_argument('--eval_batch_size', type=int, help='Batch size', default=128)
@@ -328,6 +328,15 @@ if 'target_acc' in opt.metrics:
     metrics.append(FinalTargetAccuracy(ignore_index=pad, eos_id=tgt.eos_id))
 if 'sym_rwr_acc' in opt.metrics:
     metrics.append(SymbolRewritingAccuracy(
+        input_vocab=input_vocab,
+        output_vocab=output_vocab,
+        use_output_eos=use_output_eos,
+        output_sos_symbol=tgt.SYM_SOS,
+        output_pad_symbol=tgt.pad_token,
+        output_eos_symbol=tgt.SYM_EOS,
+        output_unk_symbol=tgt.unk_token))
+if 'bleu' in opt.metrics:
+    metrics.append(BLEU(
         input_vocab=input_vocab,
         output_vocab=output_vocab,
         use_output_eos=use_output_eos,
