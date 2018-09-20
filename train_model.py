@@ -1,6 +1,7 @@
 import os
 import argparse
 import logging
+import re
 
 import torch
 from torch.optim.lr_scheduler import StepLR
@@ -358,7 +359,8 @@ t = SupervisedTrainer(loss=losses,
                       expt_dir=opt.output_dir,
                       epsilon=opt.epsilon,
                       understander_train_method=opt.understander_train_method,
-                      train_regime='simultaneous') # TODO: two-stage currently doesn't work. Do we still want it?
+                      train_regime='simultaneous',
+                      write_logs=opt.write_logs) # TODO: two-stage currently doesn't work. Do we still want it?
 
 seq2seq, logs = t.train(model=seq2seq,
                     data=train,
@@ -373,8 +375,14 @@ seq2seq, logs = t.train(model=seq2seq,
                     checkpoint_path=checkpoint_path)
 
 if opt.write_logs:
+    # Write the final log
     output_path = os.path.join(opt.output_dir, opt.write_logs)
     logs.write_to_file(output_path)
 
-# evaluator = Evaluator(loss=loss, batch_size=opt.batch_size)
-# dev_loss, accuracy = evaluator.evaluate(seq2seq, dev)
+    # Write the temporary files created after each epoch
+    log_regex = re.compile('.*LOG_epoch_[0-9]+')
+    temp_logs = [f for f in os.listdir(opt.output_dir)
+                 if os.path.isfile(os.path.join(opt.output_dir, f))
+                 and re.match(log_regex, f)]
+    for temp_log in temp_logs:
+      os.remove(os.path.join(opt.output_dir, temp_log))

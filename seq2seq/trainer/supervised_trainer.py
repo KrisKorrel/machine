@@ -41,7 +41,7 @@ class SupervisedTrainer(object):
     """
     def __init__(self, understander_train_method, train_regime, expt_dir='experiment', loss=[NLLLoss()], loss_weights=None, metrics=[], batch_size=64, eval_batch_size=128,
                  random_seed=None,
-                 checkpoint_every=100, print_every=100, epsilon=1):
+                 checkpoint_every=100, print_every=100, epsilon=1, write_logs=False):
         self._trainer = "Simple Trainer"
         self.random_seed = random_seed
         if random_seed is not None:
@@ -75,6 +75,8 @@ class SupervisedTrainer(object):
             self.pre_train = True
         else:
             self.pre_train = False
+
+        self.write_logs = write_logs
 
     def _train_batch(self, input_variable, input_lengths, target_variable, model, teacher_forcing_ratio):
         loss = self.loss
@@ -318,6 +320,10 @@ class SupervisedTrainer(object):
                 self.optimizer.update(epoch_loss_avg, epoch) # TODO check if this makes sense!
 
             log.info(log_msg)
+
+            if self.write_logs:
+                output_path = os.path.join(self.expt_dir, self.write_logs + '_epoch_{}'.format(epoch))
+                logs.write_to_file(output_path)
 
         return logs
 
