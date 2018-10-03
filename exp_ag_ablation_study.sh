@@ -9,7 +9,6 @@ module load python
 
 PROBLEMS
 FULL FOCUS DOES NOT WORK
-USES EXECutOR AS KEYS AND VALUES
 
 cd ~/baselines_ag
 
@@ -51,8 +50,8 @@ METRICS="word_acc seq_acc"
 MODEL_TYPE="baseline"
 SAMPLE_TRAIN=full
 SAMPLE_INFER=full
-ATTN_KEYS=executor_encoder_outputs
-ATTN_VALS=executor_encoder_outputs
+ATTN_KEYS=understander_encoder_outputs
+ATTN_VALS=understander_encoder_outputs
 INIT_EXEC_DEC_WITH=encoder
 
 CUDA=0
