@@ -222,10 +222,17 @@ class Understander(nn.Module):
         elif self.model_type == 'baseline':
             # When using multilayer rnns we simply take the last layer of
             # the encoder as attention queries
-            if understander_decoder_hidden.size(0) > 1:
-                attn_queries = understander_decoder_hidden[-2:-1].transpose(0, 1)
-            else:
-                attn_queries = understander_decoder_hidden.transpose(0, 1)
+            if self.rnn_type == 'gru':
+                if understander_decoder_hidden.size(0) > 1:
+                    attn_queries = understander_decoder_hidden[-2:-1].transpose(0, 1)
+                else:
+                    attn_queries = understander_decoder_hidden.transpose(0, 1)
+
+            elif self.rnn_type == 'lstm':
+                if understander_decoder_hidden[0].size(0) > 1:
+                    attn_queries = understander_decoder_hidden[0][-2:-1].transpose(0, 1)
+                else:
+                    attn_queries = understander_decoder_hidden[0].transpose(0, 1)
 
             context, attn = self.get_context(queries=attn_queries, keys=attn_keys, values=attn_vals, **attention_method_kwargs)
             understander_decoder_input = torch.cat((context, embedded), dim=2)
