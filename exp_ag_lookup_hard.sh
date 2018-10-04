@@ -50,10 +50,11 @@ for RUN in 1 2 3 4 5 6 7 8 9 10; do
 
     python train_model.py \
         --train $TRAIN_PATH \
-        --dev $DEV_PATH \
-        --monitor $DEV_PATH $TEST_PATH_STD $TEST_PATH_REPEAT $TEST_PATH_SHORT $TEST_PATH_LONG \
+        --dev $VALIDATION_PATH \
+        --monitor $MONITOR_DATA \
         --write-logs "${EXPT_DIR}_LOG" \
         --output_dir $EXPT_DIR \
+        --model_type baseline \
         --print_every $PRINT_EVERY \
         --embedding_size $EMB_SIZE \
         --hidden_size $H_SIZE \
@@ -69,6 +70,8 @@ for RUN in 1 2 3 4 5 6 7 8 9 10; do
         --teacher_forcing $TF \
         --attention $ATTN \
         --attention_method $ATTN_METHOD \
+        --sample_train full \
+        --sample_infer full \
         --optim $OPTIM \
         --lr $LR \
         --cuda_device $CUDA \
