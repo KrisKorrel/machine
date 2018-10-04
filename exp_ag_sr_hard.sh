@@ -71,6 +71,7 @@ for RUN in 1 2 3 4 5 6 7 8 9 10; do
         --lr $LR \
         --cuda_device $CUDA \
         --full_focus \
+        --metrics $METRICS \
         > "${EXPT_DIR}_out.txt" 2> "${EXPT_DIR}_err.txt" &
 
         CUDA=$((CUDA+1))
