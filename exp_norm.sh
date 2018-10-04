@@ -25,7 +25,7 @@ INIT_TEMP=5
 LEARN_TEMP=no
 DROPOUT_ENC_DEC=0
 RNN_CELL=gru
-FULL_ATTENTION_FOCUS=yes
+FULL_ATTENTION_FOCUS=no
 
 DATA_PATH="../machine-tasks/LookupTables/lookup-3bit/samples/sample1"
 TRAIN_PATH="${DATA_PATH}/train.tsv"
