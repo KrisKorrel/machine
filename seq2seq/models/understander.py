@@ -210,7 +210,11 @@ class Understander(nn.Module):
                 executor_decoder_input = F.relu(self.ffocus_merge(executor_decoder_input))
                 executor_decoder_input = torch.mul(context, executor_decoder_input)
             if self.full_attention_focus:
-                executor_decoder_hidden = executor_decoder_hidden * context.transpose(0, 1)
+                if self.rnn_type == 'gru':
+                    executor_decoder_hidden = executor_decoder_hidden * context.transpose(0, 1)
+                elif self.rnn_type == 'lstm':
+                    executor_decoder_hidden = (executor_decoder_hidden[0] * context.transpose(0, 1),
+                                               executor_decoder_hidden[1] * context.transpose(0, 1))
             executor_decoder_output, executor_decoder_hidden = self.executor_decoder(executor_decoder_input, executor_decoder_hidden)
 
             output = executor_decoder_output
