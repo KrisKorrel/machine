@@ -325,27 +325,37 @@ class SupervisedTrainer(object):
                 output_path = os.path.join(self.expt_dir, self.write_logs + '_epoch_{}'.format(epoch))
                 logs.write_to_file(output_path)
 
-            gru = model.decoder.decoder_model.understander_decoder
+            
+            # gru = model.decoder.decoder_model.understander_decoder
 
-            _, _, w_in = gru.weight_ih_l0.chunk(3, 0)
-            _, _, w_hn = gru.weight_hh_l0.chunk(3, 0)
-            _, _, b_in = gru.bias_ih_l0.chunk(3, 0)
-            _, _, b_hn = gru.bias_hh_l0.chunk(3, 0)
+            # _, _, w_in = gru.weight_ih_l0.chunk(3, 0)
+            # _, _, w_hn = gru.weight_hh_l0.chunk(3, 0)
+            # _, _, b_in = gru.bias_ih_l0.chunk(3, 0)
+            # _, _, b_hn = gru.bias_hh_l0.chunk(3, 0)
 
-            w_ih_norm = w_in[:, 256:].norm()  # Norm of weights form input symbol to candidate
-            w_ch_norm = w_in[:, :256].norm()  # Norm of weights from context vector to candidate
-            w_hh_norm = w_hn.norm()  # Norm of weights from hidden to candidate
+            # w_ih_norm = w_in[:, 256:].norm()  # Norm of weights form input symbol to candidate
+            # w_ch_norm = w_in[:, :256].norm()  # Norm of weights from context vector to candidate
+            # w_hh_norm = w_hn.norm()  # Norm of weights from hidden to candidate
 
-            # Note that for bias we can not differentiate between input and context
-            b_ih_norm = b_in.norm()  # bias input to candidate
-            b_hh_norm = b_hn.norm()  # bias hidden to candidate
+            # # Note that for bias we can not differentiate between input and context
+            # b_ih_norm = b_in.norm()  # bias input to candidate
+            # b_hh_norm = b_hn.norm()  # bias hidden to candidate
+
+            # print("Epoch:\t{}".format(epoch))
+            # print("ih weight norm:\t{}".format(w_ih_norm))
+            # print("ch weight norm:\t{}".format(w_ch_norm))
+            # print("hh weight norm:\t{}".format(w_hh_norm))
+            # print("ih bias norm:\t{}".format(b_ih_norm))
+            # print("hh bias norm:\t{}".format(b_hh_norm))
+
+            out_layer = model.decoder.out
+
+            w_co = out_layer.weight[:, :256]
+            w_ho = out_layer.weight[:, 256:]
 
             print("Epoch:\t{}".format(epoch))
-            print("ih weight norm:\t{}".format(w_ih_norm))
-            print("ch weight norm:\t{}".format(w_ch_norm))
-            print("hh weight norm:\t{}".format(w_hh_norm))
-            print("ih bias norm:\t{}".format(b_ih_norm))
-            print("hh bias norm:\t{}".format(b_hh_norm))
+            print("co weight norm:\t{}".format(w_co.norm()))
+            print("ho weight norm:\t{}".format(w_ho.norm()))
 
         return logs
 
