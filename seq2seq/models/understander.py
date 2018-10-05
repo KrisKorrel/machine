@@ -23,7 +23,7 @@ class Understander(nn.Module):
     """
 
     # TODO: Do we need attn_keys and vals here? Can't they just only be passed as variables in forward()?
-    def __init__(self, model_type, rnn_cell, embedding_dim, n_layers, hidden_dim, output_dim, dropout_p, train_method, gamma, epsilon, attention_method, sample_train, sample_infer, initial_temperature, learn_temperature, attn_keys, attn_vals, full_focus, full_attention_focus):
+    def __init__(self, model_type, rnn_cell, embedding_dim, n_layers, hidden_dim, output_dim, dropout_p, train_method, gamma, epsilon, use_attention, attention_method, sample_train, sample_infer, initial_temperature, learn_temperature, attn_keys, attn_vals, full_focus, full_attention_focus):
         """
         Args:
             input_vocab_size (int): Total size of the input vocabulary
@@ -46,6 +46,14 @@ class Understander(nn.Module):
         elif rnn_cell == 'gru':
             rnn_cell = nn.GRU
 
+        self.use_attention = use_attention
+        if not self.use_attention:
+            raise Exception("Current implementation requires attention")
+        if self.model_type == 'seq2attn' and self.use_attention != 'pre-rnn':
+            raise Exception("Must use pre-rnn in combination with seq2attn")
+        if self.use_attention == 'post-rnn' and full_focus:
+            raise Exception("Full focus can only be used with pre-rnn")
+
         # Input size is hidden_size + context vector size, which depends on the type of attention value
         # TODO: As Yann pointed out, we should have different embedding size for decoder.
         if 'embeddings' in attn_keys:
@@ -60,7 +68,7 @@ class Understander(nn.Module):
         input_size = hidden_dim + val_dim
 
         # Initialize models
-        if self.model_type == 'baseline' and not full_focus:
+        if self.model_type == 'baseline' and self.use_attention == 'pre-rnn' and not full_focus:
             understander_input_size = 2 * hidden_dim
         else:
             understander_input_size = hidden_dim
@@ -220,32 +228,58 @@ class Understander(nn.Module):
             output = executor_decoder_output
 
         elif self.model_type == 'baseline':
-            # When using multilayer rnns we simply take the last layer of
-            # the encoder as attention queries
-            if self.rnn_type == 'gru':
-                if understander_decoder_hidden.size(0) > 1:
-                    attn_queries = understander_decoder_hidden[-2:-1].transpose(0, 1)
-                else:
-                    attn_queries = understander_decoder_hidden.transpose(0, 1)
+            if self.use_attention == 'pre-rnn':
+                # When using multilayer rnns we simply take the last layer of
+                # the encoder as attention queries
+                if self.rnn_type == 'gru':
+                    if understander_decoder_hidden.size(0) > 1:
+                        attn_queries = understander_decoder_hidden[-2:-1].transpose(0, 1)
+                    else:
+                        attn_queries = understander_decoder_hidden.transpose(0, 1)
 
-            elif self.rnn_type == 'lstm':
-                if understander_decoder_hidden[0].size(0) > 1:
-                    attn_queries = understander_decoder_hidden[0][-2:-1].transpose(0, 1)
-                else:
-                    attn_queries = understander_decoder_hidden[0].transpose(0, 1)
+                elif self.rnn_type == 'lstm':
+                    if understander_decoder_hidden[0].size(0) > 1:
+                        attn_queries = understander_decoder_hidden[0][-2:-1].transpose(0, 1)
+                    else:
+                        attn_queries = understander_decoder_hidden[0].transpose(0, 1)
 
-            context, attn = self.get_context(queries=attn_queries, keys=attn_keys, values=attn_vals, **attention_method_kwargs)
-            understander_decoder_input = torch.cat((context, embedded), dim=2)
+                context, attn = self.get_context(queries=attn_queries, keys=attn_keys, values=attn_vals, **attention_method_kwargs)
+                understander_decoder_input = torch.cat((context, embedded), dim=2)
 
-            if self.full_focus:
-                understander_decoder_input = F.relu(self.ffocus_merge(understander_decoder_input))
-                understander_decoder_input = torch.mul(context, understander_decoder_input)
-            if self.full_attention_focus:
-                understander_decoder_hidden = understander_decoder_hidden * context.transpose(0, 1)
+                if self.full_focus:
+                    understander_decoder_input = F.relu(self.ffocus_merge(understander_decoder_input))
+                    understander_decoder_input = torch.mul(context, understander_decoder_input)
+                if self.full_attention_focus:
+                    understander_decoder_hidden = understander_decoder_hidden * context.transpose(0, 1)
 
-            understander_decoder_output, understander_decoder_hidden = self.understander_decoder(understander_decoder_input, understander_decoder_hidden)
+                understander_decoder_output, understander_decoder_hidden = self.understander_decoder(understander_decoder_input, understander_decoder_hidden)
 
-            output = understander_decoder_output
+                output = understander_decoder_output
+
+            elif self.use_attention == 'post-rnn':
+                understander_decoder_output, understander_decoder_hidden = self.understander_decoder(embedded, understander_decoder_hidden)
+
+                # When using multilayer rnns we simply take the last layer of
+                # the encoder as attention queries
+                if self.rnn_type == 'gru':
+                    if understander_decoder_hidden.size(0) > 1:
+                        attn_queries = understander_decoder_hidden[-2:-1].transpose(0, 1)
+                    else:
+                        attn_queries = understander_decoder_hidden.transpose(0, 1)
+
+                elif self.rnn_type == 'lstm':
+                    if understander_decoder_hidden[0].size(0) > 1:
+                        attn_queries = understander_decoder_hidden[0][-2:-1].transpose(0, 1)
+                    else:
+                        attn_queries = understander_decoder_hidden[0].transpose(0, 1)
+
+                context, attn = self.get_context(queries=attn_queries, keys=attn_keys, values=attn_vals, **attention_method_kwargs)
+                executor_decoder_input = torch.cat((context, understander_decoder_output), dim=2)
+
+                if self.full_attention_focus:
+                    understander_decoder_hidden = understander_decoder_hidden * context.transpose(0, 1)
+
+                output = executor_decoder_input
 
         # TODO: For pondering in combination with baseline: It currently also uses the executor, which it should not.
         if self.rnn_type == 'gru':

@@ -119,6 +119,7 @@ class DecoderRNN(nn.Module):
                 train_method=train_method,
                 gamma=gamma,
                 epsilon=epsilon,
+                use_attention=use_attention,
                 attention_method=attention_method,
                 sample_train=sample_train,
                 sample_infer=sample_infer,
