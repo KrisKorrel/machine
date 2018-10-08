@@ -9,6 +9,8 @@ from __future__ import division
 import torch
 import torch.autograd as ta
 
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
 
 class SparsemaxFunction(ta.Function):
     """Applies a sample-wise normalizing projection over a batch."""
@@ -87,7 +89,7 @@ class SparsemaxFunction(ta.Function):
         """Project."""
         v_sorted, _ = torch.sort(v, dim=0, descending=True)
         cssv = torch.cumsum(v_sorted, dim=0) - z
-        ind = torch.arange(1, 1 + len(v))
+        ind = torch.arange(1, 1 + len(v), device=device)
         cond = v_sorted - cssv / ind > 0
         rho = ind.masked_select(cond)[-1]
         tau = cssv.masked_select(cond)[-1] / rho
