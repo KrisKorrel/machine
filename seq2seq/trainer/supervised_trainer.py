@@ -325,6 +325,34 @@ class SupervisedTrainer(object):
                 output_path = os.path.join(self.expt_dir, self.write_logs + '_epoch_{}'.format(epoch))
                 logs.write_to_file(output_path)
 
+        import numpy as np
+        n = len(data.fields[seq2seq.src_field_name].vocab.itos)
+        diffs = np.zeros((n, n))
+
+        i = 0
+        a = data.fields[seq2seq.src_field_name].vocab.stoi.items()
+        b = a
+
+        for input_string_src, input_value_src in a:
+            j = 0
+            for input_string_tgt, input_value_tgt in b:
+                input_value_src = torch.LongTensor([input_value_src], device=device).cuda()
+                input_value_tgt = torch.LongTensor([input_value_tgt], device=device).cuda()
+
+                x = model.understander_encoder.embedding(input_value_src)[0]
+                y = model.understander_encoder.embedding(input_value_tgt)[0]
+
+                cos = torch.nn.CosineSimilarity(dim=0, eps=1e-08)(x,y).item()
+                diffs[i,j] = cos
+
+                j += 1
+            i += 1
+
+        print(a)
+        print(b)
+        for i in range(n):
+            print("\t".join("{:.2f}".format(d) for d in diffs[i]))
+
         return logs
 
     def train(self, model, data, pre_train=None, num_epochs=5,
