@@ -353,6 +353,18 @@ class SupervisedTrainer(object):
         for i in range(n):
             print("\t".join("{:.2f}".format(d) for d in diffs[i]))
 
+        import pickle
+        c = model.understander_encoder.embedding(torch.LongTensor(list(range(n))).cuda()).cpu().data.numpy()
+        with open(self.expt_dir + '/embs.p', 'w') as f:
+            for i in list([f[0] for f in a]):
+                f.write(i)
+                f.write('\n')
+            for i in range(n):
+                f.write(", ".join([str(d) for d in c[i]]))
+                f.write('\n')
+
+            # pickle.dump(model.understander_encoder.embedding(torch.LongTensor(list(range(n))).cuda()).transpose(0,1).cpu().data.numpy(), f)
+
         return logs
 
     def train(self, model, data, pre_train=None, num_epochs=5,
