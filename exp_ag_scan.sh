@@ -11,6 +11,7 @@ cd ~/exp_ag_scan
 
 # Use the overall best model of original SCAN paper and tests baseline, learned guidance and oracle guidance
 # on SCAN experiments 1, 2 and 3a. 
+# With full focus
 
 # COMMON
 ATTENTION="pre-rnn"
@@ -79,7 +80,7 @@ for EXPERIMENT in 1 2 3; do
 
 
             EXPT_DIR="${MODEL}_SCAN_exp_${EXPERIMENT}_run_${RUN}"
-            python3 train_model.py --train $TRAIN_PATH --n_layers $N_LAYERS --dev $TEST_PATH --monitor $MONITOR_DATA --metrics $METRICS --output_dir $EXPT_DIR --epochs $EPOCHS --rnn_cell $RNN_CELL --embedding_size $EMB_SIZE --hidden_size $HIDDEN_SIZE --dropout_p_encoder $DROPOUT --dropout_p_decoder $DROPOUT --teacher_forcing_ratio $TF --attention $ATTENTION --attention_method $ATTN_METHOD --batch_size $BATCH_SIZE --eval_batch_size $EVAL_BATCH_SIZE --save_every $SAVE_EVERY --print_every $PRINT_EVERY --write-logs "${EXPT_DIR}_LOG" --cuda_device $CUDA --understander_train_method supervised --sample_train $SAMPLE_TRAIN --sample_infer $SAMPLE_INFER --initial_temperature $INIT_TEMP --learn_temperature $LEARN_TEMP --init_exec_dec_with $INIT_EXEC_DEC_WITH --attn_keys $ATTN_KEYS --attn_vals $ATTN_VALS --dropout_enc_dec $DROPOUT_ENC_DEC --model_type $MODEL_TYPE --full_attention_focus $FULL_ATTENTION_FOCUS $EXTRAARG > "${EXPT_DIR}_out.txt" 2> "${EXPT_DIR}_err.txt" &
+            python3 train_model.py --train $TRAIN_PATH --n_layers $N_LAYERS --dev $TEST_PATH --monitor $MONITOR_DATA --metrics $METRICS --output_dir $EXPT_DIR --epochs $EPOCHS --rnn_cell $RNN_CELL --embedding_size $EMB_SIZE --hidden_size $HIDDEN_SIZE --dropout_p_encoder $DROPOUT --dropout_p_decoder $DROPOUT --teacher_forcing_ratio $TF --attention $ATTENTION --attention_method $ATTN_METHOD --batch_size $BATCH_SIZE --eval_batch_size $EVAL_BATCH_SIZE --save_every $SAVE_EVERY --print_every $PRINT_EVERY --write-logs "${EXPT_DIR}_LOG" --cuda_device $CUDA --understander_train_method supervised --sample_train $SAMPLE_TRAIN --sample_infer $SAMPLE_INFER --initial_temperature $INIT_TEMP --learn_temperature $LEARN_TEMP --init_exec_dec_with $INIT_EXEC_DEC_WITH --attn_keys $ATTN_KEYS --attn_vals $ATTN_VALS --dropout_enc_dec $DROPOUT_ENC_DEC --model_type $MODEL_TYPE --full_focus --full_attention_focus $FULL_ATTENTION_FOCUS $EXTRAARG > "${EXPT_DIR}_out.txt" 2> "${EXPT_DIR}_err.txt" &
 
             CUDA=$((CUDA+1))
             REAL_CUDA=$((REAL_CUDA+1))
