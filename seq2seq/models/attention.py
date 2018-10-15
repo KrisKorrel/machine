@@ -5,8 +5,10 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from ..util.gumbel import gumbel_softmax
+from ..util.sparsemax import Sparsemax
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
 
 class Attention(nn.Module):
     """
@@ -66,6 +68,9 @@ class Attention(nn.Module):
                 self.inverse_temperature_estimator = nn.Linear(output_dim, 1)
                 self.inverse_temperature_activation = self.inverse_temperature_activation
 
+        if self.sample_train == 'sparsemax' or self.sample_infer == 'sparsemax':
+            self.sparsemax = Sparsemax()
+
         self.current_temperature = None
 
     def inverse_temperature_activation(self, inv_temp):
@@ -122,6 +127,14 @@ class Attention(nn.Module):
                 elif self.sample_train == 'gumbel_hard':
                     attn = attn_hard.view(batch_size, -1, input_size) 
 
+            elif self.sample_train == 'sparsemax':
+                # Sparsemax only handles 2-dim tensors,
+                # so we reshape and reshape back after sparsemax
+                original_size = attn.size()
+                attn = attn.view(-1, attn.size(2))
+                attn = self.sparsemax.forward(attn, lengths=None)
+                attn = attn.view(original_size)
+
         # Inference mode
         else:
             if self.sample_infer == 'full':
@@ -147,6 +160,14 @@ class Attention(nn.Module):
                 argmax = attn.argmax(dim=2, keepdim=True)
                 attn = torch.zeros_like(attn)
                 attn.scatter_(dim=2, index=argmax, value=1)
+
+            elif self.sample_infer == 'sparsemax':
+                # Sparsemax only handles 2-dim tensors,
+                # so we reshape and reshape back after sparsemax
+                original_size = attn.size()
+                attn = attn.view(-1, attn.size(2))
+                attn = self.sparsemax.forward(attn, lengths=None)
+                attn = attn.view(original_size)
 
         return attn
 

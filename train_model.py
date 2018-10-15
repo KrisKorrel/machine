@@ -1,6 +1,8 @@
 import os
 import argparse
 import logging
+import re
+import warnings
 
 import torch
 from torch.optim.lr_scheduler import StepLR
@@ -15,7 +17,7 @@ import seq2seq
 from seq2seq.trainer import SupervisedTrainer
 from seq2seq.models import EncoderRNN, DecoderRNN, Seq2seq, Understander
 from seq2seq.loss import Perplexity, AttentionLoss, NLLLoss, PonderLoss
-from seq2seq.metrics import WordAccuracy, SequenceAccuracy, FinalTargetAccuracy, SymbolRewritingAccuracy
+from seq2seq.metrics import WordAccuracy, SequenceAccuracy, FinalTargetAccuracy, SymbolRewritingAccuracy, BLEU
 from seq2seq.optim import Optimizer
 from seq2seq.dataset import SourceField, TargetField, AttentionField
 from seq2seq.evaluator import Predictor, Evaluator
@@ -51,7 +53,7 @@ parser.add_argument('--attention_method', choices=['dot', 'mlp', 'concat', 'hard
 parser.add_argument('--use_attention_loss', action='store_true')
 parser.add_argument('--scale_attention_loss', type=float, default=1.)
 parser.add_argument('--xent_loss', type=float, default=1.)
-parser.add_argument('--metrics', nargs='+', default=['seq_acc'], choices=['word_acc', 'seq_acc', 'target_acc', 'sym_rwr_acc'], help='Metrics to use')
+parser.add_argument('--metrics', nargs='+', default=['seq_acc'], choices=['word_acc', 'seq_acc', 'target_acc', 'sym_rwr_acc', 'bleu'], help='Metrics to use')
 parser.add_argument('--full_focus', action='store_true')
 parser.add_argument('--batch_size', type=int, help='Batch size', default=32)
 parser.add_argument('--eval_batch_size', type=int, help='Batch size', default=128)
@@ -72,8 +74,8 @@ parser.add_argument('--pre_train', help='Data for pre-training the executor')
 parser.add_argument('--gamma', type=float, default=0.99, help='Gamma to use for discounted future rewards')
 parser.add_argument('--epsilon', type=float, default=1, help='Epsilon to use for epsilon-greedy during RL training.')
 parser.add_argument('--understander_train_method', type=str, choices=['rl', 'supervised'], help='Whether to use reinforcement or supervised learning for the understander')
-parser.add_argument('--sample_train', type=str, choices=['full', 'full_hard', 'gumbel_soft', 'gumbel_hard'], help='When training UE in a supervised setting, we can use the full attention vector or sample using gumbel (ST) at training time')
-parser.add_argument('--sample_infer', type=str, choices=['full', 'full_hard', 'gumbel_soft', 'gumbel_hard', 'argmax'], help='When training UE in a supervised setting, we can use the full attention vector, sample using gumbel (ST), or use argmax at inference time')
+parser.add_argument('--sample_train', type=str, choices=['full', 'full_hard', 'gumbel_soft', 'gumbel_hard', 'sparsemax'], help='When training UE in a supervised setting, we can use the full attention vector, sparsemax, or sample using gumbel (ST) at training time')
+parser.add_argument('--sample_infer', type=str, choices=['full', 'full_hard', 'gumbel_soft', 'gumbel_hard', 'argmax', 'sparsemax'], help='When training UE in a supervised setting, we can use the full attention vector, sample using gumbel (ST), sparsemax, or use argmax at inference time')
 parser.add_argument('--initial_temperature', type=float, default=1, help='(Initial) temperature to use for gumbel-softmax')
 parser.add_argument('--learn_temperature', type=str, choices=['no', 'unconditioned', 'conditioned'], help='Whether the temperature should be a learnable parameter. And whether it should be conditioned')
 parser.add_argument('--init_exec_dec_with', type=str, choices=['encoder', 'new'], default='encoder', help='The decoder of the executor can be initialized either with its last encoder state, or with a new (learnable) vector')
@@ -123,6 +125,10 @@ if opt.attention:
     if not opt.attention_method:
         logging.info("No attention method provided. Using DOT method.")
         opt.attention_method = 'dot'
+
+if opt.sample_train == 'sparsemax' or opt.sample_infer == 'sparsemax':
+    warnings.warn("Saving checkpoints is disabled when using sparsemax activation. "
+                  "It is not serializable")
 
 ############################################################################
 # Prepare dataset
@@ -335,6 +341,15 @@ if 'sym_rwr_acc' in opt.metrics:
         output_pad_symbol=tgt.pad_token,
         output_eos_symbol=tgt.SYM_EOS,
         output_unk_symbol=tgt.unk_token))
+if 'bleu' in opt.metrics:
+    metrics.append(BLEU(
+        input_vocab=input_vocab,
+        output_vocab=output_vocab,
+        use_output_eos=use_output_eos,
+        output_sos_symbol=tgt.SYM_SOS,
+        output_pad_symbol=tgt.pad_token,
+        output_eos_symbol=tgt.SYM_EOS,
+        output_unk_symbol=tgt.unk_token))
 
 checkpoint_path = os.path.join(opt.output_dir, opt.load_checkpoint) if opt.resume else None
 
@@ -349,7 +364,8 @@ t = SupervisedTrainer(loss=losses,
                       expt_dir=opt.output_dir,
                       epsilon=opt.epsilon,
                       understander_train_method=opt.understander_train_method,
-                      train_regime='simultaneous') # TODO: two-stage currently doesn't work. Do we still want it?
+                      train_regime='simultaneous',
+                      write_logs=opt.write_logs) # TODO: two-stage currently doesn't work. Do we still want it?
 
 seq2seq, logs = t.train(model=seq2seq,
                     data=train,
@@ -364,8 +380,14 @@ seq2seq, logs = t.train(model=seq2seq,
                     checkpoint_path=checkpoint_path)
 
 if opt.write_logs:
+    # Write the final log
     output_path = os.path.join(opt.output_dir, opt.write_logs)
     logs.write_to_file(output_path)
 
-# evaluator = Evaluator(loss=loss, batch_size=opt.batch_size)
-# dev_loss, accuracy = evaluator.evaluate(seq2seq, dev)
+    # Write the temporary files created after each epoch
+    log_regex = re.compile('.*LOG_epoch_[0-9]+')
+    temp_logs = [f for f in os.listdir(opt.output_dir)
+                 if os.path.isfile(os.path.join(opt.output_dir, f))
+                 and re.match(log_regex, f)]
+    for temp_log in temp_logs:
+      os.remove(os.path.join(opt.output_dir, temp_log))
