@@ -38,6 +38,7 @@ parser.add_argument('--output_dir', default='../models', help='Path to model dir
 parser.add_argument('--epochs', type=int, help='Number of epochs', default=6)
 parser.add_argument('--optim', type=str, help='Choose optimizer', choices=['adam', 'adadelta', 'adagrad', 'adamax', 'rmsprop', 'sgd'])
 parser.add_argument('--max_len', type=int, help='Maximum sequence length', default=50)
+parser.add_argument('--lower', action='store_true', help='Whether to lowercase the text in this field')
 parser.add_argument('--rnn_cell', type=str, help="Chose type of rnn cell", choices=['lstm', 'gru'], default='lstm')
 parser.add_argument('--bidirectional', action='store_true', help="Flag for bidirectional encoder")
 parser.add_argument('--embedding_size', type=int, help='Embedding size', default=128)
@@ -132,8 +133,8 @@ if opt.sample_train == 'sparsemax' or opt.sample_infer == 'sparsemax':
 
 ############################################################################
 # Prepare dataset
-src = SourceField()
-tgt = TargetField(include_eos=use_output_eos)
+src = SourceField(lower=opt.lower)
+tgt = TargetField(include_eos=use_output_eos, lower=opt.lower)
 
 tabular_data_fields = [('src', src), ('tgt', tgt)]
 
