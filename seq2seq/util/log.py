@@ -253,7 +253,7 @@ class LogCollection(object):
         else:
             operation = max
 
-        if 'loss' in report_metric:
+        if 'loss' in report_metric or 'bleu' in report_metric:
             scale = 1
         else:
             scale = 100
