@@ -16,18 +16,22 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 class Sparsemax(nn.Module):
     """Sparsemax function."""
 
-    def forward(self, input):
+    def forward(self, input, dim=None):
         """Forward function.
 
-        Input should 2-dimensional.
-
         Args:
-            input (torch.Tensor): [batch_size x number_of_logits] Input tensor
+            input (torch.Tensor): Input tensor. First dimension should be the batch size
+            dim (int): The dimension over which Sparsemax should be applied  default: None
 
         Returns:
             torch.Tensor: [batch_size x number_of_logits] Output tensor
 
         """
+        # Sparsemax currently only handles 2-dim tensors,
+        # so we reshape and reshape back after sparsemax
+        dim = -1 if dim is None else dim
+        original_size = input.size()
+        input = input.view(-1, input.size(dim))
         dim = 1
         number_of_logits = input.size(dim)
 
@@ -54,13 +58,16 @@ class Sparsemax(nn.Module):
         # positions to 0/False
         zs_sparse[zs_sparse != zs_sparse] = 0
 
+        # Compute taus
         taus = (torch.sum(zs_sparse, dim, keepdim=True) - 1) / k
         taus = taus.expand_as(input)
 
         # Sparsemax
         self.output = torch.max(torch.zeros_like(input), input - taus)
 
-        return self.output
+        output = self.output.view(original_size)
+
+        return output
 
     def backward(self, grad_output):
         """Backward function."""
