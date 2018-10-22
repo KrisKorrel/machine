@@ -132,7 +132,7 @@ class Attention(nn.Module):
                 # so we reshape and reshape back after sparsemax
                 original_size = attn.size()
                 attn = attn.view(-1, attn.size(2))
-                attn = self.sparsemax.forward(attn, lengths=None)
+                attn = self.sparsemax(attn)
                 attn = attn.view(original_size)
 
         # Inference mode
@@ -166,7 +166,7 @@ class Attention(nn.Module):
                 # so we reshape and reshape back after sparsemax
                 original_size = attn.size()
                 attn = attn.view(-1, attn.size(2))
-                attn = self.sparsemax.forward(attn, lengths=None)
+                attn = self.sparsemax(attn)
                 attn = attn.view(original_size)
 
         return attn
@@ -203,7 +203,7 @@ class Attention(nn.Module):
         attn = self.sample(attn, mask)
 
         number_of_attention_vectors = attn.size(0) * attn.size(1)
-        eps =  1e-6 * number_of_attention_vectors
+        eps =  1e-2 * number_of_attention_vectors
         assert abs(torch.sum(attn) - number_of_attention_vectors) < eps, "Sum: {}, Number of attention vectors: {}".format(torch.sum(attn), number_of_attention_vectors)
 
         # (batch, out_len, in_len) * (batch, in_len, dim) -> (batch, out_len, dim)
