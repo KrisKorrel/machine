@@ -127,10 +127,6 @@ if opt.attention:
         logging.info("No attention method provided. Using DOT method.")
         opt.attention_method = 'dot'
 
-if opt.sample_train == 'sparsemax' or opt.sample_infer == 'sparsemax':
-    warnings.warn("Saving checkpoints is disabled when using sparsemax activation. "
-                  "It is not serializable")
-
 ############################################################################
 # Prepare dataset
 src = SourceField(lower=opt.lower)

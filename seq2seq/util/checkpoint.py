@@ -75,8 +75,7 @@ class Checkpoint(object):
                    os.path.join(path, self.TRAINER_STATE_NAME))
 
         # SparsemaxFunction is not serializable
-        if not hasattr(self.model.decoder.decoder_model.attention, 'sparsemax'):
-            torch.save(self.model, os.path.join(path, self.MODEL_NAME))
+        torch.save(self.model, os.path.join(path, self.MODEL_NAME))
 
         with open(os.path.join(path, self.INPUT_VOCAB_FILE), 'wb') as fout:
             dill.dump(self.input_vocab, fout)
