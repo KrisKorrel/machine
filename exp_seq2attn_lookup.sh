@@ -9,7 +9,6 @@ module load python
 
 cd ~/exp_seq2attn_lookup
 
-TODO ADD FULL FOCUS AND MODEL TYPE
 NOT really checked for correctness
 
 # COMMON PARAMETERS
