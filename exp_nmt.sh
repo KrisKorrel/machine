@@ -9,6 +9,8 @@ module load python
 
 cd ~/exp_nmt
 
+IMPORTANT Which checkpoint to store?
+
 # COMMON PARAMETERS
 DROPOUT=0.2
 ATTN_METHOD="mlp"
