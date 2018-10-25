@@ -33,6 +33,8 @@ parser.add_argument('--ignore_output_eos', action='store_true',
                     help='Ignore end of sequence token during training and evaluation')
 parser.add_argument('--kgrammar', action='store_true',
                     help='Indicate that we should use the k-grammar metric')
+parser.add_argument('--lower', action='store_true',
+                    help="Indicate that data sets should be lowercase")
 opt = parser.parse_args()
 
 
@@ -58,8 +60,8 @@ def load_model(checkpoint_path):
 
 def prepare_data(data_path):
     """Prepare data."""
-    src = SourceField()
-    tgt = TargetField(include_eos=not opt.ignore_output_eos)
+    src = SourceField(lower=opt.lower)
+    tgt = TargetField(include_eos=not opt.ignore_output_eos, lower=opt.lower)
     attn = AttentionField(ignore_index=-1)
 
     tabular_data_fields = [('src', src), ('tgt', tgt), ('attn', attn)]
