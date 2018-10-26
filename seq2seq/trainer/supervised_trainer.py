@@ -14,7 +14,7 @@ from collections import defaultdict
 import seq2seq
 from seq2seq.evaluator import Evaluator
 from seq2seq.loss import NLLLoss, AttentionLoss
-from seq2seq.metrics import SymbolRewritingAccuracy
+from seq2seq.metrics import SymbolRewritingAccuracy, BLEU
 from seq2seq.optim import Optimizer
 from seq2seq.util.checkpoint import Checkpoint
 from seq2seq.util.log import Log
@@ -167,6 +167,9 @@ class SupervisedTrainer(object):
             if isinstance(metric, SymbolRewritingAccuracy):
                 total_loss = -1 * metric.get_val()
                 print(total_loss)
+            if isinstance(metric, BLEU):
+                total_loss = -1 * metric.get_val()
+                print(total_loss)
 
         logs = Log()
         loss_best = top_k*[total_loss]
@@ -265,6 +268,10 @@ class SupervisedTrainer(object):
 
                     log.info(log_msg)
 
+                    if self.write_logs:
+                        output_path = os.path.join(self.expt_dir, self.write_logs + '_epoch_{}_step_{}'.format(epoch, step))
+                        logs.write_to_file(output_path)
+
                 # check if new model should be saved
                 if step % self.checkpoint_every == 0 or step == total_steps:
                     # compute dev loss
@@ -276,9 +283,11 @@ class SupervisedTrainer(object):
                     for metric in metrics:
                         if isinstance(metric, SymbolRewritingAccuracy):
                             total_loss = -1 * metric.get_val()
+                        if isinstance(metric, BLEU):
+                            total_loss = -1 * metric.get_val()
                     max_eval_loss = max(loss_best)
 
-                    if total_loss < max_eval_loss:
+                    if total_loss <= max_eval_loss:
                             index_max = loss_best.index(max_eval_loss)
                             # rm prev model
                             if best_checkpoints[index_max] is not None:
@@ -330,7 +339,7 @@ class SupervisedTrainer(object):
     def train(self, model, data, pre_train=None, num_epochs=5,
               resume=False, dev_data=None, optimizer=None,
               teacher_forcing_ratio=0, monitor_data={},
-              learning_rate=0.001, checkpoint_path=None, top_k=1):
+              learning_rate=0.001, checkpoint_path=None, top_k=3):
         """ Run training for a given model.
 
         Args:

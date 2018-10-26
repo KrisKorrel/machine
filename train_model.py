@@ -381,8 +381,8 @@ if opt.write_logs:
     output_path = os.path.join(opt.output_dir, opt.write_logs)
     logs.write_to_file(output_path)
 
-    # Write the temporary files created after each epoch
-    log_regex = re.compile('.*LOG_epoch_[0-9]+')
+    # Remove the temporary files created after each epoch
+    log_regex = re.compile('.*LOG_epoch_*')
     temp_logs = [f for f in os.listdir(opt.output_dir)
                  if os.path.isfile(os.path.join(opt.output_dir, f))
                  and re.match(log_regex, f)]

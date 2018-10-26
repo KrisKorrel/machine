@@ -40,6 +40,7 @@ class Seq2seq(nn.Module):
         self.enc_dec_dropout = nn.Dropout(p=dropout_enc_dec)
 
     def flatten_parameters(self):
+        return
         self.understander_encoder.rnn.flatten_parameters()
         self.executor_encoder.rnn.flatten_parameters()
         self.decoder.decoder_model.rnn.flatten_parameters()
@@ -83,7 +84,8 @@ class Seq2seq(nn.Module):
                 teacher_forcing_ratio=0):
 
         understander_encoder_embeddings, understander_encoder_hidden, understander_encoder_outputs, understander_encoder_other = self.forward_understander_encoder(input_variable, input_lengths)
-        executor_encoder_embeddings, executor_encoder_hidden, executor_encoder_outputs, executor_encoder_other = self.forward_executor_encoder(input_variable, input_lengths)
+        # executor_encoder_embeddings, executor_encoder_hidden, executor_encoder_outputs, executor_encoder_other = self.forward_executor_encoder(input_variable, input_lengths)
+        executor_encoder_hidden = executor_encoder_outputs = executor_encoder_embeddings = executor_encoder_other = understander_encoder_hidden
 
         result = self.forward_decoder(
           target_variables=target_variables,
@@ -97,7 +99,7 @@ class Seq2seq(nn.Module):
 
         # Merge 'other's
         result[-1].update(understander_encoder_other)
-        result[-1].update(executor_encoder_other)
+        # result[-1].update(executor_encoder_other)
 
         return result
 
