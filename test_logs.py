@@ -3,7 +3,7 @@ import re
 from collections import OrderedDict
 
 def name_parser(filename, subdir):
-    return subdir.split('/')[-1]
+    return filename.split('/')[-1]
     # if '64' in subdir:
     #     return splits[1][:index] + '_E64' + splits[1][index:]
     # else:
@@ -14,7 +14,7 @@ log = LogCollection()
 # log.add_log_from_folder('dumps_64', ext='LOG', name_parser=name_parser)
 # log.add_log_from_folder('dump_final', ext='LOG', name_parser=name_parser)
 # log.add_log_from_folder('dumps_temp', ext='LOG', name_parser=name_parser)
-log.add_log_from_folder('../machine_results_copy/test_all_baselines', ext='LOG', name_parser=name_parser)
+log.add_log_from_folder('temp', ext='LOG', name_parser=name_parser)
 
 ############################
 # helper funcs
@@ -35,10 +35,16 @@ def data_name_parser(data_name, model_name):
         label = 'Learned'
     label=''
 
+    if 'basel' in model_name:
+        label = "Baseline"
+    else:
+        label = "Seq2Attn"
+
     if 'Train' in data_name:
-        label = 'Train'
-    elif 'val' in data_name:
-        label = 'Validation'
+        label += ', Train'
+    elif 'test' in data_name:
+        label += ', Validation'
+    print(label)
 
     return label
 
@@ -94,7 +100,7 @@ def group_rest(dataset):
     else:
         return 'tests'
 
-mean_avg, min_avg, max_avg, std_avg = log.find_highest_average_val('val', 'nll_loss', 'seq_acc', find_basename=k_base_name, find_data_name=k_parse_data_set_name, restrict_data=no_restriction)
+mean_avg, min_avg, max_avg, std_avg = log.find_highest_average_val('rain', 'bleu', 'bleu', find_basename=k_base_name, find_data_name=k_parse_data_set_name, restrict_data=no_restriction)
 
 print("\nData sets:")
 for model in natural_sort(min_avg)[:1]:
@@ -150,7 +156,7 @@ def only_train(input_str):
         return True
     return False
 def only_validation(input_str):
-    if 'val' in input_str:
+    if 'test' in input_str:
         return True
     return False
 def no_validation(input_str):
@@ -165,7 +171,9 @@ def train_and_val(input_str):
     return only_train(input_str) or only_validation(input_str)
 
 def k_best_model_filter(input_str):
-    return True
+    if 'seq2attn_s' in input_str or 'baseline_f' in input_str:
+        return True
+    return False
     if 'full' not in input_str and 'hard' not in input_str:
         return True
     return False
@@ -188,25 +196,25 @@ def k_color_one(model_name, data_name):
     return c,l
 
 def k_color_one_new(model_name, data_name):
-    if 'baseline' and 'with_' in model_name:
-        c = 'black'
-    elif 'baseline' in model_name:
+    if 'baseline_full' in model_name:
         c = 'm'
-    elif 'hard' in model_name:
+    elif 'baseline_spa' in model_name:
+        c = 'm'
+    elif 'seq2attn_f' in model_name:
         c = 'g'
-    elif 'learned' in model_name:
-        c = 'b'
+    elif 'seq2attn_s' in model_name:
+        c = 'blue'
 
     if 'Train' in data_name:
-        l = '-'
-    else:
         l = '--'
+    else:
+        l = '-'
 
-    return c,l
+    return c, l
 
 # # Train loss
-# fig = log.plot_metric('nll_loss', restrict_model=k_best_model_filter, restrict_data=train_and_val, data_name_parser=data_name_parser, color_group=k_color_one_new, eor=-1, ylabel='Loss')
-# fig.savefig('/home/kris/Desktop/Results plots/train_and_val_loss.png')
+fig = log.plot_metric('bleu', restrict_model=k_best_model_filter, restrict_data=train_and_val, data_name_parser=data_name_parser, color_group=k_color_one_new, eor=-1, ylabel='BLEU')
+fig.savefig('/home/kris/Desktop/Results plots/train_and_val_loss.png')
 
 # # Train accuracy
 # fig = log.plot_metric('sym_rwr_acc', restrict_model=k_best_model_filter, restrict_data=only_train, data_name_parser=data_name_parser, color_group=k_color_one_new, eor=-1, ylabel='Accuracy')

@@ -118,7 +118,7 @@ class LogCollection(object):
             for fname in files:
                 f = os.path.join(subdir, fname)
 
-                if f.endswith(ext):
+                if ext in f:
                     if name_parser: log_name = name_parser(f, subdir)
                     else: log_name = f
 
@@ -156,12 +156,12 @@ class LogCollection(object):
 
         for i, name in enumerate(self.log_names):
             if restrict_model(name):
-                label = name+' '
+                label = ""
                 log = self.logs[i]
                 for dataset in log.data.keys():
                     if restrict_data(dataset):
                         label_name = data_name_parser(dataset, name) if data_name_parser else dataset
-                        steps = [step/float(1) for step in log.steps]
+                        steps = [step/float(80000) for step in log.steps]
                         if color_group:
                             steps, data = self.prune_data(steps, log.data[dataset][metric_name])
                             c,l=color_group(name, dataset)
@@ -173,7 +173,7 @@ class LogCollection(object):
                                      log.data[dataset][metric_name][:eor],
                                      label=label+label_name)
                         ax.tick_params(axis='both', which='major', labelsize=20)
-                        plt.xlabel("Epochs", fontsize=24)
+                        plt.xlabel("Epoch", fontsize=24)
                         plt.ylabel(ylabel, fontsize=24)
                         plt.title(title)
 
