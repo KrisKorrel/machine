@@ -11,13 +11,13 @@ from torch import optim
 
 from collections import defaultdict
 
-import seq2seq
-from seq2seq.evaluator import Evaluator
-from seq2seq.loss import NLLLoss, AttentionLoss
-from seq2seq.metrics import SymbolRewritingAccuracy
-from seq2seq.optim import Optimizer
-from seq2seq.util.checkpoint import Checkpoint
-from seq2seq.util.log import Log
+import machine
+from machine.evaluator import Evaluator
+from machine.loss import NLLLoss
+from machine.metrics import SymbolRewritingAccuracy
+from machine.optim import Optimizer
+from machine.util.checkpoint import Checkpoint
+from machine.util.log import Log
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -33,8 +33,8 @@ class SupervisedTrainer(object):
     Args:
         expt_dir (optional, str): experiment Directory to store details of the experiment,
             by default it makes a folder in the current directory to store the details (default: `experiment`).
-        loss (list, optional): list of seq2seq.loss.Loss objects for training (default: [seq2seq.loss.NLLLoss])
-        metrics (list, optional): list of seq2seq.metric.metric objects to be computed during evaluation
+        loss (list, optional): list of machine.loss.Loss objects for training (default: [machine.loss.NLLLoss])
+        metrics (list, optional): list of machine.metric.metric objects to be computed during evaluation
         batch_size (int, optional): batch size for experiment, (default: 64)
         checkpoint_every (int, optional): number of epochs to checkpoint after, (default: 100)
         print_every (int, optional): number of iterations to print after, (default: 100)
@@ -176,8 +176,8 @@ class SupervisedTrainer(object):
         Checkpoint(model=model,
                    optimizer=self.optimizer,
                    epoch=start_epoch, step=start_step,
-                   input_vocab=data.fields[seq2seq.src_field_name].vocab,
-                   output_vocab=data.fields[seq2seq.tgt_field_name].vocab).save(self.expt_dir, name=model_name)
+                   input_vocab=data.fields[machine.src_field_name].vocab,
+                   output_vocab=data.fields[machine.tgt_field_name].vocab).save(self.expt_dir, name=model_name)
 
         if self.pre_train:
             # Disable training updates for the understander
@@ -290,17 +290,14 @@ class SupervisedTrainer(object):
                             Checkpoint(model=model,
                                        optimizer=self.optimizer,
                                        epoch=epoch, step=step,
-                                       input_vocab=data.fields[seq2seq.src_field_name].vocab,
-                                       output_vocab=data.fields[seq2seq.tgt_field_name].vocab).save(self.expt_dir, name=model_name)
+                                       input_vocab=data.fields[machine.src_field_name].vocab,
+                                       output_vocab=data.fields[machine.tgt_field_name].vocab).save(self.expt_dir, name=model_name)
 
             if step_elapsed == 0: continue
 
             for loss in losses:
                 epoch_loss_avg[loss.log_name] = epoch_loss_total[loss.log_name] / min(steps_per_epoch, step - start_step)
                 epoch_loss_total[loss.log_name] = 0
-
-            loss_msg = ' '.join(['%s: %.4f' % (loss.log_name, loss.get_loss()) for loss in losses])
-            log_msg = "Finished epoch %d: Train %s" % (epoch, loss_msg)
 
             if dev_data is not None:
                 losses, metrics = self.evaluator.evaluate(model, dev_data, self.get_batch_data)
@@ -334,20 +331,20 @@ class SupervisedTrainer(object):
         """ Run training for a given model.
 
         Args:
-            model (seq2seq.models): model to run training on, if `resume=True`, it would be
+            model (machine.models): model to run training on, if `resume=True`, it would be
                overwritten by the model loaded from the latest checkpoint.
-            data (seq2seq.dataset.dataset.Dataset): dataset object to train on
+            data (machine.dataset.dataset.Dataset): dataset object to train on
             num_epochs (int, optional): number of epochs to run (default 5)
             resume(bool, optional): resume training with the latest checkpoint, (default False)
-            dev_data (seq2seq.dataset.dataset.Dataset, optional): dev Dataset (default None)
-            optimizer (seq2seq.optim.Optimizer, optional): optimizer for training
+            dev_data (machine.dataset.dataset.Dataset, optional): dev Dataset (default None)
+            optimizer (machine.optim.Optimizer, optional): optimizer for training
                (default: Optimizer(pytorch.optim.Adam, max_grad_norm=5))
             teacher_forcing_ratio (float, optional): teaching forcing ratio (default 0)
             learing_rate (float, optional): learning rate used by the optimizer (default 0.001)
             checkpoint_path (str, optional): path to load checkpoint from in case training should be resumed
             top_k (int): how many models should be stored during training
         Returns:
-            model (seq2seq.models): trained model.
+            model (machine.models): trained model.
         """
         # If training is set to resume
         if resume:
@@ -388,13 +385,13 @@ class SupervisedTrainer(object):
 
     @staticmethod
     def get_batch_data(batch):
-        input_variables, input_lengths = getattr(batch, seq2seq.src_field_name)
-        target_variables = {'decoder_output': getattr(batch, seq2seq.tgt_field_name),
+        input_variables, input_lengths = getattr(batch, machine.src_field_name)
+        target_variables = {'decoder_output': getattr(batch, machine.tgt_field_name),
                             'encoder_input': input_variables}  # The k-grammar metric needs to have access to the inputs
 
         # If available, also get provided attentive guidance data
-        if hasattr(batch, seq2seq.attn_field_name):
-            attention_target = getattr(batch, seq2seq.attn_field_name)
+        if hasattr(batch, machine.attn_field_name):
+            attention_target = getattr(batch, machine.attn_field_name)
             target_variables['attention_target'] = attention_target
 
         return input_variables, input_lengths, target_variables
