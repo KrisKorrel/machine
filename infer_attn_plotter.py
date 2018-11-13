@@ -74,7 +74,7 @@ def prepare_data(data_path):
     return data_tensor
 
 
-def plot_attention(test_data, img_path, correctness_check):
+def plot_attention(test_data, img_path, raw_path, correctness_check):
     """Plot attentions."""
     indices = list(range(len(test_data)))
     # random.shuffle(indices)
@@ -93,13 +93,15 @@ def plot_attention(test_data, img_path, correctness_check):
             print("Incorrect: ", data_index)
 
         img_filename = os.path.join(img_path, 'plot' + '{}'.format(data_index))
+        raw_filename = os.path.join(raw_path, 'plot' + '{}'.format(data_index))
         attn_plotter.evaluateAndShowAttention(
             input_sequence,
             output_sequence,
             outputs,
             attention[:output_length],
             correctness_check,
-            img_filename)
+            img_filename,
+            raw_filename)
 
 
 def correctness_check_lookup_tables(input_sequence, output_sequence, prediction_sequence):
@@ -166,8 +168,13 @@ def correctness_check_kgrammar(input_sequence, output_sequence, prediction_seque
 if __name__ == '__main__':
     model, input_vocab, output_vocab = load_model(opt.checkpoint_path)
 
+    output_dir_raw = opt.output_dir + '_raw'
+
     if not os.path.exists(opt.output_dir):
         os.makedirs(opt.output_dir)
+
+    if not os.path.exists(output_dir_raw):
+        os.makedirs(output_dir_raw)
 
     predictor = Predictor(model, input_vocab, output_vocab)
 
@@ -182,4 +189,4 @@ if __name__ == '__main__':
         if opt.kgrammar \
         else correctness_check_lookup_tables
 
-    plot_attention(test_data, opt.output_dir, correctness_check)
+    plot_attention(test_data, opt.output_dir, output_dir_raw, correctness_check)

@@ -4,7 +4,14 @@ import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 
 import numpy as np
+import pickle
 
+class RawData(object):
+    def __init__(self, attentions, input, output, colors):
+        self.attentions = attentions
+        self.input = input
+        self.output = output
+        self.colors = colors
 
 class PlotAttention(object):
     """PlotAttention."""
@@ -12,7 +19,7 @@ class PlotAttention(object):
     def __init__(self):
         """Init."""
 
-    def _showAttention(self, input_sentence, output_words, attentions, name, colour):
+    def _showAttention(self, input_sentence, output_words, attentions, name, raw_name, colour):
         # Set up figure with colorbar
         fig = plt.figure()
         ax = ax = plt.gca()
@@ -49,13 +56,19 @@ class PlotAttention(object):
 
         # plt.show()
         # exit()
+
+        raw_data = RawData(attentions, input_sentence, output_words, colour)
+
+        with open(raw_name + ".pickle", 'wb') as f:
+            pickle.dump(raw_data, f)
+
         plt.savefig("{}.png".format(name))
         plt.close('all')
 
     def evaluateAndShowAttention(self, input_sequence, output_sequence, output_words,
-                                 attentions, correctness_check, name=None):
+                                 attentions, correctness_check, name, raw_name):
         """Add colors (for exact match) and plot attention."""
         correct = correctness_check(input_sequence, output_sequence, output_words)
         colour = list(map(lambda b: 'g' if b else 'r', correct))
 
-        self._showAttention(input_sequence, output_words, attentions, name, colour)
+        self._showAttention(input_sequence, output_words, attentions, name, raw_name, colour)
