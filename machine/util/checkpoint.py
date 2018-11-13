@@ -16,7 +16,7 @@ class Checkpoint(object):
     to write parameters to disk.
 
     Args:
-        model (seq2seq): seq2seq model being trained
+        model (machine.Seq2seq): seq2seq model being trained
         optimizer (Optimizer): stores the state of the optimizer
         epoch (int): current epoch (an epoch is a loop through the full training data)
         step (int): number of examples seen within the current epoch
@@ -75,8 +75,7 @@ class Checkpoint(object):
                    os.path.join(path, self.TRAINER_STATE_NAME))
 
         # SparsemaxFunction is not serializable
-        if not hasattr(self.model.decoder.decoder_model.attention, 'sparsemax'):
-            torch.save(self.model, os.path.join(path, self.MODEL_NAME))
+        torch.save(self.model, os.path.join(path, self.MODEL_NAME))
 
         with open(os.path.join(path, self.INPUT_VOCAB_FILE), 'wb') as fout:
             dill.dump(self.input_vocab, fout)
