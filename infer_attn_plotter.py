@@ -10,13 +10,13 @@ import os
 import random
 import torchtext
 
-import seq2seq
-from seq2seq.dataset import AttentionField
-from seq2seq.dataset import SourceField
-from seq2seq.dataset import TargetField
-from seq2seq.evaluator import PlotAttention
-from seq2seq.evaluator import Predictor
-from seq2seq.util.checkpoint import Checkpoint
+import machine
+from machine.dataset import AttentionField
+from machine.dataset import SourceField
+from machine.dataset import TargetField
+from machine.evaluator import PlotAttention
+from machine.evaluator import Predictor
+from machine.util.checkpoint import Checkpoint
 
 try:
     raw_input          # Python 2
@@ -43,8 +43,8 @@ def get_data_as_tensor(data):
     # Create N x 2 tensor. With strings of src and target for each data example
     master_data = np.zeros((len(data), 2), dtype=object)
     for i in range(len(data)):
-        master_data[i, 0] = ' '.join(vars(data[i])[seq2seq.src_field_name])
-        master_data[i, 1] = ' '.join(vars(data[i])[seq2seq.tgt_field_name][1:])
+        master_data[i, 0] = ' '.join(vars(data[i])[machine.src_field_name])
+        master_data[i, 1] = ' '.join(vars(data[i])[machine.tgt_field_name][1:])
     return master_data
 
 
