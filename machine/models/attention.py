@@ -1,14 +1,8 @@
-import math
-
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from ..util.gumbel import gumbel_softmax
-from ..util.sparsemax import Sparsemax
-
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
 
 class Attention(nn.Module):
     """
@@ -46,10 +40,11 @@ class Attention(nn.Module):
 
     """
 
-    def __init__(self, input_dim, output_dim, method, attention_activation):
+    def __init__(self, input_dim, method, attention_activation, hidden_dim=None):
         super(Attention, self).__init__()
         self.mask = None
-        self.method = self.get_method(method, input_dim, output_dim)
+        hidden_dim = hidden_dim or input_dim
+        self.method = self.get_method(method, input_dim, hidden_dim)
         self.attention_activation = attention_activation
 
     def set_mask(self, mask):
@@ -91,12 +86,12 @@ class Attention(nn.Module):
 
         return context, attn
 
-    def get_method(self, method, input_dim, output_dim=0):
+    def get_method(self, method, input_dim, hidden_dim):
         """
         Set method to compute attention
         """
         if method == 'mlp':
-            method = MLP(input_dim, output_dim)
+            method = MLP(input_dim, hidden_dim)
         elif method == 'concat':
             method = Concat(input_dim)
         elif method == 'dot':
@@ -163,11 +158,11 @@ class Dot(nn.Module):
 
 class MLP(nn.Module):
 
-    def __init__(self, input_dim, output_dim):
+    def __init__(self, input_dim, hidden_dim):
         super(MLP, self).__init__()
-        self.mlp = nn.Linear(input_dim, output_dim)
+        self.mlp = nn.Linear(input_dim, hidden_dim)
         self.activation = nn.ReLU()
-        self.out = nn.Linear(output_dim, 1)
+        self.out = nn.Linear(hidden_dim, 1)
 
     def forward(self, decoder_states, encoder_states):
         # apply mlp to all encoder states for current decoder
