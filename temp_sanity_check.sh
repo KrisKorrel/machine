@@ -19,7 +19,6 @@ MODEL_TYPE=baseline
 SAMPLE_TRAIN=full
 SAMPLE_INFER=full
 
-Start training
 echo "Train model on example data"
 python train_model.py \
     --train $TRAIN_PATH \
