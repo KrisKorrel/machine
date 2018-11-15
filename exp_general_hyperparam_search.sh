@@ -95,8 +95,8 @@ if [ "$1" == "baseline" ]; then
     MODEL_TYPE="baseline"
     SAMPLE_TRAIN=full
     SAMPLE_INFER=full
-    ATTN_KEYS=executor_encoder_outputs
-    ATTN_VALS=executor_encoder_outputs
+    ATTN_KEYS=understander_encoder_outputs
+    ATTN_VALS=understander_encoder_outputs
     INIT_EXEC_DEC_WITH=encoder
 fi
 if [ "$1" == "seq2attn" ]; then
