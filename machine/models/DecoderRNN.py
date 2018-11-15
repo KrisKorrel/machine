@@ -68,12 +68,10 @@ class DecoderRNN(nn.Module):
                  sos_id, eos_id, embedding_dim,
                  n_layers=1, rnn_cell='gru', bidirectional=False,
                  input_dropout_p=0, dropout_p=0, use_attention=False, attention_method=None, full_focus=False,
-                 model_type='baseline',
                  sample_train=None,
                  sample_infer=None,
                  initial_temperature=None,
                  learn_temperature=None,
-                 init_exec_dec_with=None,
                  attn_keys=None,
                  attn_vals=None,
                  full_attention_focus='no'):
@@ -91,8 +89,6 @@ class DecoderRNN(nn.Module):
         self.input_dropout = nn.Dropout(p=input_dropout_p)
         self.embedding = nn.Embedding(vocab_size, hidden_size)
 
-        self.model_type = model_type
-
         if attn_keys == 'embeddings':
             self.attn_keys = 'encoder_embeddings'
         elif attn_keys == 'outputs':
@@ -106,7 +102,6 @@ class DecoderRNN(nn.Module):
         # increase input size decoder if attention is applied before decoder rnn
         if True:
             self.decoder_model = Seq2attn(
-                model_type=model_type,
                 rnn_cell=rnn_cell,
                 embedding_dim=embedding_dim,
                 hidden_dim=hidden_size,
@@ -133,15 +128,13 @@ class DecoderRNN(nn.Module):
 
         # If we initialize the executor's decoder with a new vector instead of the last encoder state
         # We initialize it as parameter here.
-        self.init_exec_dec_with = 'new'
-        if self.init_exec_dec_with == 'new':
-            if self.rnn_type == 'lstm':
-                self.executor_hidden0 = (
-                    nn.Parameter(torch.zeros([self.n_layers, 1, self.hidden_size], device=device)),
-                    nn.Parameter(torch.zeros([self.n_layers, 1, self.hidden_size], device=device)))
+        if self.rnn_type == 'lstm':
+            self.executor_hidden0 = (
+                nn.Parameter(torch.zeros([self.n_layers, 1, self.hidden_size], device=device)),
+                nn.Parameter(torch.zeros([self.n_layers, 1, self.hidden_size], device=device)))
 
-            elif self.rnn_type == 'gru':
-                self.executor_hidden0 = nn.Parameter(torch.zeros([self.n_layers, 1, self.hidden_size], device=device))
+        elif self.rnn_type == 'gru':
+            self.executor_hidden0 = nn.Parameter(torch.zeros([self.n_layers, 1, self.hidden_size], device=device))
 
         if use_attention == 'post-rnn':
             self.out = nn.Linear(2 * self.hidden_size, vocab_size)

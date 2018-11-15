@@ -39,7 +39,7 @@ parser.add_argument('--epochs', type=int, help='Number of epochs', default=6)
 parser.add_argument('--optim', type=str, help='Choose optimizer', choices=['adam', 'adadelta', 'adagrad', 'adamax', 'rmsprop', 'sgd'])
 parser.add_argument('--max_len', type=int, help='Maximum sequence length', default=50)
 parser.add_argument('--lower', action='store_true', help='Whether to lowercase the text in this field')
-parser.add_argument('--rnn_cell', type=str, help="Chose type of rnn cell", choices=['lstm', 'gru'], default='lstm')
+parser.add_argument('--rnn_cell', type=str, help="Chose type of rnn cell", default='lstm')
 parser.add_argument('--bidirectional', action='store_true', help="Flag for bidirectional encoder")
 parser.add_argument('--embedding_size', type=int, help='Embedding size', default=128)
 parser.add_argument('--hidden_size', type=int, help='Hidden layer size', default=128)
@@ -70,16 +70,13 @@ parser.add_argument('--write-logs', help='Specify file to write logs to after tr
 parser.add_argument('--cuda_device', default=0, type=int, help='set cuda device to use')
 
 # Arguments for the UE model
-parser.add_argument('--model_type', choices=['baseline', 'seq2attn'], required=True, help='Indicate whether we should have a separate transcoder and decoder or just one decoder.')
 parser.add_argument('--sample_train', type=str, choices=['full', 'full_hard', 'gumbel_soft', 'gumbel_hard', 'sparsemax'], help='When training UE in a supervised setting, we can use the full attention vector, sparsemax, or sample using gumbel (ST) at training time')
 parser.add_argument('--sample_infer', type=str, choices=['full', 'full_hard', 'gumbel_soft', 'gumbel_hard', 'argmax', 'sparsemax'], help='When training UE in a supervised setting, we can use the full attention vector, sample using gumbel (ST), sparsemax, or use argmax at inference time')
 parser.add_argument('--initial_temperature', type=float, default=1, help='(Initial) temperature to use for gumbel-softmax')
 parser.add_argument('--learn_temperature', type=str, choices=['no', 'unconditioned', 'conditioned'], help='Whether the temperature should be a learnable parameter. And whether it should be conditioned')
-parser.add_argument('--init_exec_dec_with', type=str, choices=['encoder', 'new'], default='encoder', help='The decoder of the executor can be initialized either with its last encoder state, or with a new (learnable) vector')
 parser.add_argument('--attn_keys', type=str, choices=['outputs', 'embeddings'], default='outputs')
 parser.add_argument('--attn_vals', type=str, choices=['outputs', 'embeddings'], default='outputs')
 parser.add_argument('--full_attention_focus', choices=['yes', 'no'], default='no', help='Indicate whether to multiply the hidden state of the decoder with the context vector')
-parser.add_argument('--dropout_enc_dec', default='0', type=float, help="If the executor decoder is initialized with it's last encoder state, you can optionally add dropout between the encoder and decoder")
 
 opt = parser.parse_args()
 IGNORE_INDEX=-1
@@ -229,16 +226,14 @@ else:
                          eos_id=tgt.eos_id,
                          sos_id=tgt.sos_id,
                          embedding_dim=opt.embedding_size,
-                         model_type=opt.model_type,
                          sample_train=opt.sample_train,
                          sample_infer=opt.sample_infer,
                          initial_temperature=opt.initial_temperature,
                          learn_temperature=opt.learn_temperature,
-                         init_exec_dec_with=opt.init_exec_dec_with,
                          attn_keys=opt.attn_keys,
                          attn_vals=opt.attn_vals,
                          full_attention_focus=opt.full_attention_focus)
-    seq2seq = Seq2seq(seq2attn_encoder, decoder, dropout_enc_dec=opt.dropout_enc_dec)
+    seq2seq = Seq2seq(seq2attn_encoder, decoder)
     seq2seq.to(device)
 
     for param in seq2seq.named_parameters():

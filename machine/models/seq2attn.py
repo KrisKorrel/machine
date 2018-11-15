@@ -6,7 +6,6 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from torch.distributions import Categorical
 
 from .attention import Attention
 
@@ -16,14 +15,14 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 class Seq2attn(nn.Module):
 
     """
-    Seq2seq Seq2attn model with attention.
+    seq2seq seq2attn model with attention.
     First, pass the input sequence to `select_actions()` to perform forward pass and retrieve the actions
     Next, calculate and pass the rewards for the selected actions.
     Finally, call `finish_episod()` to calculate the discounted rewards and policy loss.
     """
 
     # TODO: Do we need attn_keys and vals here? Can't they just only be passed as variables in forward()?
-    def __init__(self, model_type, rnn_cell, embedding_dim, n_layers, hidden_dim, output_dim, dropout_p, use_attention, attention_method, sample_train, sample_infer, initial_temperature, learn_temperature, attn_keys, attn_vals, full_focus, full_attention_focus):
+    def __init__(self, rnn_cell, embedding_dim, n_layers, hidden_dim, output_dim, dropout_p, use_attention, attention_method, sample_train, sample_infer, initial_temperature, learn_temperature, attn_keys, attn_vals, full_focus, full_attention_focus):
         """
         Args:
             input_vocab_size (int): Total size of the input vocabulary
@@ -32,7 +31,6 @@ class Seq2attn(nn.Module):
         """
         super(Seq2attn, self).__init__()
 
-        self.model_type = model_type
         self.hidden_size = hidden_dim
         self.full_attention_focus = (full_attention_focus == 'yes')
 
@@ -47,7 +45,7 @@ class Seq2attn(nn.Module):
         self.use_attention = use_attention
         if not self.use_attention:
             raise Exception("Current implementation requires attention")
-        if self.model_type == 'seq2attn' and self.use_attention != 'pre-rnn':
+        if self.use_attention != 'pre-rnn':
             raise Exception("Must use pre-rnn in combination with seq2attn")
         if self.use_attention == 'post-rnn' and full_focus:
             raise Exception("Full focus can only be used with pre-rnn")
@@ -66,12 +64,9 @@ class Seq2attn(nn.Module):
         input_size = hidden_dim + val_dim
 
         # Initialize models
-        if self.model_type == 'baseline' and self.use_attention == 'pre-rnn' and not full_focus:
-            Seq2attn_input_size = 2 * hidden_dim
-        else:
-            Seq2attn_input_size = hidden_dim
+        seq2attn_input_size = hidden_dim
 
-        self.Seq2attn_decoder = rnn_cell(Seq2attn_input_size, hidden_dim, n_layers, batch_first=True, dropout=dropout_p)
+        self.seq2attn_decoder = rnn_cell(seq2attn_input_size, hidden_dim, n_layers, batch_first=True, dropout=dropout_p)
         self.attention = Attention(input_dim=hidden_dim+key_dim, output_dim=hidden_dim, method=attention_method, sample_train=sample_train, sample_infer=sample_infer, learn_temperature=learn_temperature, initial_temperature=initial_temperature)
         self.executor_decoder = rnn_cell(input_size, hidden_dim, n_layers, batch_first=True, dropout=dropout_p)
 
@@ -133,10 +128,10 @@ class Seq2attn(nn.Module):
         """
 
         if self.rnn_type == 'gru':
-            Seq2attn_decoder_hidden = ponder_decoder_hidden[:, :, :self.hidden_size].contiguous()
+            seq2attn_decoder_hidden = ponder_decoder_hidden[:, :, :self.hidden_size].contiguous()
             executor_decoder_hidden = ponder_decoder_hidden[:, :, self.hidden_size:].contiguous()
         elif self.rnn_type == 'lstm':
-            Seq2attn_decoder_hidden = (ponder_decoder_hidden[0][:, :, :self.hidden_size].contiguous(),
+            seq2attn_decoder_hidden = (ponder_decoder_hidden[0][:, :, :self.hidden_size].contiguous(),
                                            ponder_decoder_hidden[1][:, :, :self.hidden_size].contiguous())
             executor_decoder_hidden = (ponder_decoder_hidden[0][:, :, self.hidden_size:].contiguous(),
                                        ponder_decoder_hidden[1][:, :, self.hidden_size:].contiguous())
@@ -149,85 +144,30 @@ class Seq2attn(nn.Module):
 
 
 
-        if self.model_type == 'seq2attn':
-            Seq2attn_decoder_output, Seq2attn_decoder_hidden = self.Seq2attn_decoder(embedded, Seq2attn_decoder_hidden)
-            context, attn = self.get_context(queries=Seq2attn_decoder_output, keys=attn_keys, values=attn_vals, **attention_method_kwargs)
-            executor_decoder_input = torch.cat((context, embedded), dim=2)
-            if self.full_focus:
-                executor_decoder_input = F.relu(self.ffocus_merge(executor_decoder_input))
-                executor_decoder_input = torch.mul(context, executor_decoder_input)
-            if self.full_attention_focus:
-                if self.rnn_type == 'gru':
-                    executor_decoder_hidden = executor_decoder_hidden * context.transpose(0, 1)
-                elif self.rnn_type == 'lstm':
-                    executor_decoder_hidden = (executor_decoder_hidden[0] * context.transpose(0, 1),
-                                               executor_decoder_hidden[1] * context.transpose(0, 1))
-            executor_decoder_output, executor_decoder_hidden = self.executor_decoder(executor_decoder_input, executor_decoder_hidden)
+        seq2attn_decoder_output, seq2attn_decoder_hidden = self.seq2attn_decoder(embedded, seq2attn_decoder_hidden)
+        context, attn = self.get_context(queries=seq2attn_decoder_output, keys=attn_keys, values=attn_vals, **attention_method_kwargs)
+        executor_decoder_input = torch.cat((context, embedded), dim=2)
+        if self.full_focus:
+            executor_decoder_input = F.relu(self.ffocus_merge(executor_decoder_input))
+            executor_decoder_input = torch.mul(context, executor_decoder_input)
+        if self.full_attention_focus:
+            if self.rnn_type == 'gru':
+                executor_decoder_hidden = executor_decoder_hidden * context.transpose(0, 1)
+            elif self.rnn_type == 'lstm':
+                executor_decoder_hidden = (executor_decoder_hidden[0] * context.transpose(0, 1),
+                                           executor_decoder_hidden[1] * context.transpose(0, 1))
+        executor_decoder_output, executor_decoder_hidden = self.executor_decoder(executor_decoder_input, executor_decoder_hidden)
 
-            output = executor_decoder_output
-
-        elif self.model_type == 'baseline':
-            if self.use_attention == 'pre-rnn':
-                # When using multilayer rnns we simply take the last layer of
-                # the encoder as attention queries
-                if self.rnn_type == 'gru':
-                    if Seq2attn_decoder_hidden.size(0) > 1:
-                        attn_queries = Seq2attn_decoder_hidden[-2:-1].transpose(0, 1)
-                    else:
-                        attn_queries = Seq2attn_decoder_hidden.transpose(0, 1)
-
-                elif self.rnn_type == 'lstm':
-                    if Seq2attn_decoder_hidden[0].size(0) > 1:
-                        attn_queries = Seq2attn_decoder_hidden[0][-2:-1].transpose(0, 1)
-                    else:
-                        attn_queries = Seq2attn_decoder_hidden[0].transpose(0, 1)
-
-                context, attn = self.get_context(queries=attn_queries, keys=attn_keys, values=attn_vals, **attention_method_kwargs)
-                Seq2attn_decoder_input = torch.cat((context, embedded), dim=2)
-
-                if self.full_focus:
-                    Seq2attn_decoder_input = F.relu(self.ffocus_merge(Seq2attn_decoder_input))
-                    Seq2attn_decoder_input = torch.mul(context, Seq2attn_decoder_input)
-                if self.full_attention_focus:
-                    Seq2attn_decoder_hidden = Seq2attn_decoder_hidden * context.transpose(0, 1)
-
-                Seq2attn_decoder_output, Seq2attn_decoder_hidden = self.Seq2attn_decoder(Seq2attn_decoder_input, Seq2attn_decoder_hidden)
-
-                output = Seq2attn_decoder_output
-
-            elif self.use_attention == 'post-rnn':
-                Seq2attn_decoder_output, Seq2attn_decoder_hidden = self.Seq2attn_decoder(embedded, Seq2attn_decoder_hidden)
-
-                # When using multilayer rnns we simply take the last layer of
-                # the encoder as attention queries
-                if self.rnn_type == 'gru':
-                    if Seq2attn_decoder_hidden.size(0) > 1:
-                        attn_queries = Seq2attn_decoder_hidden[-2:-1].transpose(0, 1)
-                    else:
-                        attn_queries = Seq2attn_decoder_hidden.transpose(0, 1)
-
-                elif self.rnn_type == 'lstm':
-                    if Seq2attn_decoder_hidden[0].size(0) > 1:
-                        attn_queries = Seq2attn_decoder_hidden[0][-2:-1].transpose(0, 1)
-                    else:
-                        attn_queries = Seq2attn_decoder_hidden[0].transpose(0, 1)
-
-                context, attn = self.get_context(queries=attn_queries, keys=attn_keys, values=attn_vals, **attention_method_kwargs)
-                executor_decoder_input = torch.cat((context, Seq2attn_decoder_output), dim=2)
-
-                if self.full_attention_focus:
-                    Seq2attn_decoder_hidden = Seq2attn_decoder_hidden * context.transpose(0, 1)
-
-                output = executor_decoder_input
+        output = executor_decoder_output
 
         # TODO: For pondering in combination with baseline: It currently also uses the executor, which it should not.
         if self.rnn_type == 'gru':
-            ponder_hidden = torch.cat([Seq2attn_decoder_hidden,
+            ponder_hidden = torch.cat([seq2attn_decoder_hidden,
                                        executor_decoder_hidden], dim=2)
         elif self.rnn_type == 'lstm':
-            ponder_hidden = (torch.cat([Seq2attn_decoder_hidden[0],
+            ponder_hidden = (torch.cat([seq2attn_decoder_hidden[0],
                                         executor_decoder_hidden[0]], dim=2),
-                             torch.cat([Seq2attn_decoder_hidden[1],
+                             torch.cat([seq2attn_decoder_hidden[1],
                                         executor_decoder_hidden[1]], dim=2))
 
         return output, ponder_hidden, attn

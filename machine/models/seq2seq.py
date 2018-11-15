@@ -32,11 +32,10 @@ class Seq2seq(nn.Module):
 
     """
 
-    def __init__(self, encoder, decoder, dropout_enc_dec=0.):
+    def __init__(self, encoder, decoder):
         super(Seq2seq, self).__init__()
         self.encoder = encoder
         self.decoder = decoder
-        self.enc_dec_dropout = nn.Dropout(p=dropout_enc_dec)
 
     def flatten_parameters(self):
         return

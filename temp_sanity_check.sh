@@ -13,32 +13,6 @@ EPOCH=1
 PRINT_EVERY=5
 SAVE_EVERY=5
 TF=0.5
-
-### TODO ###
-MODEL_TYPE=baseline
-SAMPLE_TRAIN=full
-SAMPLE_INFER=full
-
-echo "Train model on example data"
-python train_model.py \
-    --train $TRAIN_PATH \
-    --batch_size 1024 \
-    --output_dir $EXPT_DIR \
-    --embedding_size $EMB_SIZE \
-    --hidden_size $H_SIZE \
-    --rnn_cell $CELL \
-    --n_layers $N_LAYERS \
-    --epoch $EPOCH \
-    --print_every $PRINT_EVERY \
-    --save_every $SAVE_EVERY \
-    --teacher_forcing $TF \
-    --attention 'pre-rnn' \
-    --attention_method 'mlp' \
-    --model_type $MODEL_TYPE \
-    --sample_train $SAMPLE_TRAIN \
-    --sample_infer $SAMPLE_INFER
-
-MODEL_TYPE=seq2attn
 SAMPLE_TRAIN=gumbel_hard
 SAMPLE_INFER=argmax
 ATTN_KEYS=outputs
@@ -61,7 +35,6 @@ python train_model.py \
     --teacher_forcing $TF \
     --attention 'pre-rnn' \
     --attention_method 'mlp' \
-    --model_type $MODEL_TYPE \
     --sample_train $SAMPLE_TRAIN \
     --sample_infer $SAMPLE_INFER \
     --attn_keys $ATTN_KEYS \
