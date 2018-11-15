@@ -66,9 +66,9 @@ class Seq2attn(nn.Module):
         # Initialize models
         seq2attn_input_size = hidden_dim
 
-        self.seq2attn_decoder = rnn_cell(seq2attn_input_size, hidden_dim, n_layers, batch_first=True, dropout=dropout_p)
+        self.transcoder = rnn_cell(seq2attn_input_size, hidden_dim, n_layers, batch_first=True, dropout=dropout_p)
         self.attention = Attention(input_dim=hidden_dim+key_dim, output_dim=hidden_dim, method=attention_method, sample_train=sample_train, sample_infer=sample_infer, learn_temperature=learn_temperature, initial_temperature=initial_temperature)
-        self.executor_decoder = rnn_cell(input_size, hidden_dim, n_layers, batch_first=True, dropout=dropout_p)
+        self.decoder = rnn_cell(input_size, hidden_dim, n_layers, batch_first=True, dropout=dropout_p)
 
         self.full_focus = full_focus
         if self.full_focus:
@@ -113,7 +113,7 @@ class Seq2attn(nn.Module):
 
         return context, attn
 
-    def forward(self, embedded, ponder_decoder_hidden, attn_keys, attn_vals, **attention_method_kwargs):
+    def forward(self, embedded, transcoder_hidden, decoder_hidden, attn_keys, attn_vals, **attention_method_kwargs):
         """
         Perform forward pass and stochastically select actions using epsilon-greedy RL
 
@@ -127,15 +127,6 @@ class Seq2attn(nn.Module):
             list(torch.tensor): List of length max_output_length containing the selected actions
         """
 
-        if self.rnn_type == 'gru':
-            seq2attn_decoder_hidden = ponder_decoder_hidden[:, :, :self.hidden_size].contiguous()
-            executor_decoder_hidden = ponder_decoder_hidden[:, :, self.hidden_size:].contiguous()
-        elif self.rnn_type == 'lstm':
-            seq2attn_decoder_hidden = (ponder_decoder_hidden[0][:, :, :self.hidden_size].contiguous(),
-                                           ponder_decoder_hidden[1][:, :, :self.hidden_size].contiguous())
-            executor_decoder_hidden = (ponder_decoder_hidden[0][:, :, self.hidden_size:].contiguous(),
-                                       ponder_decoder_hidden[1][:, :, self.hidden_size:].contiguous())
-
         # First, we establish which encoder states are valid to attend to.
         # TODO: Only works when keys are (full) hidden states. Maybe we should pass the mask (set_mask)
 
@@ -144,30 +135,20 @@ class Seq2attn(nn.Module):
 
 
 
-        seq2attn_decoder_output, seq2attn_decoder_hidden = self.seq2attn_decoder(embedded, seq2attn_decoder_hidden)
-        context, attn = self.get_context(queries=seq2attn_decoder_output, keys=attn_keys, values=attn_vals, **attention_method_kwargs)
-        executor_decoder_input = torch.cat((context, embedded), dim=2)
+        transcoder_output, transcoder_hidden = self.transcoder(embedded, transcoder_hidden)
+        context, attn = self.get_context(queries=transcoder_output, keys=attn_keys, values=attn_vals, **attention_method_kwargs)
+        decoder_input = torch.cat((context, embedded), dim=2)
         if self.full_focus:
-            executor_decoder_input = F.relu(self.ffocus_merge(executor_decoder_input))
-            executor_decoder_input = torch.mul(context, executor_decoder_input)
+            decoder_input = F.relu(self.ffocus_merge(decoder_input))
+            decoder_input = torch.mul(context, decoder_input)
         if self.full_attention_focus:
             if self.rnn_type == 'gru':
-                executor_decoder_hidden = executor_decoder_hidden * context.transpose(0, 1)
+                decoder_hidden = decoder_hidden * context.transpose(0, 1)
             elif self.rnn_type == 'lstm':
-                executor_decoder_hidden = (executor_decoder_hidden[0] * context.transpose(0, 1),
-                                           executor_decoder_hidden[1] * context.transpose(0, 1))
-        executor_decoder_output, executor_decoder_hidden = self.executor_decoder(executor_decoder_input, executor_decoder_hidden)
+                decoder_hidden = (decoder_hidden[0] * context.transpose(0, 1),
+                                           decoder_hidden[1] * context.transpose(0, 1))
+        decoder_output, decoder_hidden = self.decoder(decoder_input, decoder_hidden)
 
-        output = executor_decoder_output
+        output = decoder_output
 
-        # TODO: For pondering in combination with baseline: It currently also uses the executor, which it should not.
-        if self.rnn_type == 'gru':
-            ponder_hidden = torch.cat([seq2attn_decoder_hidden,
-                                       executor_decoder_hidden], dim=2)
-        elif self.rnn_type == 'lstm':
-            ponder_hidden = (torch.cat([seq2attn_decoder_hidden[0],
-                                        executor_decoder_hidden[0]], dim=2),
-                             torch.cat([seq2attn_decoder_hidden[1],
-                                        executor_decoder_hidden[1]], dim=2))
-
-        return output, ponder_hidden, attn
+        return output, transcoder_hidden, decoder_hidden, attn
