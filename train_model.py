@@ -76,8 +76,8 @@ parser.add_argument('--sample_infer', type=str, choices=['full', 'full_hard', 'g
 parser.add_argument('--initial_temperature', type=float, default=1, help='(Initial) temperature to use for gumbel-softmax')
 parser.add_argument('--learn_temperature', type=str, choices=['no', 'unconditioned', 'conditioned'], help='Whether the temperature should be a learnable parameter. And whether it should be conditioned')
 parser.add_argument('--init_exec_dec_with', type=str, choices=['encoder', 'new'], default='encoder', help='The decoder of the executor can be initialized either with its last encoder state, or with a new (learnable) vector')
-parser.add_argument('--attn_keys', type=str, choices=['seq2attn_encoder_embeddings', 'seq2attn_encoder_outputs', 'executor_encoder_embeddings', 'executor_encoder_outputs'], default='executor_encoder_outputs')
-parser.add_argument('--attn_vals', type=str, choices=['seq2attn_encoder_embeddings', 'seq2attn_encoder_outputs', 'executor_encoder_embeddings', 'executor_encoder_outputs'], default='executor_encoder_outputs')
+parser.add_argument('--attn_keys', type=str, choices=['outputs', 'embeddings'], default='outputs')
+parser.add_argument('--attn_vals', type=str, choices=['outputs', 'embeddings'], default='outputs')
 parser.add_argument('--full_attention_focus', choices=['yes', 'no'], default='no', help='Indicate whether to multiply the hidden state of the decoder with the context vector')
 parser.add_argument('--dropout_enc_dec', default='0', type=float, help="If the executor decoder is initialized with it's last encoder state, you can optionally add dropout between the encoder and decoder")
 
@@ -218,15 +218,6 @@ else:
                                       bidirectional=opt.bidirectional,
                                       rnn_cell=opt.rnn_cell,
                                       variable_lengths=True)
-    executor_encoder = EncoderRNN(len(src.vocab),
-                                  max_len,
-                                  hidden_size,
-                                  opt.embedding_size,
-                                  dropout_p=opt.dropout_p_encoder,
-                                  n_layers=opt.n_layers,
-                                  bidirectional=opt.bidirectional,
-                                  rnn_cell=opt.rnn_cell,
-                                  variable_lengths=True)
     decoder = DecoderRNN(len(tgt.vocab), max_len, decoder_hidden_size,
                          dropout_p=opt.dropout_p_decoder,
                          n_layers=opt.n_layers,
@@ -247,7 +238,7 @@ else:
                          attn_keys=opt.attn_keys,
                          attn_vals=opt.attn_vals,
                          full_attention_focus=opt.full_attention_focus)
-    seq2seq = Seq2seq(seq2attn_encoder, executor_encoder, decoder, dropout_enc_dec=opt.dropout_enc_dec)
+    seq2seq = Seq2seq(seq2attn_encoder, decoder, dropout_enc_dec=opt.dropout_enc_dec)
     seq2seq.to(device)
 
     for param in seq2seq.named_parameters():

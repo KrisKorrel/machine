@@ -5,7 +5,7 @@ DEV_PATH=test/test_data/dev.txt
 EXPT_DIR=example
 
 # set values
-EMB_SIZE=32
+EMB_SIZE=16
 H_SIZE=32
 N_LAYERS=1
 CELL='gru'
@@ -41,8 +41,8 @@ python train_model.py \
 MODEL_TYPE=seq2attn
 SAMPLE_TRAIN=gumbel_hard
 SAMPLE_INFER=argmax
-ATTN_KEYS=seq2attn_encoder_outputs
-ATTN_VALS=seq2attn_encoder_embeddings
+ATTN_KEYS=outputs
+ATTN_VALS=embeddings
 INIT_TEMP=5
 LEARN_TEMP=unconditioned
 

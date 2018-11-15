@@ -93,8 +93,15 @@ class DecoderRNN(nn.Module):
 
         self.model_type = model_type
 
-        self.attn_keys = attn_keys
-        self.attn_vals = attn_vals
+        if attn_keys == 'embeddings':
+            self.attn_keys = 'encoder_embeddings'
+        elif attn_keys == 'outputs':
+            self.attn_keys = 'encoder_outputs'
+
+        if attn_vals == 'embeddings':
+            self.attn_vals = 'encoder_embeddings'
+        elif attn_vals == 'outputs':
+            self.attn_vals = 'encoder_outputs'
 
         # increase input size decoder if attention is applied before decoder rnn
         if True:
@@ -122,11 +129,11 @@ class DecoderRNN(nn.Module):
             self.decoder_model = DecoderRNNModel(vocab_size, max_len, hidden_size, sos_id, eos_id, n_layers,
                                              rnn_cell, bidirectional, input_dropout_p, dropout_p, use_attention, attention_method, full_focus)
 
-            assert attn_keys == attn_vals == 'executor_encoder_outputs', "For the baseline, only regular attention with executor_encoder_outputs is supported"
+            assert attn_keys == attn_vals == 'outputs', "For the baseline, only regular attention is supported"
 
         # If we initialize the executor's decoder with a new vector instead of the last encoder state
         # We initialize it as parameter here.
-        self.init_exec_dec_with = init_exec_dec_with
+        self.init_exec_dec_with = 'new'
         if self.init_exec_dec_with == 'new':
             if self.rnn_type == 'lstm':
                 self.executor_hidden0 = (
@@ -188,18 +195,17 @@ class DecoderRNN(nn.Module):
         return new_return_values
 
     def forward(self, inputs=None,
-                seq2attn_encoder_embeddings=None, seq2attn_encoder_hidden=None, seq2attn_encoder_outputs=None,
-                executor_encoder_embeddings=None, executor_encoder_hidden=None, executor_encoder_outputs=None,
+                encoder_embeddings=None, encoder_hidden=None, encoder_outputs=None,
                 teacher_forcing_ratio=0, provided_attention=None, provided_attention_vectors=None, possible_attn_vals=None):
         ret_dict = dict()
         if self.use_attention:
             ret_dict[DecoderRNN.KEY_ATTN_SCORE] = list()
 
-        inputs, batch_size, max_length = self._validate_args(inputs, seq2attn_encoder_hidden, seq2attn_encoder_outputs,
+        inputs, batch_size, max_length = self._validate_args(inputs, encoder_hidden, encoder_outputs,
                                                              teacher_forcing_ratio)        
 
-        seq2attn_decoder_hidden = self._init_state(seq2attn_encoder_hidden, 'encoder')
-        executor_decoder_hidden = self._init_state(executor_encoder_hidden, self.init_exec_dec_with)
+        seq2attn_decoder_hidden = self._init_state(encoder_hidden, 'encoder')
+        executor_decoder_hidden = self._init_state(encoder_hidden, 'new')
 
         use_teacher_forcing = True if random.random() < teacher_forcing_ratio else False
 

@@ -3,8 +3,6 @@ import torch.nn as nn
 
 from .baseRNN import BaseRNN
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
 
 class EncoderRNN(BaseRNN):
     """
@@ -39,10 +37,10 @@ class EncoderRNN(BaseRNN):
     """
 
     def __init__(self, vocab_size, max_len, hidden_size, embedding_size,
-                 input_dropout_p=0, dropout_p=0, n_layers=1, bidirectional=False,
-                 rnn_cell='gru', variable_lengths=False):
-        super(EncoderRNN, self).__init__(vocab_size, max_len, hidden_size, input_dropout_p,
-                                         dropout_p, n_layers, rnn_cell)
+                input_dropout_p=0, dropout_p=0,
+                n_layers=1, bidirectional=False, rnn_cell='gru', variable_lengths=False):
+        super(EncoderRNN, self).__init__(vocab_size, max_len, hidden_size,
+                input_dropout_p, dropout_p, n_layers, rnn_cell)
 
         self.embedding_size = embedding_size
         self.hidden_size = hidden_size
@@ -67,12 +65,12 @@ class EncoderRNN(BaseRNN):
         """
         embedded = self.embedding(input_var)
         embedded = self.input_dropout(embedded)
-        padded_embeddings = embedded
 
-        # TODO: Ponderer currently does not support PackedSequence input. This means we will unroll and also run for <pad> inputs
+        embeddings = embedded
         if self.variable_lengths:
             embedded = nn.utils.rnn.pack_padded_sequence(embedded, input_lengths, batch_first=True)
-            output, hidden = self.rnn(embedded)
+        output, hidden = self.rnn(embedded)
+        if self.variable_lengths:
             output, _ = nn.utils.rnn.pad_packed_sequence(output, batch_first=True)
 
-        return padded_embeddings, hidden, output
+        return embeddings, output, hidden
