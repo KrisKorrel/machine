@@ -8,6 +8,7 @@ class Seq2seq(nn.Module):
     Args:
         encoder (EncoderRNN): object of EncoderRNN
         decoder (DecoderRNN): object of DecoderRNN
+        decode_function (func, optional): function to generate symbols from output hidden states (default: F.log_softmax)
 
     Inputs: input_variable, input_lengths, target_variable, teacher_forcing_ratio
         - **input_variable** (list, option): list of sequences, whose length is the batch size and within which
@@ -32,49 +33,34 @@ class Seq2seq(nn.Module):
 
     """
 
-    def __init__(self, encoder, decoder):
+    def __init__(self, encoder, decoder, decode_function=F.log_softmax):
         super(Seq2seq, self).__init__()
         self.encoder = encoder
         self.decoder = decoder
+        self.decode_function = decode_function
 
     def flatten_parameters(self):
-        return
-        # self.encoder.rnn.flatten_parameters()
-        # self.executor_encoder.rnn.flatten_parameters()
-        # self.decoder.decoder_model.rnn.flatten_parameters()
-
-    def forward_encoder(self, input_variable, input_lengths=None):
-        encoder_embeddings, encoder_outputs, encoder_hidden = self.encoder(input_variable, input_lengths)
-        return encoder_embeddings, encoder_outputs, encoder_hidden
-
-    def forward_decoder(self, target_variables, teacher_forcing_ratio, encoder_embeddings,
-                        encoder_hidden, encoder_outputs):
-        # Unpack target variables
-        target_output = target_variables.get('decoder_output', None)
-        # The attention target is preprended with an extra SOS step. We must remove this
-        provided_attention = target_variables['attention_target'][:,1:] if 'attention_target' in target_variables else None
-        provided_attention_vectors = target_variables.get('provided_attention_vectors', None)
-
-        result = self.decoder(inputs=target_output,
-                              teacher_forcing_ratio=teacher_forcing_ratio,
-                              provided_attention=provided_attention,
-                              provided_attention_vectors=provided_attention_vectors,
-                              encoder_embeddings=encoder_embeddings,
-                              encoder_hidden=encoder_hidden,
-                              encoder_outputs=encoder_outputs)
-
-        return result
+        self.encoder.rnn.flatten_parameters()
+        self.decoder.rnn.flatten_parameters()
 
     def forward(self, input_variable, input_lengths=None, target_variables=None,
                 teacher_forcing_ratio=0):
+        # Unpack target variables
+        try:
+            target_output = target_variables.get('decoder_output', None)
+            # The attention target is preprended with an extra SOS step. We must remove this
+            provided_attention = target_variables['attention_target'][:,1:] if 'attention_target' in target_variables else None
+        except AttributeError:
+            target_output = None
+            provided_attention = None
 
-        encoder_embeddings, encoder_outputs, encoder_hidden = self.forward_encoder(input_variable, input_lengths)
 
-        result = self.forward_decoder(
-          target_variables=target_variables,
-          teacher_forcing_ratio=teacher_forcing_ratio,
-          encoder_embeddings=encoder_embeddings,
-          encoder_hidden=encoder_hidden,
-          encoder_outputs=encoder_outputs)
-
+        encoder_embeddings, encoder_outputs, encoder_hidden = self.encoder(input_variable, input_lengths)
+        result = self.decoder(inputs=target_output,
+                              encoder_embeddings=encoder_embeddings,
+                              encoder_hidden=encoder_hidden,
+                              encoder_outputs=encoder_outputs,
+                              function=self.decode_function,
+                              teacher_forcing_ratio=teacher_forcing_ratio,
+                              provided_attention=provided_attention)
         return result

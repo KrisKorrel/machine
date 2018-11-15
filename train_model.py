@@ -15,7 +15,7 @@ from collections import OrderedDict
 
 import machine
 from machine.trainer import SupervisedTrainer
-from machine.models import EncoderRNN, DecoderRNN, Seq2seq, Seq2attn
+from machine.models import EncoderRNN, Seq2AttnDecoder, Seq2seq
 from machine.loss import Perplexity, AttentionLoss, NLLLoss
 from machine.metrics import WordAccuracy, SequenceAccuracy, FinalTargetAccuracy, SymbolRewritingAccuracy
 from machine.optim import Optimizer
@@ -215,7 +215,7 @@ else:
                                       bidirectional=opt.bidirectional,
                                       rnn_cell=opt.rnn_cell,
                                       variable_lengths=True)
-    decoder = DecoderRNN(len(tgt.vocab), max_len, decoder_hidden_size,
+    decoder = Seq2AttnDecoder(len(tgt.vocab), max_len, decoder_hidden_size,
                          dropout_p=opt.dropout_p_decoder,
                          n_layers=opt.n_layers,
                          use_attention=opt.attention,

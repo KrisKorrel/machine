@@ -8,12 +8,17 @@ import torch.nn.functional as F
 
 from .attention import Attention, HardGuidance
 from .baseRNN import BaseRNN
-from .seq2attn import Seq2attn
-from .DecoderRNNModel import DecoderRNNModel
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-class DecoderRNN(nn.Module):
+class Seq2AttnDecoder(nn.Module):
+    """
+    seq2seq seq2attn model with attention.
+    First, pass the input sequence to `select_actions()` to perform forward pass and retrieve the actions
+    Next, calculate and pass the rewards for the selected actions.
+    Finally, call `finish_episod()` to calculate the discounted rewards and policy loss.
+    """
+
     """
     Provides functionality for decoding in a seq2seq framework, with an option for attention.
 
@@ -74,7 +79,7 @@ class DecoderRNN(nn.Module):
                  attn_keys=None,
                  attn_vals=None,
                  full_attention_focus='no'):
-        super(DecoderRNN, self).__init__()
+        super(Seq2AttnDecoder, self).__init__()
 
         self.bidirectional_encoder = bidirectional
         self.rnn_type = rnn_cell
@@ -99,7 +104,7 @@ class DecoderRNN(nn.Module):
             self.attn_vals = 'encoder_outputs'
 
         # increase input size decoder if attention is applied before decoder rnn
-        self.decoder_model = Seq2attn(
+        self.init_decoder(
                 rnn_cell=rnn_cell,
                 embedding_dim=embedding_dim,
                 hidden_dim=hidden_size,
@@ -134,6 +139,137 @@ class DecoderRNN(nn.Module):
             if full_focus:
                 self.ffocus_merge = nn.Linear(2 * self.hidden_size, self.hidden_size)
 
+        # TODO: Do we need attn_keys and vals here? Can't they just only be passed as variables in forward()?
+    def init_decoder(self, rnn_cell, embedding_dim, n_layers, hidden_dim, output_dim, dropout_p, use_attention, attention_method, sample_train, sample_infer, initial_temperature, learn_temperature, attn_keys, attn_vals, full_focus, full_attention_focus):
+        """
+        Args:
+            input_vocab_size (int): Total size of the input vocabulary
+            embedding_dim (int): Number of units to use for the input symbol embeddings
+            hidden_dim (int): Size of the RNN cells in both encoder and decoder
+        """
+
+        self.hidden_size = hidden_dim
+        self.full_attention_focus = (full_attention_focus == 'yes')
+
+        # Get type of RNN cell
+        rnn_cell = rnn_cell.lower()
+        self.rnn_type = rnn_cell
+        if rnn_cell == 'lstm':
+            rnn_cell = nn.LSTM
+        elif rnn_cell == 'gru':
+            rnn_cell = nn.GRU
+
+        self.use_attention = use_attention
+        if not self.use_attention:
+            raise Exception("Current implementation requires attention")
+        if self.use_attention != 'pre-rnn':
+            raise Exception("Must use pre-rnn in combination with seq2attn")
+        if self.use_attention == 'post-rnn' and full_focus:
+            raise Exception("Full focus can only be used with pre-rnn")
+
+        # Input size is hidden_size + context vector size, which depends on the type of attention value
+        # TODO: As Yann pointed out, we should have different embedding size for decoder.
+        if 'embeddings' in attn_keys:
+            key_dim = embedding_dim
+        elif 'outputs' in attn_keys:
+            key_dim = hidden_dim
+        if 'embeddings' in attn_vals:
+            val_dim = embedding_dim
+        elif 'outputs' in attn_vals:
+            val_dim = hidden_dim
+
+        input_size = hidden_dim + val_dim
+
+        # Initialize models
+        seq2attn_input_size = hidden_dim
+
+        self.transcoder = rnn_cell(seq2attn_input_size, hidden_dim, n_layers, batch_first=True, dropout=dropout_p)
+        self.attention = Attention(input_dim=hidden_dim+key_dim, output_dim=hidden_dim, method=attention_method, sample_train=sample_train, sample_infer=sample_infer, learn_temperature=learn_temperature, initial_temperature=initial_temperature)
+        self.decoder = rnn_cell(input_size, hidden_dim, n_layers, batch_first=True, dropout=dropout_p)
+
+        self.full_focus = full_focus
+        if self.full_focus:
+            self.ffocus_merge = nn.Linear(input_size, self.hidden_size)
+
+    def get_valid_action_mask(self, state, input_lengths):
+        """
+        Get a bytetensor that indicates which encoder states are valid to attend to.
+        All <pad> steps are invalid
+        
+        Args:
+            state (torch.tensor): [batch_size x max_input_length] input variable
+            input_lengths (torch.tensor): [batch_size] tensor containing the input length of each sequence in the batch
+        
+        Returns:
+            torch.tensor: [batch_size x max_input_length] ByteTensor with a 0 for all <pad> elements
+        """
+        batch_size = state.size(0)
+
+        # First, we establish which encoder states are valid to attend to. For
+        # this we use the input_lengths
+        max_encoding_length = torch.max(input_lengths)
+
+        # (batch_size) -> (batch_size x max_encoding_length)
+        input_lengths_expanded = input_lengths.unsqueeze(1).expand(-1, max_encoding_length)
+
+        # Use arange to create list 0, 1, 2, 3, .. for each element in the batch
+        # (batch_size x max_encoding_length)
+        encoding_steps_indices = torch.arange(max_encoding_length, dtype=torch.long, device=device)
+        encoding_steps_indices = encoding_steps_indices.unsqueeze(0).expand(batch_size, -1)
+
+        # A (batch_size x max_encoding_length) tensor that has a 1 for all valid
+        # actions and 0 for all invalid actions
+        valid_action_mask = encoding_steps_indices < input_lengths_expanded
+
+        return valid_action_mask
+
+    def get_context(self, queries, keys, values, **attention_method_kwargs):
+        context, attn = self.attention(queries=queries, keys=keys, values=values, **attention_method_kwargs)
+ 
+        batch_size, dec_seqlen, enc_seqlen = attn.size()
+
+        return context, attn
+
+    def forward_decoder(self, embedded, transcoder_hidden, decoder_hidden, attn_keys, attn_vals, **attention_method_kwargs):
+        """
+        Perform forward pass and stochastically select actions using epsilon-greedy RL
+
+        Args:
+            state (torch.tensor): [batch_size x max_input_length] tensor containing indices of the input sequence
+            input_lengths (list): List containing the input length for each element in the batch
+            max_decoding_length (int): Maximum length till which the decoder should run
+            epsilon (float): epsilon for epsilon-greedy RL. Set to 1 in inference mode
+
+        Returns:
+            list(torch.tensor): List of length max_output_length containing the selected actions
+        """
+
+        # First, we establish which encoder states are valid to attend to.
+        # TODO: Only works when keys are (full) hidden states. Maybe we should pass the mask (set_mask)
+
+        # We perform a forward pass to get the log-probability of attending to each
+        # encoder for each decoder
+
+
+
+        transcoder_output, transcoder_hidden = self.transcoder(embedded, transcoder_hidden)
+        context, attn = self.get_context(queries=transcoder_output, keys=attn_keys, values=attn_vals, **attention_method_kwargs)
+        decoder_input = torch.cat((context, embedded), dim=2)
+        if self.full_focus:
+            decoder_input = F.relu(self.ffocus_merge(decoder_input))
+            decoder_input = torch.mul(context, decoder_input)
+        if self.full_attention_focus:
+            if self.rnn_type == 'gru':
+                decoder_hidden = decoder_hidden * context.transpose(0, 1)
+            elif self.rnn_type == 'lstm':
+                decoder_hidden = (decoder_hidden[0] * context.transpose(0, 1),
+                                           decoder_hidden[1] * context.transpose(0, 1))
+        decoder_output, decoder_hidden = self.decoder(decoder_input, decoder_hidden)
+
+        output = decoder_output
+
+        return output, transcoder_hidden, decoder_hidden, attn
+
     def forward_step(self, input_var, transcoder_hidden, decoder_hidden, attn_keys, attn_vals, **attention_method_kwargs):
         """
         Performs one or multiple forward decoder steps.
@@ -154,7 +290,7 @@ class DecoderRNN(nn.Module):
         embedded = self.embedding(input_var)
         embedded = self.input_dropout(embedded)
 
-        return_values = self.decoder_model(
+        return_values = self.forward_decoder(
             embedded,
             transcoder_hidden,
             decoder_hidden,
@@ -170,10 +306,11 @@ class DecoderRNN(nn.Module):
 
     def forward(self, inputs=None,
                 encoder_embeddings=None, encoder_hidden=None, encoder_outputs=None,
-                teacher_forcing_ratio=0, provided_attention=None, possible_attn_vals=None):
+                function=F.log_softmax, teacher_forcing_ratio=0, provided_attention=None):
+
         ret_dict = dict()
         if self.use_attention:
-            ret_dict[DecoderRNN.KEY_ATTN_SCORE] = list()
+            ret_dict[Seq2AttnDecoder.KEY_ATTN_SCORE] = list()
 
         inputs, batch_size, max_length = self._validate_args(inputs, encoder_hidden, encoder_outputs,
                                                              teacher_forcing_ratio)        
@@ -190,7 +327,7 @@ class DecoderRNN(nn.Module):
         def decode(step, step_output, step_attn):
             decoder_outputs.append(step_output)
             if self.use_attention:
-                ret_dict[DecoderRNN.KEY_ATTN_SCORE].append(step_attn)
+                ret_dict[Seq2AttnDecoder.KEY_ATTN_SCORE].append(step_attn)
             symbols = decoder_outputs[-1].topk(1)[1]
             sequence_symbols.append(symbols)
 
@@ -203,7 +340,7 @@ class DecoderRNN(nn.Module):
 
         # Prepare extra arguments for attention method
         attention_method_kwargs = {}
-        if self.decoder_model.attention and isinstance(self.decoder_model.attention.method, HardGuidance):
+        if self.attention and isinstance(self.attention.method, HardGuidance):
             attention_method_kwargs['provided_attention'] = provided_attention
 
         # When we use pre-rnn attention we must unroll the decoder. We need to calculate the attention based on
@@ -231,7 +368,7 @@ class DecoderRNN(nn.Module):
                     decoder_input = symbols
 
                 # Perform one forward step
-                if self.decoder_model.attention and isinstance(self.decoder_model.attention.method, HardGuidance):
+                if self.attention and isinstance(self.attention.method, HardGuidance):
                     attention_method_kwargs['step'] = di
 
                 decoder_output, transcoder_hidden, decoder_hidden, step_attn = self.forward_step(
@@ -253,7 +390,7 @@ class DecoderRNN(nn.Module):
             decoder_input = inputs[:, :-1]
 
             # Forward step without unrolling
-            if self.decoder_model.attention and isinstance(self.decoder_model.attention.method, HardGuidance):
+            if self.attention and isinstance(self.attention.method, HardGuidance):
                 attention_method_kwargs['step'] = -1
 
             decoder_output, transcoder_hidden, decoder_hidden, attn = self.forward_step(
@@ -272,11 +409,8 @@ class DecoderRNN(nn.Module):
                     step_attn = None
                 decode(di, step_output, step_attn)
 
-        # print(torch.stack(ret_dict[DecoderRNN.KEY_ATTN_SCORE]).squeeze()[0:4])
-        # print("\n")
-
-        ret_dict[DecoderRNN.KEY_SEQUENCE] = sequence_symbols
-        ret_dict[DecoderRNN.KEY_LENGTH] = lengths.tolist()
+        ret_dict[Seq2AttnDecoder.KEY_SEQUENCE] = sequence_symbols
+        ret_dict[Seq2AttnDecoder.KEY_LENGTH] = lengths.tolist()
 
         return decoder_outputs, decoder_hidden, ret_dict
 

@@ -1,6 +1,4 @@
 from .EncoderRNN import EncoderRNN
-from .DecoderRNN import DecoderRNN
-from .DecoderRNNModel import DecoderRNNModel
+from .Seq2AttnDecoder import Seq2AttnDecoder
 from .TopKDecoder import TopKDecoder
 from .seq2seq import Seq2seq
-from .seq2attn import Seq2attn
