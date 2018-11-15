@@ -70,10 +70,7 @@ class DecoderRNN(nn.Module):
             sos_id, eos_id, embedding_dim,
             n_layers=1, rnn_cell='gru', bidirectional=False,
             input_dropout_p=0, dropout_p=0, use_attention=False, attention_method=None, full_focus=False,
-            train_method=None,
             model_type='baseline',
-            gamma=None,
-            epsilon=None,
             sample_train=None,
             sample_infer=None,
             initial_temperature=None,
@@ -104,8 +101,6 @@ class DecoderRNN(nn.Module):
         self.attn_keys = attn_keys
         self.attn_vals = attn_vals
 
-        self.train_method = train_method
-
         # increase input size decoder if attention is applied before decoder rnn
         if True:
             self.decoder_model = Understander(
@@ -116,9 +111,6 @@ class DecoderRNN(nn.Module):
                 output_dim=vocab_size,
                 n_layers=n_layers,
                 dropout_p=dropout_p,
-                train_method=train_method,
-                gamma=gamma,
-                epsilon=epsilon,
                 use_attention=use_attention,
                 attention_method=attention_method,
                 sample_train=sample_train,

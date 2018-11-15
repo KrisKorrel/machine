@@ -39,9 +39,9 @@ class SupervisedTrainer(object):
         checkpoint_every (int, optional): number of epochs to checkpoint after, (default: 100)
         print_every (int, optional): number of iterations to print after, (default: 100)
     """
-    def __init__(self, understander_train_method, train_regime, expt_dir='experiment', loss=[NLLLoss()], loss_weights=None, metrics=[], batch_size=64, eval_batch_size=128,
+    def __init__(self, expt_dir='experiment', loss=[NLLLoss()], loss_weights=None, metrics=[], batch_size=64, eval_batch_size=128,
                  random_seed=None,
-                 checkpoint_every=100, print_every=100, epsilon=1, write_logs=False):
+                 checkpoint_every=100, print_every=100, write_logs=False):
         self._trainer = "Simple Trainer"
         self.random_seed = random_seed
         if random_seed is not None:
@@ -66,16 +66,6 @@ class SupervisedTrainer(object):
 
         self.logger = logging.getLogger(__name__)
 
-        self.epsilon = epsilon
-        self.understander_train_method = understander_train_method
-        self.train_regime = train_regime
-
-        # Start either in 'pre-train' or 'train' mode
-        if self.train_regime == 'two-stage':
-            self.pre_train = True
-        else:
-            self.pre_train = False
-
         self.write_logs = write_logs
 
     def _train_batch(self, input_variable, input_lengths, target_variable, model, teacher_forcing_ratio):
@@ -92,33 +82,6 @@ class SupervisedTrainer(object):
         # Calculate the losses of the executor
         losses = self.evaluator.compute_batch_loss(decoder_outputs, decoder_hidden, other, target_variable)
 
-        if self.understander_train_method == 'rl':
-            # TODO: This loss metric should be initialized in train_model and passed to the trainer. (And we shouldn't hard-code the ignore_index value)
-            # Actually, I think we should use word *accuracy* instead of loss for the reward function of the understander.
-            # At least, we shouldn't rewrite code that is already in loss.py and metrics.py
-            loss_func = torch.nn.NLLLoss(ignore_index=-1, reduce=False)
-
-            rewards = []
-            for action_iter in range(len(decoder_outputs)):
-                prediction = decoder_outputs[action_iter]
-
-                # +1 because target_variable includes SOS which the prediction of course doesn't
-                ground_truth = target_variable['decoder_output'][:,action_iter+1]
-                
-                # Since loss is usually in range [0-3], where a loss of 0 should give the highest reward to the undestander,
-                # we use as reward function: (1/3) * (3-loss).
-                # This is because RL seems to be very unstable when we allow negative rewards. We even clip the rewards
-                # to [0,1] to make sure this doesn't happen
-                import numpy
-                step_reward = list(numpy.clip((3-loss_func(prediction, ground_truth).detach().cpu().numpy())/3, 0, 1))
-                rewards.append(step_reward)
-
-            model.decoder.decoder_model.set_rewards(rewards)
-
-            # Calculate discounted rewards and policy loss
-            policy_loss = model.decoder.decoder_model.finish_episode()
-            policy_loss.backward(retain_graph=True)
-
         for i, loss in enumerate(losses):
             loss.scale_loss(self.loss_weights[i])
             loss.backward(retain_graph=True)
@@ -126,7 +89,7 @@ class SupervisedTrainer(object):
 
         return losses
 
-    def _train_epoches(self, data, model, n_epochs, start_epoch, start_step, pre_train=None,
+    def _train_epoches(self, data, model, n_epochs, start_epoch, start_step,
                        dev_data=None, monitor_data=[], teacher_forcing_ratio=0, top_k=5):
         log = self.logger
 
@@ -136,19 +99,13 @@ class SupervisedTrainer(object):
         print_loss_avg = defaultdict(float)
 
         iterator_device = torch.cuda.current_device() if torch.cuda.is_available() else -1
-        batch_iterator_train = torchtext.data.BucketIterator(
+        batch_iterator = torchtext.data.BucketIterator(
             dataset=data, batch_size=self.batch_size,
             sort=False, sort_within_batch=True,
             sort_key=lambda x: len(x.src),
             device=iterator_device, repeat=False)
 
-        batch_iterator_pre_train = torchtext.data.BucketIterator(
-            dataset=pre_train, batch_size=self.batch_size,
-            sort=False, sort_within_batch=True,
-            sort_key=lambda x: len(x.src),
-            device=iterator_device, repeat=False)
-
-        steps_per_epoch = len(batch_iterator_train)
+        steps_per_epoch = len(batch_iterator)
         total_steps = steps_per_epoch * n_epochs
 
         step = start_step
@@ -179,11 +136,6 @@ class SupervisedTrainer(object):
                    input_vocab=data.fields[machine.src_field_name].vocab,
                    output_vocab=data.fields[machine.tgt_field_name].vocab).save(self.expt_dir, name=model_name)
 
-        if self.pre_train:
-            # Disable training updates for the understander
-            model.train_understander(train=False)
-            model.train_executor(train=True)
-
         for epoch in range(start_epoch, n_epochs + 1):
             try:
                 if model.decoder.decoder_model.attention.current_temperature is not None:
@@ -193,32 +145,11 @@ class SupervisedTrainer(object):
 
             log.info("Epoch: %d, Step: %d" % (epoch, step))
 
-            if self.train_regime == 'two-stage':
-                # First 50% of epochs we are in pre-train. The next we are in train mode
-                if epoch < n_epochs / 2:
-                    self.pre_train = True
-                    batch_generator = batch_iterator_pre_train.__iter__()
+            batch_generator = batch_iterator.__iter__()
 
-                else:
-                    if self.pre_train:
-                        raw_input("Pre-training is done. Press enter to start training the undestander")
-                        # Disable training updates for the executor
-                        model.train_understander(train=True)
-                        model.train_executor(train=False)
-                        
-                    self.pre_train = False
-                    batch_generator = batch_iterator_train.__iter__()
-
-            elif self.train_regime == 'simultaneous':
-                # TODO: What to do about this?
-                # consuming seen batches from previous training
-                batch_generator = batch_iterator_train.__iter__()
-
-                for _ in range((epoch - 1) * steps_per_epoch, step):
-                    next(batch_generator)
-
-                # Makes sure that we use the understander's output in the Evaluator instead of the data
-                self.pre_train = False
+            # consuming seen batches from previous training
+            for _ in range((epoch - 1) * steps_per_epoch, step):
+                next(batch_generator)
 
             model.train(True)
             for batch in batch_generator:
@@ -324,7 +255,7 @@ class SupervisedTrainer(object):
 
         return logs
 
-    def train(self, model, data, pre_train=None, num_epochs=5,
+    def train(self, model, data, num_epochs=5,
               resume=False, dev_data=None, optimizer=None,
               teacher_forcing_ratio=0, monitor_data={},
               learning_rate=0.001, checkpoint_path=None, top_k=1):
@@ -376,7 +307,7 @@ class SupervisedTrainer(object):
         self.logger.info("Optimizer: %s, Scheduler: %s" % (self.optimizer.optimizer, self.optimizer.scheduler))
 
         logs = self._train_epoches(data, model, num_epochs,
-                            start_epoch, step, pre_train=pre_train, dev_data=dev_data,
+                            start_epoch, step, dev_data=dev_data,
                             monitor_data=monitor_data,
                             teacher_forcing_ratio=teacher_forcing_ratio,
                             top_k=top_k)

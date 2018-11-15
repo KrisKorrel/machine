@@ -71,17 +71,11 @@ parser.add_argument('--cuda_device', default=0, type=int, help='set cuda device 
 
 # Arguments for the UE model
 parser.add_argument('--model_type', choices=['baseline', 'seq2attn'], required=True, help='Indicate whether we should have a separate transcoder and decoder or just one decoder.')
-parser.add_argument('--pre_train', help='Data for pre-training the executor')
-parser.add_argument('--gamma', type=float, default=0.99, help='Gamma to use for discounted future rewards')
-parser.add_argument('--epsilon', type=float, default=1, help='Epsilon to use for epsilon-greedy during RL training.')
-parser.add_argument('--understander_train_method', type=str, choices=['rl', 'supervised'], help='Whether to use reinforcement or supervised learning for the understander')
 parser.add_argument('--sample_train', type=str, choices=['full', 'full_hard', 'gumbel_soft', 'gumbel_hard', 'sparsemax'], help='When training UE in a supervised setting, we can use the full attention vector, sparsemax, or sample using gumbel (ST) at training time')
 parser.add_argument('--sample_infer', type=str, choices=['full', 'full_hard', 'gumbel_soft', 'gumbel_hard', 'argmax', 'sparsemax'], help='When training UE in a supervised setting, we can use the full attention vector, sample using gumbel (ST), sparsemax, or use argmax at inference time')
 parser.add_argument('--initial_temperature', type=float, default=1, help='(Initial) temperature to use for gumbel-softmax')
 parser.add_argument('--learn_temperature', type=str, choices=['no', 'unconditioned', 'conditioned'], help='Whether the temperature should be a learnable parameter. And whether it should be conditioned')
 parser.add_argument('--init_exec_dec_with', type=str, choices=['encoder', 'new'], default='encoder', help='The decoder of the executor can be initialized either with its last encoder state, or with a new (learnable) vector')
-# TODO: two-stage currently doesn't work anymore
-# parser.add_argument('--train_regime', type=str, choices=['two-stage', 'simultaneous'], help="In 'two-stage' training we first train the executor with hard guidance for n/2 epochs and then the understander for n/2 epochs. In 'simultaneous' training, we train both models together without any supervision on the attention.")
 parser.add_argument('--attn_keys', type=str, choices=['understander_encoder_embeddings', 'understander_encoder_outputs', 'executor_encoder_embeddings', 'executor_encoder_outputs'], default='executor_encoder_outputs')
 parser.add_argument('--attn_vals', type=str, choices=['understander_encoder_embeddings', 'understander_encoder_outputs', 'executor_encoder_embeddings', 'executor_encoder_outputs'], default='executor_encoder_outputs')
 parser.add_argument('--full_attention_focus', choices=['yes', 'no'], default='no', help='Indicate whether to multiply the hidden state of the decoder with the context vector')
@@ -148,15 +142,6 @@ train = torchtext.data.TabularDataset(
     fields=tabular_data_fields,
     filter_pred=len_filter
 )
-
-if opt.pre_train is not None:
-  pre_train = torchtext.data.TabularDataset(
-      path=opt.pre_train, format='tsv',
-      fields=tabular_data_fields,
-      filter_pred=len_filter
-  )
-else:
-  pre_train = None
 
 if opt.dev:
     dev = torchtext.data.TabularDataset(
@@ -269,9 +254,6 @@ else:
                          sos_id=tgt.sos_id,
                          embedding_dim=opt.embedding_size,
                          model_type=opt.model_type,
-                         train_method=opt.understander_train_method,
-                         gamma=opt.gamma,
-                         epsilon=opt.epsilon,
                          sample_train=opt.sample_train,
                          sample_infer=opt.sample_infer,
                          initial_temperature=opt.initial_temperature,
@@ -338,16 +320,12 @@ t = SupervisedTrainer(loss=losses,
                       checkpoint_every=opt.save_every,
                       print_every=opt.print_every,
                       expt_dir=opt.output_dir,
-                      epsilon=opt.epsilon,
-                      understander_train_method=opt.understander_train_method,
-                      train_regime='simultaneous',
-                      write_logs=opt.write_logs) # TODO: two-stage currently doesn't work. Do we still want it?
+                      write_logs=opt.write_logs) 
 
 seq2seq, logs = t.train(model=seq2seq,
                     data=train,
                     dev_data=dev,
                     monitor_data=monitor_data,
-                    pre_train=pre_train,
                     num_epochs=opt.epochs,
                     optimizer=opt.optim,
                     teacher_forcing_ratio=opt.teacher_forcing_ratio,
