@@ -4,4 +4,3 @@ from .DecoderRNNModel import DecoderRNNModel
 from .TopKDecoder import TopKDecoder
 from .seq2seq import Seq2seq
 from .seq2attn import Seq2attn
-from .Ponderer import Ponderer

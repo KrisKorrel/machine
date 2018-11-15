@@ -79,21 +79,3 @@ class Seq2seq(nn.Module):
           encoder_outputs=encoder_outputs)
 
         return result
-
-    def train_seq2attn(self, train=True):
-        parameters = \
-            list(self.encoder.parameters()) + \
-            list(self.decoder.decoder_model.seq2attn_decoder.parameters()) + \
-            list(self.decoder.decoder_model.attention.parameters())
-
-        for p in parameters:
-            p.requires_grad = train
-
-    def train_executor(self, train=True):
-        parameters = \
-            list(self.executor_encoder.parameters()) + \
-            list(self.decoder.decoder_model.executor_decoder.parameters()) + \
-            list(self.decoder.decoder_model.out.parameters())
-
-        for p in parameters:
-            p.requires_grad = train
