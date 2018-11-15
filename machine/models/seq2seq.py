@@ -32,22 +32,22 @@ class Seq2seq(nn.Module):
 
     """
 
-    def __init__(self, understander_encoder, executor_encoder, decoder, dropout_enc_dec=0.):
+    def __init__(self, seq2attn_encoder, executor_encoder, decoder, dropout_enc_dec=0.):
         super(Seq2seq, self).__init__()
-        self.understander_encoder = understander_encoder
+        self.seq2attn_encoder = seq2attn_encoder
         self.executor_encoder = executor_encoder
         self.decoder = decoder
         self.enc_dec_dropout = nn.Dropout(p=dropout_enc_dec)
 
     def flatten_parameters(self):
         return
-        # self.understander_encoder.rnn.flatten_parameters()
+        # self.seq2attn_encoder.rnn.flatten_parameters()
         # self.executor_encoder.rnn.flatten_parameters()
         # self.decoder.decoder_model.rnn.flatten_parameters()
 
-    def forward_understander_encoder(self, input_variable, input_lengths=None):
-        understander_encoder_embeddings, understander_encoder_hidden, understander_encoder_outputs = self.understander_encoder(input_variable, input_lengths)
-        return understander_encoder_embeddings, understander_encoder_hidden, understander_encoder_outputs
+    def forward_seq2attn_encoder(self, input_variable, input_lengths=None):
+        seq2attn_encoder_embeddings, seq2attn_encoder_hidden, seq2attn_encoder_outputs = self.seq2attn_encoder(input_variable, input_lengths)
+        return seq2attn_encoder_embeddings, seq2attn_encoder_hidden, seq2attn_encoder_outputs
 
     def forward_executor_encoder(self, input_variable, input_lengths=None):
         executor_encoder_embeddings, executor_encoder_hidden, executor_encoder_outputs = self.executor_encoder(input_variable, input_lengths)
@@ -60,7 +60,7 @@ class Seq2seq(nn.Module):
 
         return executor_encoder_embeddings, executor_encoder_hidden, executor_encoder_outputs
 
-    def forward_decoder(self, target_variables, teacher_forcing_ratio, understander_encoder_embeddings, understander_encoder_hidden, understander_encoder_outputs, executor_encoder_embeddings, executor_encoder_hidden, executor_encoder_outputs):
+    def forward_decoder(self, target_variables, teacher_forcing_ratio, seq2attn_encoder_embeddings, seq2attn_encoder_hidden, seq2attn_encoder_outputs, executor_encoder_embeddings, executor_encoder_hidden, executor_encoder_outputs):
         # Unpack target variables
         target_output = target_variables.get('decoder_output', None)
         # The attention target is preprended with an extra SOS step. We must remove this
@@ -71,9 +71,9 @@ class Seq2seq(nn.Module):
                               teacher_forcing_ratio=teacher_forcing_ratio,
                               provided_attention=provided_attention,
                               provided_attention_vectors=provided_attention_vectors,
-                              understander_encoder_embeddings=understander_encoder_embeddings,
-                              understander_encoder_hidden=understander_encoder_hidden,
-                              understander_encoder_outputs=understander_encoder_outputs,
+                              seq2attn_encoder_embeddings=seq2attn_encoder_embeddings,
+                              seq2attn_encoder_hidden=seq2attn_encoder_hidden,
+                              seq2attn_encoder_outputs=seq2attn_encoder_outputs,
                               executor_encoder_embeddings=executor_encoder_embeddings,
                               executor_encoder_hidden=executor_encoder_hidden,
                               executor_encoder_outputs=executor_encoder_outputs)
@@ -83,25 +83,25 @@ class Seq2seq(nn.Module):
     def forward(self, input_variable, input_lengths=None, target_variables=None,
                 teacher_forcing_ratio=0):
 
-        understander_encoder_embeddings, understander_encoder_hidden, understander_encoder_outputs = self.forward_understander_encoder(input_variable, input_lengths)
+        seq2attn_encoder_embeddings, seq2attn_encoder_hidden, seq2attn_encoder_outputs = self.forward_seq2attn_encoder(input_variable, input_lengths)
         executor_encoder_embeddings, executor_encoder_hidden, executor_encoder_outputs = self.forward_executor_encoder(input_variable, input_lengths)
 
         result = self.forward_decoder(
           target_variables=target_variables,
           teacher_forcing_ratio=teacher_forcing_ratio,
-          understander_encoder_embeddings=understander_encoder_embeddings,
-          understander_encoder_hidden=understander_encoder_hidden,
-          understander_encoder_outputs=understander_encoder_outputs,
+          seq2attn_encoder_embeddings=seq2attn_encoder_embeddings,
+          seq2attn_encoder_hidden=seq2attn_encoder_hidden,
+          seq2attn_encoder_outputs=seq2attn_encoder_outputs,
           executor_encoder_embeddings=executor_encoder_embeddings,
           executor_encoder_hidden=executor_encoder_hidden,
           executor_encoder_outputs=executor_encoder_outputs)
 
         return result
 
-    def train_understander(self, train=True):
+    def train_seq2attn(self, train=True):
         parameters = \
-            list(self.understander_encoder.parameters()) + \
-            list(self.decoder.decoder_model.understander_decoder.parameters()) + \
+            list(self.seq2attn_encoder.parameters()) + \
+            list(self.decoder.decoder_model.seq2attn_decoder.parameters()) + \
             list(self.decoder.decoder_model.attention.parameters())
 
         for p in parameters:

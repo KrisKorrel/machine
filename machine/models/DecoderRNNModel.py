@@ -7,7 +7,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from .baseRNN import BaseRNN
-from .attention import Attention, HardGuidance
+from .attention import Attention
 
 
 class DecoderRNNModel(BaseRNN):

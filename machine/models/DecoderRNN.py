@@ -8,7 +8,7 @@ import torch.nn.functional as F
 
 from .attention import Attention, HardGuidance, ProvidedAttentionVectors
 from .baseRNN import BaseRNN
-from .understander import Understander
+from .seq2attn import Seq2attn
 from .DecoderRNNModel import DecoderRNNModel
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -98,7 +98,7 @@ class DecoderRNN(nn.Module):
 
         # increase input size decoder if attention is applied before decoder rnn
         if True:
-            self.decoder_model = Understander(
+            self.decoder_model = Seq2attn(
                 model_type=model_type,
                 rnn_cell=rnn_cell,
                 embedding_dim=embedding_dim,
@@ -118,7 +118,7 @@ class DecoderRNN(nn.Module):
                 full_attention_focus=full_attention_focus)
 
         else:
-            # TODO: Currently we do not use this anymore. We use understander for baseline as well.
+            # TODO: Currently we do not use this anymore. We use seq2attn for baseline as well.
             self.decoder_model = DecoderRNNModel(vocab_size, max_len, hidden_size, sos_id, eos_id, n_layers,
                                              rnn_cell, bidirectional, input_dropout_p, dropout_p, use_attention, attention_method, full_focus)
 
@@ -143,7 +143,7 @@ class DecoderRNN(nn.Module):
             if full_focus:
                 self.ffocus_merge = nn.Linear(2 * self.hidden_size, self.hidden_size)
 
-    def forward_step(self, input_var, understander_decoder_hidden, executor_decoder_hidden, attn_keys, attn_vals, **attention_method_kwargs):
+    def forward_step(self, input_var, seq2attn_decoder_hidden, executor_decoder_hidden, attn_keys, attn_vals, **attention_method_kwargs):
         """
         Performs one or multiple forward decoder steps.
         
@@ -165,14 +165,14 @@ class DecoderRNN(nn.Module):
 
         # TODO: We should not have an if-else statement here. Should be agnostic of underlying recurrent model
         # To accomodate pondering, we just pass only 1 hidden state.
-        # This will be disassembled again in the understander
+        # This will be disassembled again in the seq2attn
         if self.rnn_type == 'gru':
-            ponder_hidden = torch.cat([understander_decoder_hidden,
+            ponder_hidden = torch.cat([seq2attn_decoder_hidden,
                                        executor_decoder_hidden], dim=2)
         elif self.rnn_type == 'lstm':
-            ponder_hidden = (torch.cat([understander_decoder_hidden[0],
+            ponder_hidden = (torch.cat([seq2attn_decoder_hidden[0],
                                         executor_decoder_hidden[0]], dim=2),
-                             torch.cat([understander_decoder_hidden[1],
+                             torch.cat([seq2attn_decoder_hidden[1],
                                         executor_decoder_hidden[1]], dim=2))
         return_values = self.decoder_model(
             embedded,
@@ -188,17 +188,17 @@ class DecoderRNN(nn.Module):
         return new_return_values
 
     def forward(self, inputs=None,
-                understander_encoder_embeddings=None, understander_encoder_hidden=None, understander_encoder_outputs=None,
+                seq2attn_encoder_embeddings=None, seq2attn_encoder_hidden=None, seq2attn_encoder_outputs=None,
                 executor_encoder_embeddings=None, executor_encoder_hidden=None, executor_encoder_outputs=None,
                 teacher_forcing_ratio=0, provided_attention=None, provided_attention_vectors=None, possible_attn_vals=None):
         ret_dict = dict()
         if self.use_attention:
             ret_dict[DecoderRNN.KEY_ATTN_SCORE] = list()
 
-        inputs, batch_size, max_length = self._validate_args(inputs, understander_encoder_hidden, understander_encoder_outputs,
+        inputs, batch_size, max_length = self._validate_args(inputs, seq2attn_encoder_hidden, seq2attn_encoder_outputs,
                                                              teacher_forcing_ratio)        
 
-        understander_decoder_hidden = self._init_state(understander_encoder_hidden, 'encoder')
+        seq2attn_decoder_hidden = self._init_state(seq2attn_encoder_hidden, 'encoder')
         executor_decoder_hidden = self._init_state(executor_encoder_hidden, self.init_exec_dec_with)
 
         use_teacher_forcing = True if random.random() < teacher_forcing_ratio else False
@@ -262,7 +262,7 @@ class DecoderRNN(nn.Module):
                     attention_method_kwargs['step'] = di
 
                 return_values = self.forward_step(decoder_input,
-                                                  understander_decoder_hidden,
+                                                  seq2attn_decoder_hidden,
                                                   executor_decoder_hidden,
                                                   attn_keys,
                                                   attn_vals,
@@ -271,21 +271,21 @@ class DecoderRNN(nn.Module):
                 executor_decoder_output, ponder_decoder_hidden, step_attn = return_values[:3]
 
                 # Decouple the ponder hidden state
-                # IF we use seq2attn the understander and executor are concatenated into 1 vector, we should slice this
+                # IF we use seq2attn the seq2attn and executor are concatenated into 1 vector, we should slice this
                 # TODO: If true..
                 if True:
                     if self.rnn_type == 'gru':
-                        understander_decoder_hidden = ponder_decoder_hidden[:, :, :self.hidden_size].contiguous()
+                        seq2attn_decoder_hidden = ponder_decoder_hidden[:, :, :self.hidden_size].contiguous()
                         executor_decoder_hidden = ponder_decoder_hidden[:, :, self.hidden_size:].contiguous()
                     elif self.rnn_type == 'lstm':
-                        understander_decoder_hidden = (ponder_decoder_hidden[0][:, :, :self.hidden_size].contiguous(),
+                        seq2attn_decoder_hidden = (ponder_decoder_hidden[0][:, :, :self.hidden_size].contiguous(),
                                                        ponder_decoder_hidden[1][:, :, :self.hidden_size].contiguous())
                         executor_decoder_hidden = (ponder_decoder_hidden[0][:, :, self.hidden_size:].contiguous(),
                                                    ponder_decoder_hidden[1][:, :, self.hidden_size:].contiguous())
-                # For the baseline model, there is / should be no understander 
+                # For the baseline model, there is / should be no seq2attn 
                 else:
                     executor_decoder_hidden = ponder_decoder_hidden
-                    understander_decoder_hidden = None
+                    seq2attn_decoder_hidden = None
 
                 if not isinstance(step_attn, list):
                     step_attn = [(step_attn,)]
@@ -309,28 +309,28 @@ class DecoderRNN(nn.Module):
                 attention_method_kwargs['step'] = -1
 
             executor_decoder_output, ponder_decoder_hidden, attn = self.forward_step(decoder_input,
-                                              understander_decoder_hidden,
+                                              seq2attn_decoder_hidden,
                                               executor_decoder_hidden,
                                               attn_keys,
                                               attn_vals,
                                               **attention_method_kwargs)
 
             # Decouple the ponder hidden state
-            # IF we use seq2attn the understander and executor are concatenated into 1 vector, we should slice this
+            # IF we use seq2attn the seq2attn and executor are concatenated into 1 vector, we should slice this
             # TODO: If true..
             if True:
                 if self.rnn_type == 'gru':
-                    understander_decoder_hidden = ponder_decoder_hidden[:, :, :self.hidden_size].contiguous()
+                    seq2attn_decoder_hidden = ponder_decoder_hidden[:, :, :self.hidden_size].contiguous()
                     executor_decoder_hidden = ponder_decoder_hidden[:, :, self.hidden_size:].contiguous()
                 elif self.rnn_type == 'lstm':
-                    understander_decoder_hidden = (ponder_decoder_hidden[0][:, :, :self.hidden_size].contiguous(),
+                    seq2attn_decoder_hidden = (ponder_decoder_hidden[0][:, :, :self.hidden_size].contiguous(),
                                                    ponder_decoder_hidden[1][:, :, :self.hidden_size].contiguous())
                     executor_decoder_hidden = (ponder_decoder_hidden[0][:, :, self.hidden_size:].contiguous(),
                                                ponder_decoder_hidden[1][:, :, self.hidden_size:].contiguous())
-            # For the baseline model, there is / should be no understander 
+            # For the baseline model, there is / should be no seq2attn 
             else:
                 executor_decoder_hidden = ponder_decoder_hidden
-                understander_decoder_hidden = None
+                seq2attn_decoder_hidden = None
 
             for di in range(executor_decoder_output.size(1)):
                 step_output = executor_decoder_output[:, di, :]

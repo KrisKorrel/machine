@@ -41,8 +41,8 @@ python train_model.py \
 MODEL_TYPE=seq2attn
 SAMPLE_TRAIN=gumbel_hard
 SAMPLE_INFER=argmax
-ATTN_KEYS=understander_encoder_outputs
-ATTN_VALS=understander_encoder_embeddings
+ATTN_KEYS=seq2attn_encoder_outputs
+ATTN_VALS=seq2attn_encoder_embeddings
 INIT_TEMP=5
 LEARN_TEMP=unconditioned
 
