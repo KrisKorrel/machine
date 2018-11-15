@@ -10,7 +10,6 @@ from .attention import Attention, HardGuidance, ProvidedAttentionVectors
 from .baseRNN import BaseRNN
 from .understander import Understander
 from .DecoderRNNModel import DecoderRNNModel
-from .Ponderer import Ponderer
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -64,24 +63,20 @@ class DecoderRNN(nn.Module):
     KEY_ATTN_SCORE = 'attention_score'
     KEY_LENGTH = 'length'
     KEY_SEQUENCE = 'sequence'
-    KEY_PONDER = 'decoder_ponder_penalty'
 
     def __init__(self, vocab_size, max_len, hidden_size,
-            sos_id, eos_id, embedding_dim,
-            n_layers=1, rnn_cell='gru', bidirectional=False,
-            input_dropout_p=0, dropout_p=0, use_attention=False, attention_method=None, full_focus=False,
-            model_type='baseline',
-            sample_train=None,
-            sample_infer=None,
-            initial_temperature=None,
-            learn_temperature=None,
-            init_exec_dec_with=None,
-            attn_keys=None,
-            attn_vals=None,
-            full_attention_focus='no',
-            ponder=False,
-            max_ponder_steps=100,
-            ponder_epsilon=0.01):
+                 sos_id, eos_id, embedding_dim,
+                 n_layers=1, rnn_cell='gru', bidirectional=False,
+                 input_dropout_p=0, dropout_p=0, use_attention=False, attention_method=None, full_focus=False,
+                 model_type='baseline',
+                 sample_train=None,
+                 sample_infer=None,
+                 initial_temperature=None,
+                 learn_temperature=None,
+                 init_exec_dec_with=None,
+                 attn_keys=None,
+                 attn_vals=None,
+                 full_attention_focus='no'):
         super(DecoderRNN, self).__init__()
 
         self.bidirectional_encoder = bidirectional
@@ -128,17 +123,6 @@ class DecoderRNN(nn.Module):
                                              rnn_cell, bidirectional, input_dropout_p, dropout_p, use_attention, attention_method, full_focus)
 
             assert attn_keys == attn_vals == 'executor_encoder_outputs', "For the baseline, only regular attention with executor_encoder_outputs is supported"
-
-        self.use_pondering = ponder
-        if self.use_pondering:
-            # For pondering, we concatenate the understander and executor states
-            ponder_hidden_size = hidden_size
-            ponder_hidden_size *= 2
-            self.decoder_model = Ponderer(model=self.decoder_model,
-                                          hidden_size=ponder_hidden_size,
-                                          output_size=hidden_size,
-                                          max_ponder_steps=max_ponder_steps,
-                                          eps=ponder_epsilon)
 
         # If we initialize the executor's decoder with a new vector instead of the last encoder state
         # We initialize it as parameter here.
@@ -221,7 +205,6 @@ class DecoderRNN(nn.Module):
 
         decoder_outputs = []
         sequence_symbols = []
-        ponder_penalties = [] if self.use_pondering else None
         lengths = np.array([max_length] * batch_size)
 
         def decode(step, step_output, step_attn):
@@ -254,7 +237,7 @@ class DecoderRNN(nn.Module):
         # We also need to unroll when we don't use teacher forcing. We need perform the decoder steps
         # one-by-one since the output needs to be copied to the input of the next step.
         # TODO: Currently we always unroll
-        if self.use_attention == 'pre-rnn' or True or self.use_pondering or not use_teacher_forcing:
+        if self.use_attention == 'pre-rnn' or True or not use_teacher_forcing:
             unrolling = True
         else:
             unrolling = False
@@ -303,10 +286,6 @@ class DecoderRNN(nn.Module):
                 else:
                     executor_decoder_hidden = ponder_decoder_hidden
                     understander_decoder_hidden = None
-
-                if len(return_values) > 3:
-                    ponder_penalty = return_values[3]
-                    ponder_penalties.append(ponder_penalty)
 
                 if not isinstance(step_attn, list):
                     step_attn = [(step_attn,)]
@@ -366,8 +345,6 @@ class DecoderRNN(nn.Module):
 
         ret_dict[DecoderRNN.KEY_SEQUENCE] = sequence_symbols
         ret_dict[DecoderRNN.KEY_LENGTH] = lengths.tolist()
-        if self.use_pondering:
-            ret_dict[DecoderRNN.KEY_PONDER] = ponder_penalties
 
         return decoder_outputs, executor_decoder_hidden, ret_dict
 

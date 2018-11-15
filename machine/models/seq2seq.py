@@ -46,11 +46,11 @@ class Seq2seq(nn.Module):
         # self.decoder.decoder_model.rnn.flatten_parameters()
 
     def forward_understander_encoder(self, input_variable, input_lengths=None):
-        understander_encoder_embeddings, understander_encoder_hidden, understander_encoder_outputs, other = self.understander_encoder(input_variable, input_lengths)
-        return understander_encoder_embeddings, understander_encoder_hidden, understander_encoder_outputs, other
+        understander_encoder_embeddings, understander_encoder_hidden, understander_encoder_outputs = self.understander_encoder(input_variable, input_lengths)
+        return understander_encoder_embeddings, understander_encoder_hidden, understander_encoder_outputs
 
     def forward_executor_encoder(self, input_variable, input_lengths=None):
-        executor_encoder_embeddings, executor_encoder_hidden, executor_encoder_outputs, other = self.executor_encoder(input_variable, input_lengths)
+        executor_encoder_embeddings, executor_encoder_hidden, executor_encoder_outputs = self.executor_encoder(input_variable, input_lengths)
 
         if isinstance(executor_encoder_hidden, tuple):
             executor_encoder_hidden = (self.enc_dec_dropout(executor_encoder_hidden[0]),
@@ -58,7 +58,7 @@ class Seq2seq(nn.Module):
         else:
             executor_encoder_hidden = self.enc_dec_dropout(executor_encoder_hidden)
 
-        return executor_encoder_embeddings, executor_encoder_hidden, executor_encoder_outputs, other
+        return executor_encoder_embeddings, executor_encoder_hidden, executor_encoder_outputs
 
     def forward_decoder(self, target_variables, teacher_forcing_ratio, understander_encoder_embeddings, understander_encoder_hidden, understander_encoder_outputs, executor_encoder_embeddings, executor_encoder_hidden, executor_encoder_outputs):
         # Unpack target variables
@@ -83,8 +83,8 @@ class Seq2seq(nn.Module):
     def forward(self, input_variable, input_lengths=None, target_variables=None,
                 teacher_forcing_ratio=0):
 
-        understander_encoder_embeddings, understander_encoder_hidden, understander_encoder_outputs, understander_encoder_other = self.forward_understander_encoder(input_variable, input_lengths)
-        executor_encoder_embeddings, executor_encoder_hidden, executor_encoder_outputs, executor_encoder_other = self.forward_executor_encoder(input_variable, input_lengths)
+        understander_encoder_embeddings, understander_encoder_hidden, understander_encoder_outputs = self.forward_understander_encoder(input_variable, input_lengths)
+        executor_encoder_embeddings, executor_encoder_hidden, executor_encoder_outputs = self.forward_executor_encoder(input_variable, input_lengths)
 
         result = self.forward_decoder(
           target_variables=target_variables,
@@ -95,10 +95,6 @@ class Seq2seq(nn.Module):
           executor_encoder_embeddings=executor_encoder_embeddings,
           executor_encoder_hidden=executor_encoder_hidden,
           executor_encoder_outputs=executor_encoder_outputs)
-
-        # Merge 'other's
-        result[-1].update(understander_encoder_other)
-        result[-1].update(executor_encoder_other)
 
         return result
 

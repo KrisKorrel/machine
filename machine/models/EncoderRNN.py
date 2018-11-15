@@ -2,7 +2,6 @@ import torch
 import torch.nn as nn
 
 from .baseRNN import BaseRNN
-from .Ponderer import Ponderer
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -41,9 +40,7 @@ class EncoderRNN(BaseRNN):
 
     def __init__(self, vocab_size, max_len, hidden_size, embedding_size,
                  input_dropout_p=0, dropout_p=0, n_layers=1, bidirectional=False,
-                 rnn_cell='gru', variable_lengths=False,
-                 ponder=False, max_ponder_steps=100, ponder_epsilon=0.01,
-                 ponder_key='encoder_ponder_penalty'):
+                 rnn_cell='gru', variable_lengths=False):
         super(EncoderRNN, self).__init__(vocab_size, max_len, hidden_size, input_dropout_p,
                                          dropout_p, n_layers, rnn_cell)
 
@@ -54,11 +51,6 @@ class EncoderRNN(BaseRNN):
         self.embedding = nn.Embedding(vocab_size, embedding_size)
         self.rnn = self.rnn_cell(embedding_size, hidden_size, n_layers,
                                  batch_first=True, bidirectional=bidirectional, dropout=dropout_p)
-
-        self.use_pondering = ponder
-        if self.use_pondering:
-            self.ponder_key = ponder_key
-            self.rnn = Ponderer(model=self.rnn, hidden_size=hidden_size, output_size=hidden_size, max_ponder_steps=max_ponder_steps, eps=ponder_epsilon, optimize=True)
 
     def forward(self, input_var, input_lengths=None):
         """
@@ -78,34 +70,9 @@ class EncoderRNN(BaseRNN):
         padded_embeddings = embedded
 
         # TODO: Ponderer currently does not support PackedSequence input. This means we will unroll and also run for <pad> inputs
-        if self.variable_lengths and not self.use_pondering:
+        if self.variable_lengths:
             embedded = nn.utils.rnn.pack_padded_sequence(embedded, input_lengths, batch_first=True)
-
-        # Unroll to support pondering
-        if self.use_pondering:
-            batch_size, input_length = input_var.size()
-            # Init hidden0
-            if self.rnn_cell == nn.LSTM:
-                hidden = (
-                    torch.zeros([self.n_layers, batch_size, self.hidden_size], device=device),
-                    torch.zeros([self.n_layers, batch_size, self.hidden_size], device=device)
-                    )
-            else:
-                hidden = torch.zeros([self.n_layers, batch_size, self.hidden_size], device=device)
-
-            output_list = []
-            ponder_penalties = []
-            for i in range(input_length):
-                output, hidden, _, ponder_penalty = self.rnn(embedded[:, i, :].unsqueeze(1), hidden)
-                output_list.append(output.squeeze(1))
-                ponder_penalties.append(ponder_penalty)
-            output = torch.stack(output_list, dim=1)
-            other = {self.ponder_key: ponder_penalties}
-        else:
             output, hidden = self.rnn(embedded)
-            other = {}
-
-        if self.variable_lengths and not self.use_pondering:
             output, _ = nn.utils.rnn.pad_packed_sequence(output, batch_first=True)
 
-        return padded_embeddings, hidden, output, other
+        return padded_embeddings, hidden, output

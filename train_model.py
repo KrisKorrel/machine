@@ -81,13 +81,6 @@ parser.add_argument('--attn_vals', type=str, choices=['understander_encoder_embe
 parser.add_argument('--full_attention_focus', choices=['yes', 'no'], default='no', help='Indicate whether to multiply the hidden state of the decoder with the context vector')
 parser.add_argument('--dropout_enc_dec', default='0', type=float, help="If the executor decoder is initialized with it's last encoder state, you can optionally add dropout between the encoder and decoder")
 
-# Ponder arguments
-parser.add_argument('--ponder_encoder', action='store_true', help='Use ACT pondering for the encoder')
-parser.add_argument('--ponder_decoder', action='store_true', help='Use ACT pondering for the decoder')
-parser.add_argument('--max_ponder_steps', type=int, default=100, help='Hard maximum number of ponder steps')
-parser.add_argument('--ponder_epsilon', type=float, default=0.01, help='Epsilon for ACT to allow only 1 ponder step')
-parser.add_argument('--ponder_penalty_scale', type=float, default=0.01, help='Scale of the ponder penalty loss')
-
 opt = parser.parse_args()
 IGNORE_INDEX=-1
 use_output_eos = not opt.ignore_output_eos
@@ -224,11 +217,7 @@ else:
                                       n_layers=opt.n_layers,
                                       bidirectional=opt.bidirectional,
                                       rnn_cell=opt.rnn_cell,
-                                      variable_lengths=True,
-                                      ponder=opt.ponder_encoder,
-                                      max_ponder_steps=opt.max_ponder_steps,
-                                      ponder_epsilon=opt.ponder_epsilon,
-                                      ponder_key='understander_encoder_ponder_penalty')
+                                      variable_lengths=True)
     executor_encoder = EncoderRNN(len(src.vocab),
                                   max_len,
                                   hidden_size,
@@ -237,11 +226,7 @@ else:
                                   n_layers=opt.n_layers,
                                   bidirectional=opt.bidirectional,
                                   rnn_cell=opt.rnn_cell,
-                                  variable_lengths=True,
-                                  ponder=opt.ponder_encoder,
-                                  max_ponder_steps=opt.max_ponder_steps,
-                                  ponder_epsilon=opt.ponder_epsilon,
-                                  ponder_key='executor_encoder_ponder_penalty')
+                                  variable_lengths=True)
     decoder = DecoderRNN(len(tgt.vocab), max_len, decoder_hidden_size,
                          dropout_p=opt.dropout_p_decoder,
                          n_layers=opt.n_layers,
@@ -261,10 +246,7 @@ else:
                          init_exec_dec_with=opt.init_exec_dec_with,
                          attn_keys=opt.attn_keys,
                          attn_vals=opt.attn_vals,
-                         full_attention_focus=opt.full_attention_focus,
-                         ponder=opt.ponder_decoder,
-                         max_ponder_steps=opt.max_ponder_steps,
-                         ponder_epsilon=opt.ponder_epsilon)
+                         full_attention_focus=opt.full_attention_focus)
     seq2seq = Seq2seq(understander_encoder, executor_encoder, decoder, dropout_enc_dec=opt.dropout_enc_dec)
     seq2seq.to(device)
 
