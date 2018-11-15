@@ -16,7 +16,7 @@ from collections import OrderedDict
 import machine
 from machine.trainer import SupervisedTrainer
 from machine.models import EncoderRNN, DecoderRNN, Seq2seq, Understander
-from machine.loss import Perplexity, AttentionLoss, NLLLoss, PonderLoss
+from machine.loss import Perplexity, AttentionLoss, NLLLoss
 from machine.metrics import WordAccuracy, SequenceAccuracy, FinalTargetAccuracy, SymbolRewritingAccuracy, BLEU
 from machine.optim import Optimizer
 from machine.dataset import SourceField, TargetField, AttentionField
@@ -302,17 +302,6 @@ pad = output_vocab.stoi[tgt.pad_token]
 losses = [NLLLoss(ignore_index=pad)]
 # loss_weights = [1.]
 loss_weights = [float(opt.xent_loss)]
-
-if opt.ponder_encoder:
-    losses.append(PonderLoss(name="Understander encoder ponder penalty", log_name="understander_encoder_ponder_loss", identifier="understander_encoder_ponder_penalty"))
-    loss_weights.append(opt.ponder_penalty_scale)
-
-    losses.append(PonderLoss(name="Executor encoder ponder penalty", log_name="executor_encoder_ponder_loss", identifier="executor_encoder_ponder_penalty"))
-    loss_weights.append(opt.ponder_penalty_scale)
-
-if opt.ponder_decoder:
-    losses.append(PonderLoss(name="Decoder ponder penalty", log_name="decoder_ponder_loss", identifier="decoder_ponder_penalty"))
-    loss_weights.append(opt.ponder_penalty_scale)
 
 if opt.use_attention_loss:
     losses.append(AttentionLoss(ignore_index=IGNORE_INDEX))
