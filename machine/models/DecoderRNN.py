@@ -6,13 +6,12 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from .attention import Attention, HardGuidance, ProvidedAttentionVectors
+from .attention import Attention, HardGuidance
 from .baseRNN import BaseRNN
 from .seq2attn import Seq2attn
 from .DecoderRNNModel import DecoderRNNModel
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
 
 class DecoderRNN(nn.Module):
     """
@@ -100,8 +99,7 @@ class DecoderRNN(nn.Module):
             self.attn_vals = 'encoder_outputs'
 
         # increase input size decoder if attention is applied before decoder rnn
-        if True:
-            self.decoder_model = Seq2attn(
+        self.decoder_model = Seq2attn(
                 rnn_cell=rnn_cell,
                 embedding_dim=embedding_dim,
                 hidden_dim=hidden_size,
@@ -119,22 +117,15 @@ class DecoderRNN(nn.Module):
                 full_focus=full_focus,
                 full_attention_focus=full_attention_focus)
 
-        else:
-            # TODO: Currently we do not use this anymore. We use seq2attn for baseline as well.
-            self.decoder_model = DecoderRNNModel(vocab_size, max_len, hidden_size, sos_id, eos_id, n_layers,
-                                             rnn_cell, bidirectional, input_dropout_p, dropout_p, use_attention, attention_method, full_focus)
-
-            assert attn_keys == attn_vals == 'outputs', "For the baseline, only regular attention is supported"
-
         # If we initialize the executor's decoder with a new vector instead of the last encoder state
         # We initialize it as parameter here.
         if self.rnn_type == 'lstm':
-            self.executor_hidden0 = (
+            self.decoder_hidden0 = (
                 nn.Parameter(torch.zeros([self.n_layers, 1, self.hidden_size], device=device)),
                 nn.Parameter(torch.zeros([self.n_layers, 1, self.hidden_size], device=device)))
 
         elif self.rnn_type == 'gru':
-            self.executor_hidden0 = nn.Parameter(torch.zeros([self.n_layers, 1, self.hidden_size], device=device))
+            self.decoder_hidden0 = nn.Parameter(torch.zeros([self.n_layers, 1, self.hidden_size], device=device))
 
         if use_attention == 'post-rnn':
             self.out = nn.Linear(2 * self.hidden_size, vocab_size)
@@ -179,7 +170,7 @@ class DecoderRNN(nn.Module):
 
     def forward(self, inputs=None,
                 encoder_embeddings=None, encoder_hidden=None, encoder_outputs=None,
-                teacher_forcing_ratio=0, provided_attention=None, provided_attention_vectors=None, possible_attn_vals=None):
+                teacher_forcing_ratio=0, provided_attention=None, possible_attn_vals=None):
         ret_dict = dict()
         if self.use_attention:
             ret_dict[DecoderRNN.KEY_ATTN_SCORE] = list()
@@ -199,10 +190,7 @@ class DecoderRNN(nn.Module):
         def decode(step, step_output, step_attn):
             decoder_outputs.append(step_output)
             if self.use_attention:
-                if not isinstance(step_attn, list):
-                    step_attn = [step_attn]
-                for s in step_attn:
-                    ret_dict[DecoderRNN.KEY_ATTN_SCORE].append(s)
+                ret_dict[DecoderRNN.KEY_ATTN_SCORE].append(step_attn)
             symbols = decoder_outputs[-1].topk(1)[1]
             sequence_symbols.append(symbols)
 
@@ -217,16 +205,12 @@ class DecoderRNN(nn.Module):
         attention_method_kwargs = {}
         if self.decoder_model.attention and isinstance(self.decoder_model.attention.method, HardGuidance):
             attention_method_kwargs['provided_attention'] = provided_attention
-        if self.decoder_model.attention and isinstance(self.decoder_model.attention.method, ProvidedAttentionVectors):
-            attention_method_kwargs['provided_attention_vectors'] = provided_attention_vectors
-            attention_method_kwargs['attn_vals'] = possible_attn_vals[self.attn_vals]
 
         # When we use pre-rnn attention we must unroll the decoder. We need to calculate the attention based on
         # the previous hidden state, before we can calculate the next hidden state.
         # We also need to unroll when we don't use teacher forcing. We need perform the decoder steps
         # one-by-one since the output needs to be copied to the input of the next step.
-        # TODO: Currently we always unroll
-        if self.use_attention == 'pre-rnn' or True or not use_teacher_forcing:
+        if self.use_attention == 'pre-rnn' or not use_teacher_forcing:
             unrolling = True
         else:
             unrolling = False
@@ -247,37 +231,29 @@ class DecoderRNN(nn.Module):
                     decoder_input = symbols
 
                 # Perform one forward step
-                if self.decoder_model.attention and (isinstance(self.decoder_model.attention.method, HardGuidance) or isinstance(self.decoder_model.attention.method, ProvidedAttentionVectors)):
+                if self.decoder_model.attention and isinstance(self.decoder_model.attention.method, HardGuidance):
                     attention_method_kwargs['step'] = di
 
-                return_values = self.forward_step(decoder_input,
-                                                  transcoder_hidden,
-                                                  decoder_hidden,
-                                                  attn_keys,
-                                                  attn_vals,
-                                                  **attention_method_kwargs)
-
-                decoder_output, transcoder_hidden, decoder_hidden, step_attn = return_values
-
-                if not isinstance(step_attn, list):
-                    step_attn = [(step_attn,)]
-
-                step_attn = [s[0] for s in step_attn]
+                decoder_output, transcoder_hidden, decoder_hidden, step_attn = self.forward_step(
+                    decoder_input,
+                    transcoder_hidden,
+                    decoder_hidden,
+                    attn_keys,
+                    attn_vals,
+                    **attention_method_kwargs)
 
                 # Remove the unnecessary dimension.
                 step_output = decoder_output.squeeze(1)
                 # Get the actual symbol
                 symbols = decode(di, step_output, step_attn)
 
-                # print(torch.stack(step_attn).transpose(0, 1).squeeze(2)[0])
-                # print("\n")
         else:
             # Remove last token of the longest output target in the batch. We don't have to run the last decoder step where the teacher forcing input is EOS (or the last output)
             # It still is run for shorter output targets in the batch
             decoder_input = inputs[:, :-1]
 
             # Forward step without unrolling
-            if self.decoder_model.attention and (isinstance(self.decoder_model.attention.method, HardGuidance) or isinstance(self.decoder_model.attention.method, ProvidedAttentionVectors)):
+            if self.decoder_model.attention and isinstance(self.decoder_model.attention.method, HardGuidance):
                 attention_method_kwargs['step'] = -1
 
             decoder_output, transcoder_hidden, decoder_hidden, attn = self.forward_step(
@@ -315,14 +291,14 @@ class DecoderRNN(nn.Module):
                 encoder_hidden = self._cat_directions(encoder_hidden)
 
         elif init_dec_with == 'new':
-            if isinstance(self.executor_hidden0, tuple):
+            if isinstance(self.decoder_hidden0, tuple):
                 batch_size = encoder_hidden[0].size(1)
                 encoder_hidden = (
-                    self.executor_hidden0[0].repeat(1, batch_size, 1),
-                    self.executor_hidden0[1].repeat(1, batch_size, 1))
+                    self.decoder_hidden0[0].repeat(1, batch_size, 1),
+                    self.decoder_hidden0[1].repeat(1, batch_size, 1))
             else:
                 batch_size = encoder_hidden.size(1)
-                encoder_hidden = self.executor_hidden0.repeat(1, batch_size, 1)
+                encoder_hidden = self.decoder_hidden0.repeat(1, batch_size, 1)
 
         return encoder_hidden
 

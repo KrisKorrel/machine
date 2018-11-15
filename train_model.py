@@ -301,14 +301,5 @@ seq2seq, logs = t.train(model=seq2seq,
                     checkpoint_path=checkpoint_path)
 
 if opt.write_logs:
-    # Write the final log
     output_path = os.path.join(opt.output_dir, opt.write_logs)
     logs.write_to_file(output_path)
-
-    # Write the temporary files created after each epoch
-    log_regex = re.compile('.*LOG_epoch_[0-9]+')
-    temp_logs = [f for f in os.listdir(opt.output_dir)
-                 if os.path.isfile(os.path.join(opt.output_dir, f))
-                 and re.match(log_regex, f)]
-    for temp_log in temp_logs:
-      os.remove(os.path.join(opt.output_dir, temp_log))

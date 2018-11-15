@@ -23,6 +23,7 @@ class EncoderRNN(BaseRNN):
         - **inputs**: list of sequences, whose length is the batch size and within which each sequence is a list of token IDs.
         - **input_lengths** (list of int, optional): list that contains the lengths of sequences
             in the mini-batch, it must be provided when using variable length RNN (default: `None`)
+            
     Outputs: output, hidden
         - **output** (batch, seq_len, hidden_size): tensor containing the encoded features of the input sequence
         - **hidden** (num_layers * num_directions, batch, hidden_size): tensor containing the features in the hidden state `h`
@@ -41,8 +42,6 @@ class EncoderRNN(BaseRNN):
                 input_dropout_p, dropout_p, n_layers, rnn_cell)
 
         self.embedding_size = embedding_size
-        self.hidden_size = hidden_size
-        self.n_layers = n_layers
         self.variable_lengths = variable_lengths
         self.embedding = nn.Embedding(vocab_size, embedding_size)
         self.rnn = self.rnn_cell(embedding_size, hidden_size, n_layers,
