@@ -13,18 +13,11 @@ from collections import defaultdict
 
 import machine
 from machine.evaluator import Evaluator
-from machine.loss import NLLLoss
-from machine.metrics import SymbolRewritingAccuracy
+from machine.loss import NLLLoss, AttentionLoss
+from machine.metrics import WordAccuracy
 from machine.optim import Optimizer
 from machine.util.checkpoint import Checkpoint
 from machine.util.log import Log
-
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
-try:
-    raw_input          # Python 2
-except NameError:
-    raw_input = input  # Python 3
 
 class SupervisedTrainer(object):
     """ The SupervisedTrainer class helps in setting up a training framework in a
@@ -41,7 +34,7 @@ class SupervisedTrainer(object):
     """
     def __init__(self, expt_dir='experiment', loss=[NLLLoss()], loss_weights=None, metrics=[], batch_size=64, eval_batch_size=128,
                  random_seed=None,
-                 checkpoint_every=100, print_every=100, write_logs=False):
+                 checkpoint_every=100, print_every=100):
         self._trainer = "Simple Trainer"
         self.random_seed = random_seed
         if random_seed is not None:
@@ -53,7 +46,6 @@ class SupervisedTrainer(object):
         self.loss_weights = loss_weights or len(loss)*[1.]
         self.evaluator = Evaluator(loss=self.loss, metrics=self.metrics, batch_size=eval_batch_size)
         self.optimizer = None
-        self.total_optimizer = None
         self.checkpoint_every = checkpoint_every
         self.print_every = print_every
 
@@ -66,31 +58,26 @@ class SupervisedTrainer(object):
 
         self.logger = logging.getLogger(__name__)
 
-        self.write_logs = write_logs
-
     def _train_batch(self, input_variable, input_lengths, target_variable, model, teacher_forcing_ratio):
         loss = self.loss
 
-        decoder_outputs, decoder_hidden, other = model.forward(
-            input_variable=input_variable,
-            input_lengths=input_lengths.tolist(),
-            target_variables=target_variable,
-            teacher_forcing_ratio=teacher_forcing_ratio)
+        # Forward propagation
+        decoder_outputs, decoder_hidden, other = model(input_variable, input_lengths, target_variable, teacher_forcing_ratio=teacher_forcing_ratio)
 
-        model.zero_grad()
-        
-        # Calculate the losses of the executor
         losses = self.evaluator.compute_batch_loss(decoder_outputs, decoder_hidden, other, target_variable)
-
-        for i, loss in enumerate(losses):
+        
+        # Backward propagation
+        for i, loss in enumerate(losses, 0):
             loss.scale_loss(self.loss_weights[i])
             loss.backward(retain_graph=True)
         self.optimizer.step()
+        model.zero_grad()
 
         return losses
 
     def _train_epoches(self, data, model, n_epochs, start_epoch, start_step,
-                       dev_data=None, monitor_data=[], teacher_forcing_ratio=0, top_k=5):
+                       dev_data=None, monitor_data=[], teacher_forcing_ratio=0,
+                       top_k=5):
         log = self.logger
 
         print_loss_total = defaultdict(float)  # Reset every print_every
@@ -118,13 +105,6 @@ class SupervisedTrainer(object):
         total_loss, log_msg, model_name = self.get_losses(losses, metrics, step)
         log.info(log_msg)
 
-        # For the SR task we look at SR accuracy instead of validation loss.
-        # We take the negative, as the checks still work then. Kinda hacky..
-        for metric in metrics:
-            if isinstance(metric, SymbolRewritingAccuracy):
-                total_loss = -1 * metric.get_val()
-                print(total_loss)
-
         logs = Log()
         loss_best = top_k*[total_loss]
         best_checkpoints = top_k*[None]
@@ -136,13 +116,8 @@ class SupervisedTrainer(object):
                    input_vocab=data.fields[machine.src_field_name].vocab,
                    output_vocab=data.fields[machine.tgt_field_name].vocab).save(self.expt_dir, name=model_name)
 
-        for epoch in range(start_epoch, n_epochs + 1):
-            try:
-                if model.decoder.decoder_model.attention.current_temperature is not None:
-                    log.info("Example temperature: {}".format(model.decoder.decoder_model.attention.current_temperature[0].item()))
-            except Exception:
-                pass
 
+        for epoch in range(start_epoch, n_epochs + 1):
             log.info("Epoch: %d, Step: %d" % (epoch, step))
 
             batch_generator = batch_iterator.__iter__()
@@ -158,7 +133,7 @@ class SupervisedTrainer(object):
 
                 input_variables, input_lengths, target_variables = self.get_batch_data(batch)
 
-                losses = self._train_batch(input_variables, input_lengths, target_variables, model, teacher_forcing_ratio)
+                losses = self._train_batch(input_variables, input_lengths.tolist(), target_variables, model, teacher_forcing_ratio)
 
                 # Record average loss
                 for loss in losses:
@@ -190,7 +165,7 @@ class SupervisedTrainer(object):
 
                     all_losses = ' '.join(['%s:\t %s\n' % (os.path.basename(name), m_logs[name]) for name in m_logs])
 
-                    log_msg = 'Progress %d%%\n%s' % (
+                    log_msg = 'Progress %d%%, %s' % (
                             step / total_steps * 100,
                             all_losses)
 
@@ -202,13 +177,7 @@ class SupervisedTrainer(object):
                     losses, metrics = self.evaluator.evaluate(model, val_data, self.get_batch_data)
                     total_loss, log_msg, model_name = self.get_losses(losses, metrics, step)
 
-                    # For the SR task we look at SR accuracy instead of validation loss.
-                    # We take the negative, as the checks still work then. Kinda hacky..
-                    for metric in metrics:
-                        if isinstance(metric, SymbolRewritingAccuracy):
-                            total_loss = -1 * metric.get_val()
                     max_eval_loss = max(loss_best)
-
                     if total_loss < max_eval_loss:
                             index_max = loss_best.index(max_eval_loss)
                             # rm prev model
@@ -236,29 +205,19 @@ class SupervisedTrainer(object):
 
                 self.optimizer.update(loss_total, epoch)    # TODO check if this makes sense!
                 log_msg += ", Dev set: " + log_
-
-
-                losses, metrics = self.evaluator.evaluate(model, data, self.get_batch_data)
-                loss_total, log_, model_name = self.get_losses(losses, metrics, step)
-
-                log_msg += ", Train set: " + log_
-
                 model.train(mode=True)
             else:
                 self.optimizer.update(epoch_loss_avg, epoch) # TODO check if this makes sense!
 
             log.info(log_msg)
 
-            if self.write_logs:
-                output_path = os.path.join(self.expt_dir, self.write_logs + '_epoch_{}'.format(epoch))
-                logs.write_to_file(output_path)
-
         return logs
 
     def train(self, model, data, num_epochs=5,
-              resume=False, dev_data=None, optimizer=None,
-              teacher_forcing_ratio=0, monitor_data={},
-              learning_rate=0.001, checkpoint_path=None, top_k=1):
+              resume=False, dev_data=None, 
+              monitor_data={}, optimizer=None,
+              teacher_forcing_ratio=0,
+              learning_rate=0.001, checkpoint_path=None, top_k=5):
         """ Run training for a given model.
 
         Args:
@@ -303,7 +262,9 @@ class SupervisedTrainer(object):
                            None:optim.Adam}
                 return optims[optim_name]
 
-            self.optimizer = Optimizer(get_optim(optimizer)(model.parameters(), lr=learning_rate),max_grad_norm=5)
+            self.optimizer = Optimizer(get_optim(optimizer)(model.parameters(), lr=learning_rate),
+                                       max_grad_norm=5)
+
         self.logger.info("Optimizer: %s, Scheduler: %s" % (self.optimizer.optimizer, self.optimizer.scheduler))
 
         logs = self._train_epoches(data, model, num_epochs,
@@ -311,7 +272,6 @@ class SupervisedTrainer(object):
                             monitor_data=monitor_data,
                             teacher_forcing_ratio=teacher_forcing_ratio,
                             top_k=top_k)
-
         return model, logs
 
     @staticmethod

@@ -292,8 +292,7 @@ t = SupervisedTrainer(loss=losses,
                       eval_batch_size=opt.eval_batch_size,
                       checkpoint_every=opt.save_every,
                       print_every=opt.print_every,
-                      expt_dir=opt.output_dir,
-                      write_logs=opt.write_logs) 
+                      expt_dir=opt.output_dir) 
 
 seq2seq, logs = t.train(model=seq2seq,
                     data=train,
