@@ -18,6 +18,7 @@ class Attention(nn.Module):
     Args:
         dim(int): The number of expected features in the output
         method(str): The method to compute the alignment, mlp or dot
+        attention_activation (AttentionActivation): Activation function for attention vector
 
     Inputs: output, context
         - **output** (batch, output_len, dimensions): tensor containing the output features from the decoder.
@@ -57,12 +58,15 @@ class Attention(nn.Module):
         self.mask = mask
 
     def forward(self, queries, keys, values, **attention_method_kwargs):
+        # Queries must have time dimensionality
         if queries.dim() == 2:
             queries = queries.unsqueeze(1)
+
+        # Get relevant dimensions
         batch_size, _, queries_dim = queries.size()
 
-        # compute mask
-        # TODO: Only works when keys are (full) hidden states. Maybe we should pass the mask (set_mask)
+        # Compute mask
+        # This only works when keys are hidden states. Embeddings are not 0 for <pad>
         mask = keys.eq(0.)[:, :, :1].transpose(1, 2)
 
         # Compute attention vals
@@ -74,12 +78,15 @@ class Attention(nn.Module):
         # apply local mask
         attn.masked_fill_(mask, -float('inf'))
 
-        # TODO: Double, triple quadruple check whether the mask is correct, we don't take softmax more than once, etc.
+        # Sample/activate the attention vector
         attn = self.attention_activation(attn, mask, queries)
 
+        # Check whether attention vectors sum up to 1
         number_of_attention_vectors = attn.size(0) * attn.size(1)
-        eps =  1e-2 * number_of_attention_vectors
-        assert abs(torch.sum(attn) - number_of_attention_vectors) < eps, "Sum: {}, Number of attention vectors: {}".format(torch.sum(attn), number_of_attention_vectors)
+        eps = 1e-2 * number_of_attention_vectors
+        assert abs(torch.sum(attn) - number_of_attention_vectors) < eps, \
+            "Sum: {}, Number of attention vectors: {}".format(torch.sum(attn),
+                                                              number_of_attention_vectors)
 
         # (batch, out_len, in_len) * (batch, in_len, dim) -> (batch, out_len, dim)
         context = torch.bmm(attn, values)
