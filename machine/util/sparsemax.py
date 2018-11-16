@@ -3,6 +3,8 @@
 Pytorch implementation of Sparsemax function from:
 -- "From Softmax to Sparsemax: A Sparse Model of Attention and Multi-Label Classification"
 -- Andre F. T. Martins, Ramon Fernandez Astudillo (http://arxiv.org/abs/1602.02068)
+
+This is a Pytorch port of https://github.com/gokceneraslan/SparseMax.torch/
 """
 
 from __future__ import division
