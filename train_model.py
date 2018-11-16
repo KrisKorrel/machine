@@ -1,26 +1,26 @@
-import os
+"""Train Seq2Attn model."""
+
 import argparse
+from collections import OrderedDict
 import logging
-import re
-import warnings
+import os
 
 import torch
-from torch.optim.lr_scheduler import StepLR
 import torchtext
 
-import random
-import pickle
-
-from collections import OrderedDict
-
-import machine
+from machine.dataset import AttentionField
+from machine.dataset import SourceField
+from machine.dataset import TargetField
+from machine.loss import AttentionLoss
+from machine.loss import NLLLoss
+from machine.metrics import FinalTargetAccuracy
+from machine.metrics import SequenceAccuracy
+from machine.metrics import SymbolRewritingAccuracy
+from machine.metrics import WordAccuracy
+from machine.models import EncoderRNN
+from machine.models import Seq2AttnDecoder
+from machine.models import Seq2seq
 from machine.trainer import SupervisedTrainer
-from machine.models import EncoderRNN, Seq2AttnDecoder, Seq2seq
-from machine.loss import Perplexity, AttentionLoss, NLLLoss
-from machine.metrics import WordAccuracy, SequenceAccuracy, FinalTargetAccuracy, SymbolRewritingAccuracy
-from machine.optim import Optimizer
-from machine.dataset import SourceField, TargetField, AttentionField
-from machine.evaluator import Predictor, Evaluator
 from machine.util.checkpoint import Checkpoint
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -69,17 +69,16 @@ parser.add_argument('--log-level', default='info', help='Logging level.')
 parser.add_argument('--write-logs', help='Specify file to write logs to after training')
 parser.add_argument('--cuda_device', default=0, type=int, help='set cuda device to use')
 
-# Arguments for the UE model
-parser.add_argument('--sample_train', type=str, choices=['softmax', 'softmax_st', 'gumbel', 'gumbel_st', 'sparsemax'], help='When training seq2attn, we can use the full attention vector, sparsemax, or sample using gumbel (ST) at training time')
-parser.add_argument('--sample_infer', type=str, choices=['softmax', 'softmax_st', 'gumbel', 'gumbel_st', 'sparsemax', 'argmax'], help='When training seq2attn, we can use the full attention vector, sample using gumbel (ST), sparsemax, or use argmax at inference time')
-parser.add_argument('--initial_temperature', type=float, default=1, help='(Initial) temperature to use for gumbel-softmax')
+# Arguments for the Seq2Attn model
+parser.add_argument('--sample_train', type=str, choices=['softmax', 'softmax_st', 'gumbel', 'gumbel_st', 'sparsemax'], help='During training, activate the attention vector using Softmax (ST), Gumbel-Softmax (ST) or Sparsemax')
+parser.add_argument('--sample_infer', type=str, choices=['softmax', 'softmax_st', 'gumbel', 'gumbel_st', 'sparsemax', 'argmax'], help='During testing, activate the attention vector using Softmax (ST), Gumbel-Softmax (ST), argmax or Sparsemax')
+parser.add_argument('--initial_temperature', type=float, default=1, help='(Initial) temperature to use for Gumbel-Softmax or Softmax ST')
 parser.add_argument('--learn_temperature', type=str, choices=['no', 'latent', 'conditioned'], help='Whether the temperature should be a learnable parameter. And whether it should be conditioned')
-parser.add_argument('--attn_keys', type=str, choices=['outputs', 'embeddings'], default='outputs')
-parser.add_argument('--attn_vals', type=str, choices=['outputs', 'embeddings'], default='outputs')
+parser.add_argument('--attn_vals', type=str, choices=['outputs', 'embeddings'], default='outputs', help="Attend to hidden states or embeddings.")
 parser.add_argument('--full_attention_focus', choices=['yes', 'no'], default='no', help='Indicate whether to multiply the hidden state of the decoder with the context vector')
 
 opt = parser.parse_args()
-IGNORE_INDEX=-1
+IGNORE_INDEX = -1
 use_output_eos = not opt.ignore_output_eos
 
 LOG_FORMAT = '%(asctime)s %(name)-12s %(levelname)-8s %(message)s'
@@ -122,6 +121,7 @@ if opt.use_attention_loss or opt.attention_method == 'hard':
     tabular_data_fields.append(('attn', attn))
 
 max_len = opt.max_len
+
 
 def len_filter(example):
     return len(example.src) <= max_len and len(example.tgt) <= max_len
@@ -207,15 +207,16 @@ else:
     hidden_size = opt.hidden_size
     decoder_hidden_size = hidden_size*2 if opt.bidirectional else hidden_size
     seq2attn_encoder = EncoderRNN(len(src.vocab),
-                                      max_len,
-                                      hidden_size,
-                                      opt.embedding_size,
-                                      dropout_p=opt.dropout_p_encoder,
-                                      n_layers=opt.n_layers,
-                                      bidirectional=opt.bidirectional,
-                                      rnn_cell=opt.rnn_cell,
-                                      variable_lengths=True)
-    decoder = Seq2AttnDecoder(len(tgt.vocab), max_len, decoder_hidden_size,
+                                  max_len,
+                                  hidden_size,
+                                  opt.embedding_size,
+                                  dropout_p=opt.dropout_p_encoder,
+                                  n_layers=opt.n_layers,
+                                  bidirectional=opt.bidirectional,
+                                  rnn_cell=opt.rnn_cell,
+                                  variable_lengths=True)
+    decoder = Seq2AttnDecoder(
+                         len(tgt.vocab), max_len, decoder_hidden_size,
                          dropout_p=opt.dropout_p_decoder,
                          n_layers=opt.n_layers,
                          use_attention=opt.attention,
@@ -238,7 +239,8 @@ else:
 
     for param in seq2seq.named_parameters():
         name, data = param[0], param[1].data
-        if "halt_layer.bias" not in name and 'temperature' not in name:
+        # Don't reinitialize temperature
+        if 'temperature' not in name:
             data.uniform_(-0.08, 0.08)
 
 input_vocabulary = input_vocab.itos
@@ -268,37 +270,36 @@ if 'seq_acc' in opt.metrics:
 if 'target_acc' in opt.metrics:
     metrics.append(FinalTargetAccuracy(ignore_index=pad, eos_id=tgt.eos_id))
 if 'sym_rwr_acc' in opt.metrics:
-    metrics.append(SymbolRewritingAccuracy(
-        input_vocab=input_vocab,
-        output_vocab=output_vocab,
-        use_output_eos=use_output_eos,
-        output_sos_symbol=tgt.SYM_SOS,
-        output_pad_symbol=tgt.pad_token,
-        output_eos_symbol=tgt.SYM_EOS,
-        output_unk_symbol=tgt.unk_token))
+    metrics.append(SymbolRewritingAccuracy(input_vocab=input_vocab,
+                                           output_vocab=output_vocab,
+                                           use_output_eos=use_output_eos,
+                                           output_sos_symbol=tgt.SYM_SOS,
+                                           output_pad_symbol=tgt.pad_token,
+                                           output_eos_symbol=tgt.SYM_EOS,
+                                           output_unk_symbol=tgt.unk_token))
 
 checkpoint_path = os.path.join(opt.output_dir, opt.load_checkpoint) if opt.resume else None
 
 # create trainer
 t = SupervisedTrainer(loss=losses,
-                      metrics=metrics, 
+                      metrics=metrics,
                       loss_weights=loss_weights,
                       batch_size=opt.batch_size,
                       eval_batch_size=opt.eval_batch_size,
                       checkpoint_every=opt.save_every,
                       print_every=opt.print_every,
-                      expt_dir=opt.output_dir) 
+                      expt_dir=opt.output_dir)
 
 seq2seq, logs = t.train(model=seq2seq,
-                    data=train,
-                    dev_data=dev,
-                    monitor_data=monitor_data,
-                    num_epochs=opt.epochs,
-                    optimizer=opt.optim,
-                    teacher_forcing_ratio=opt.teacher_forcing_ratio,
-                    learning_rate=opt.lr,
-                    resume=opt.resume,
-                    checkpoint_path=checkpoint_path)
+                        data=train,
+                        dev_data=dev,
+                        monitor_data=monitor_data,
+                        num_epochs=opt.epochs,
+                        optimizer=opt.optim,
+                        teacher_forcing_ratio=opt.teacher_forcing_ratio,
+                        learning_rate=opt.lr,
+                        resume=opt.resume,
+                        checkpoint_path=checkpoint_path)
 
 if opt.write_logs:
     output_path = os.path.join(opt.output_dir, opt.write_logs)
