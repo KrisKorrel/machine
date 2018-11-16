@@ -70,10 +70,10 @@ parser.add_argument('--write-logs', help='Specify file to write logs to after tr
 parser.add_argument('--cuda_device', default=0, type=int, help='set cuda device to use')
 
 # Arguments for the UE model
-parser.add_argument('--sample_train', type=str, choices=['full', 'full_hard', 'gumbel_soft', 'gumbel_hard', 'sparsemax'], help='When training UE in a supervised setting, we can use the full attention vector, sparsemax, or sample using gumbel (ST) at training time')
-parser.add_argument('--sample_infer', type=str, choices=['full', 'full_hard', 'gumbel_soft', 'gumbel_hard', 'argmax', 'sparsemax'], help='When training UE in a supervised setting, we can use the full attention vector, sample using gumbel (ST), sparsemax, or use argmax at inference time')
+parser.add_argument('--sample_train', type=str, choices=['softmax', 'softmax_st', 'gumbel', 'gumbel_st', 'sparsemax'], help='When training seq2attn, we can use the full attention vector, sparsemax, or sample using gumbel (ST) at training time')
+parser.add_argument('--sample_infer', type=str, choices=['softmax', 'softmax_st', 'gumbel', 'gumbel_st', 'sparsemax', 'argmax'], help='When training seq2attn, we can use the full attention vector, sample using gumbel (ST), sparsemax, or use argmax at inference time')
 parser.add_argument('--initial_temperature', type=float, default=1, help='(Initial) temperature to use for gumbel-softmax')
-parser.add_argument('--learn_temperature', type=str, choices=['no', 'unconditioned', 'conditioned'], help='Whether the temperature should be a learnable parameter. And whether it should be conditioned')
+parser.add_argument('--learn_temperature', type=str, choices=['no', 'latent', 'conditioned'], help='Whether the temperature should be a learnable parameter. And whether it should be conditioned')
 parser.add_argument('--attn_keys', type=str, choices=['outputs', 'embeddings'], default='outputs')
 parser.add_argument('--attn_vals', type=str, choices=['outputs', 'embeddings'], default='outputs')
 parser.add_argument('--full_attention_focus', choices=['yes', 'no'], default='no', help='Indicate whether to multiply the hidden state of the decoder with the context vector')

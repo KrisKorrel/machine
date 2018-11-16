@@ -184,10 +184,28 @@ class Seq2AttnDecoder(nn.Module):
         # Initialize models
         seq2attn_input_size = hidden_dim
 
-        self.transcoder = rnn_cell(seq2attn_input_size, hidden_dim, n_layers, batch_first=True, dropout=dropout_p)
-        attention_activation = AttentionActivation(sample_train=sample_train, sample_infer=sample_infer, learn_temperature=learn_temperature, initial_temperature=initial_temperature)
-        self.attention = Attention(input_dim=hidden_dim+key_dim, output_dim=hidden_dim, method=attention_method, attention_activation=attention_activation)
-        self.decoder = rnn_cell(input_size, hidden_dim, n_layers, batch_first=True, dropout=dropout_p)
+        self.transcoder = rnn_cell(
+            seq2attn_input_size,
+            hidden_dim, n_layers,
+            batch_first=True,
+            dropout=dropout_p)
+        attention_activation = AttentionActivation(
+            sample_train=sample_train,
+            sample_infer=sample_infer,
+            learn_temperature=learn_temperature,
+            initial_temperature=initial_temperature,
+            query_dim=hidden_dim)
+        self.attention = Attention(
+            input_dim=hidden_dim+key_dim,
+            output_dim=hidden_dim,
+            method=attention_method,
+            attention_activation=attention_activation)
+        self.decoder = rnn_cell(
+            input_size,
+            hidden_dim,
+            n_layers,
+            batch_first=True,
+            dropout=dropout_p)
 
         self.full_focus = full_focus
         if self.full_focus:

@@ -81,13 +81,6 @@ class Attention(nn.Module):
         # Sample/activate the attention vector
         attn = self.attention_activation(attn, mask, queries)
 
-        # Check whether attention vectors sum up to 1
-        number_of_attention_vectors = attn.size(0) * attn.size(1)
-        eps = 1e-2 * number_of_attention_vectors
-        assert abs(torch.sum(attn) - number_of_attention_vectors) < eps, \
-            "Sum: {}, Number of attention vectors: {}".format(torch.sum(attn),
-                                                              number_of_attention_vectors)
-
         # (batch, out_len, in_len) * (batch, in_len, dim) -> (batch, out_len, dim)
         context = torch.bmm(attn, values)
 
